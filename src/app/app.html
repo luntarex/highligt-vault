@@ -1,5 +1,5 @@
 <div class="app-container">
-  <app-sidebar (uploadClicked)="onUploadClick()"></app-sidebar>
+  <app-sidebar *ngIf="!isAuthPage" (uploadClicked)="onUploadClick()"></app-sidebar>
   <div class="main-content">
     <router-outlet></router-outlet>
   </div>

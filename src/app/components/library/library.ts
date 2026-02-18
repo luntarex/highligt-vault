@@ -6,6 +6,7 @@ import { Clip } from '../../models/clip'
 import { CustomDropdownComponent } from '../custom-dropdown/custom-dropdown';
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { FormsModule } from '@angular/forms';
+import { User } from '../../models/user';
 
 
 @Component({
@@ -21,11 +22,17 @@ export class Library implements OnInit {
   sortOptions = ['Date', 'Duration'];
 
   clips: Clip[] = [];
-
+  user!: User;
   constructor(private clipService: ClipService) {}
 
   ngOnInit(): void {
    this.clips = this.clipService.getClips();
+   this.user = {
+      id: '1',
+      username: 'Haluk',
+      email: 'haluk@example.com',
+      profilePhotoUrl: 'https://i.pravatar.cc/150?img=3'
+   };
   }
   handleDelete(id: number) {
     this.clipService.deleteClip(id);

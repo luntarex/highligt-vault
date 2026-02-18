@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Sidebar } from "./components/sidebar/sidebar";
 import { Library } from './components/library/library';
 import { CustomUpload } from './components/custom-upload/custom-upload';
@@ -14,6 +14,15 @@ import { CustomUpload } from './components/custom-upload/custom-upload';
 export class App {
   protected readonly title = signal('highlight-vault');
   protected showUpload = false;
+  protected isAuthPage = false;
+
+  constructor(private router: Router) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.isAuthPage = ['/register', '/login'].includes(event.urlAfterRedirects);
+      }
+    });
+  }
 
   onUploadClick() {
     this.showUpload = true;
