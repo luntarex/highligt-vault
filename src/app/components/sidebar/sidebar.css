@@ -1,0 +1,205 @@
+
+.sidebar-container {
+    width: 260px;
+    height: 100vh;
+    background-color: hsl(0, 0%, 10%);
+    border-right: 1px solid hsl(0, 0%, 18%);
+    padding: 24px 12px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+
+    transition: width 0.3s ease;
+}
+
+.sidebar-container.collapsed {
+    width: 80px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    height: 30px;
+}
+
+.sidebar-title {
+    color: hsl(0, 0%, 95%);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    padding-left: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: hsl(0, 0%, 60%);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white;
+}
+
+.sidebar-container.collapsed .toggle-btn {
+    transform: rotate(180deg);
+    margin: 0 auto;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: hsl(0, 0%, 75%);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    height: 44px;
+    overflow: hidden;
+}
+
+.sidebar-container.collapsed .nav-links a {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.link-text {
+    margin-left: 12px;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-container.collapsed .link-text {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+    display: none;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(0.8);
+    flex-shrink: 0;
+}
+
+.separator {
+    height: 1px;
+    background-color: hsl(0, 0%, 18%);
+    margin: 20px 0;
+    width: 100%;
+}
+
+.playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 12px;
+}
+
+.playlist-title, .add-btn {
+    color: hsl(0, 0%, 55%);
+}
+
+.add-btn {
+    background: none;
+    border: none;
+    color: hsl(0, 0%, 60%);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.add-btn:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white;
+}
+
+.add-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(0.8);
+}
+
+.toggle-icon {
+    width: 24px;
+    height: 24px;
+    filter: invert(0.6);
+    transition: 0.2s;
+}
+
+.toggle-btn:hover .toggle-icon {
+    filter: invert(1);
+}
+
+.sidebar-container.collapsed .toggle-btn {
+    transform: rotate(180deg);
+}
+
+.upload-btn {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 10px 12px;
+}
+
+.upload-btn button {
+    background: none;
+    border: none;
+    color: hsl(0, 0%, 75%);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+.upload-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(0.8);
+}
+
+.upload-text {
+    color: hsl(0, 0%, 75%);
+    margin-left: 12px;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    font-size: large;
+}
+
+.sidebar-container.collapsed .upload-text {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+    display: none;
+}

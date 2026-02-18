@@ -1,0 +1,72 @@
+.dropdown-container {
+  position: relative;
+  width: 200px;
+  font-family: 'Inter', sans-serif;
+}
+
+.dropdown-header {
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdown-header:hover, .dropdown-header.active {
+  background-color: hsl(0, 0%, 10%);
+  border: 1px solid hsl(265, 40%, 68%);
+  border-radius: 25px;
+  outline: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.4s;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  z-index: 100;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+
+}
+
+.dropdown-list li {
+  padding: 10px 16px;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.dropdown-list li:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--primary));
+}
+
+.dropdown-list li.selected {
+  background-color: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+}
+
+.arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.arrow.rotated {
+  transform: rotate(180deg);
+}

@@ -1,0 +1,66 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h2>Upload Clips</h2>
+        <p class="subtitle">Choose clips to upload to your profile.</p>
+      </div>
+      <button class="close-icon" (click)="onCancel()">&times;</button>
+    </div>
+
+    <div class="search-bar-container">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search clips..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+      >
+    </div>
+
+    <div class="clip-list">
+      <div
+        class="clip-item"
+        *ngFor="let clip of filteredClips"
+        [class.selected]="isSelected(clip.id)"
+        (click)="toggleSelection(clip.id)"
+      >
+        <div class="checkbox-container">
+            <div class="custom-checkbox" [class.checked]="isSelected(clip.id)">
+                <svg *ngIf="isSelected(clip.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <div class="thumbnail-container">
+
+             <img class="thumbnail-img" [src]="clip.thumbnailUrl">
+        </div>
+
+        <div class="clip-info">
+            <div class="clip-title">{{ clip.title }}</div>
+            <div class="clip-meta">
+                <span class="game-name">{{ clip.game }}</span>
+                <span class="meta-separator">·</span>
+                <span class="duration">{{ formatDuration(clip.duration) }}</span>
+            </div>
+        </div>
+
+        <div class="clip-tags">
+            <span class="tag-badge" *ngFor="let tag of clip.tags" [attr.data-tag]="tag.toLowerCase()">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="selection-status">
+        {{ selectedClipIds.size }} clips selected
+      </div>
+      <div class="action-buttons">
+        <button class="btn-cancel" (click)="onCancel()">Cancel</button>
+        <button class="btn-confirm" (click)="onConfirm()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<nav class="sidebar-container" [class.collapsed]="isCollapsed">
+
+  <div class="sidebar-header">
+    <h2 class="sidebar-title" *ngIf="!isCollapsed">Highlight Vault</h2>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <img src="assets/icons/chevron-left.svg" alt="Toggle Sidebar" class="toggle-icon">
+    </button>
+  </div>
+
+  <ul class="nav-links">
+    <li>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <img src="assets/icons/notebook.svg" alt="Library" class="nav-icon">
+        <span class="link-text">Library</span>
+      </a>
+    </li>
+
+    <li>
+      <a routerLink="/favorites" routerLinkActive="active">
+        <img src="assets/icons/heart.svg" alt="Favorites" class="nav-icon">
+        <span class="link-text">Favorites</span>
+      </a>
+    </li>
+
+    <li>
+      <a routerLink="/trash" routerLinkActive="active">
+        <img src="assets/icons/trash-2.svg" alt="Trash" class="nav-icon">
+        <span class="link-text">Trash</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="separator"></div>
+
+  <div class="playlists-area">
+
+    <div class="playlist-header" *ngIf="!isCollapsed">
+      <span class="playlist-title">PLAYLISTS</span>
+      <button class="add-btn" title="Create Playlist">
+        <img src="assets/icons/plus-square.svg" alt="Add Playlist" class="add-icon">
+      </button>
+    </div>
+
+    <ul class="nav-links playlist-list">
+      <li *ngFor="let listName of playlists">
+        <a class="playlist-item">
+          <img src="assets/icons/movieclip.svg"  class="nav-icon">
+          <span class="link-text">{{ listName }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="upload-btn">
+    <button (click)="uploadClicked.emit()">
+      <img src="assets/icons/upload.svg" alt="Upload" class="upload-icon">
+      <span class="upload-text">Upload Clip</span>
+    </button>
+  </div>
+
+</nav>

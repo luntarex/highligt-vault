@@ -1,0 +1,117 @@
+
+.card-container {
+  background-color: hsl(var(--card));
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-container:hover {
+  transform: translateY(-4px);
+  border-color: hsl(var(--border));
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.thumbnail-wrapper {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 150px;
+  background-color: #1a1a1a;
+}
+
+.thumbnail-img {
+  width: 200px;
+  height: 150px;
+  object-fit: non;
+}
+
+.badge {
+  position: absolute;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.game-badge { top: 6px; left: 6px; text-transform: uppercase; }
+.duration-badge { bottom: 6px; right: 6px; }
+
+.delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ff4d4d;
+}
+
+.card-container:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn svg { width: 14px; height: 14px; }
+
+.clip-info {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clip-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: hsl(0, 0%, 85%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: #2a2a2a;
+}
+
+.tag[data-tag="win"]    { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.tag[data-tag="ace"]    { background-color: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.tag[data-tag="clutch"] { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.tag[data-tag="funny"]  { background-color: rgba(234, 179, 8, 0.15);  color: #facc15; }
+
+.clip-date {
+  font-size: 0.65rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+  margin-top: 2px;
+}

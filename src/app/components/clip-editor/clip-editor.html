@@ -1,0 +1,81 @@
+<div class = 'editor-container' *ngIf = "clip; else notFound">
+<header class = "editor-header">
+  <a routerLink = "/" class = "back-link">← Back to Library</a>
+</header>
+
+<div class = "editor-layout">
+<section class = "video-section">
+<div class = "video-player-container" (click)="togglePlay()">
+<video #video
+[src] = "clip.url"
+(timeupdate) = "onTimeUpdate(video)"
+(play)="isPlaying = true"
+(pause)="isPlaying = false"
+class = "video-player"
+></video>
+<div class="play-overlay" [class.hidden]="isPlaying">
+  <div class="play-btn">▶</div>
+</div>
+<span class = "time-overlay">
+  {{formatTime(clip.currentTime)}} / {{formatTime(clip.duration)}}
+</span>
+</div>
+
+<div class = "timeline-container">
+<div class = "timeline-labels">
+  <span>{{formatTime(clip.startTime)}}</span>
+  <span class = "selected-label">Selected: {{formatTime(clip.endTime - clip.startTime)}}</span>
+  <span>{{formatTime(clip.duration)}}</span>
+</div>
+<div class = "timeline-bar" #timeline (click)="seekTo($event)">
+  <div class = "timeline-track"></div>
+  <div class = "timeline-range"
+  [style.left.%] = "(clip.startTime / clip.duration) * 100"
+  [style.width.%] = "(clip.endTime - clip.startTime) / clip.duration * 100"
+  >
+  </div>
+  <div class = "handle start-handle"
+       [style.left.%] = "(clip.startTime / clip.duration) * 100"
+       (mousedown)="startDrag('start', $event)">
+  </div>
+  <div class = "handle end-handle"
+       [style.left.%] = "(clip.endTime / clip.duration) * 100"
+       (mousedown)="startDrag('end', $event)">
+  </div>
+   </div>
+ </div>
+</section>
+<aside class="metadata-sidebar">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" [(ngModel)]="clip.title">
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="clip.notes" rows="4"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tags</label>
+        <div class="tag-input-wrapper">
+          <input type="text" [(ngModel)]="newTag" (keyup.enter)="addTag()" placeholder="Add tag...">
+        </div>
+        <div class="tags-display">
+          <span *ngFor="let tag of clip.tags; let i = index" class="editor-tag" [attr.data-tag]="tag.toLowerCase()">
+            {{ tag }} <button (click)="removeTag(i)" class="remove-tag-btn">×</button>
+          </span>
+        </div>
+      </div>
+
+      <button class="save-btn" [disabled]="!clip.title" (click)="saveClip()">Save Clip</button>
+    </aside>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="editor-container not-found">
+    <h2>Clip not found!</h2>
+    <a routerLink="/" class="back-link">Return to Library</a>
+  </div>
+</ng-template>

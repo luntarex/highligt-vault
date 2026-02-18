@@ -1,0 +1,130 @@
+
+.library-container {
+  padding: 32px;
+  background-color: hsl(var(--background));
+  height: 100%;
+  overflow-y: auto;
+  color: hsl(var(--foreground));
+  font-family: 'Inter', sans-serif;
+}
+
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  gap: 20px;
+}
+
+.search-box {
+  flex-grow: 1;
+  max-width: 450px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid hsl(var(--border));
+  transition: border-color 0.2s;
+  gap: 8px;
+}
+
+.search-box:focus-within {
+  border-color: hsl(265, 40%, 68%);
+  border-radius: 25px;
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+.search-icon svg {
+  display: block;
+}
+
+.search-box input {
+  background: none;
+  border: none;
+  color: #ccc;
+  width: 100%;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+}
+
+.filter-select {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  outline: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  background-color: hsl(0, 0%, 10%);
+  border: 1px solid hsl(265, 40%, 68%);
+  border-radius: 25px;
+  outline: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.4s;
+}
+
+
+
+.clips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 32px;
+  padding-bottom: 40px;
+}
+
+.profile-nav {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.profile-nav a{
+color : hsl(0, 0%, 60%);
+}
+
+.profile-nav:hover {
+  transform: scale(1.05);
+}
+
+.profile-nav svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.profile-nav:hover svg,
+.profile-nav a:hover svg {
+  stroke: hsl(var(--third));
+  color: hsl(var(--third));
+}
+
+.profile-nav a.active svg {
+  stroke: hsl(var(--third));
+  color: hsl(var(--third));
+}
+

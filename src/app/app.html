@@ -1,0 +1,7 @@
+<div class="app-container">
+  <app-sidebar (uploadClicked)="onUploadClick()"></app-sidebar>
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+  <app-custom-upload *ngIf="showUpload" (close)="onUploadClose()"></app-custom-upload>
+</div>
