@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Clip } from '../../models/clip';
 import { ClipService } from '../../services/clip.service';
+import { BackLink } from '../back-link/back-link';
 
 
 @Component({
   selector: 'app-clip-editor',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink],
   templateUrl: './clip-editor.html',
   styleUrl: './clip-editor.css',
 })

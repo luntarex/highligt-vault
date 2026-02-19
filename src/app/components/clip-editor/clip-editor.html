@@ -1,8 +1,7 @@
 <div class = 'editor-container' *ngIf = "clip; else notFound">
 <header class = "editor-header">
-  <a routerLink = "/" class = "back-link">← Back to Library</a>
+  <app-back-link></app-back-link>
 </header>
-
 <div class = "editor-layout">
 <section class = "video-section">
 <div class = "video-player-container" (click)="togglePlay()">
