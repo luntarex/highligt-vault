@@ -31,7 +31,8 @@ export class Library implements OnInit {
       id: '1',
       username: 'Haluk',
       email: 'haluk@example.com',
-      profilePhotoUrl: 'https://i.pravatar.cc/150?img=3'
+      profilePhotoUrl: 'https://i.pravatar.cc/150?img=3',
+      description: 'I am a gamer'
    };
   }
   handleDelete(id: number) {

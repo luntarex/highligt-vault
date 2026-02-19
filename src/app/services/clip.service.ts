@@ -21,7 +21,8 @@ export class ClipService {
       endTime: 0,
       isFavorite: false,
       isDeleted: false,
-      url: 'assets/videos/clip1.mp4'
+      url: 'assets/videos/clip1.mp4',
+      uploaderId: 1
     },
     {
       id: 2,
@@ -37,7 +38,8 @@ export class ClipService {
       endTime: 0,
       isFavorite: false,
       isDeleted: false,
-      url: 'assets/videos/clip2.mp4'
+      url: 'assets/videos/clip2.mp4',
+      uploaderId: 1
     },
     {
       id: 3,
@@ -53,7 +55,8 @@ export class ClipService {
       endTime: 0,
       isFavorite: false,
       isDeleted: false,
-      url: 'assets/videos/clip3.mp4'
+      url: 'assets/videos/clip3.mp4',
+      uploaderId: 1
     },
     {
       id: 4,
@@ -69,7 +72,8 @@ export class ClipService {
       endTime: 0,
       isFavorite: false,
       isDeleted: false,
-      url: 'assets/videos/clip4.mp4'
+      url: 'assets/videos/clip4.mp4',
+      uploaderId: 1
     },
     {
       id: 5,
@@ -85,7 +89,8 @@ export class ClipService {
       endTime: 0,
       isFavorite: false,
       isDeleted: false,
-      url: 'assets/videos/clip5.mp4'
+      url: 'assets/videos/clip5.mp4',
+      uploaderId : 8
     }
   ];
 
