@@ -3,16 +3,21 @@ export  interface Clip{
   title : string;
   game : string;
   notes: string;
+  tags : string[];
+  url : string;
+  thumbnailUrl : string;
+
+  /*Editor Time Logic */
+  duration : number;
   currentTime : number;
   startTime: number;
   endTime: number;
-  thumbnailUrl : string;
-  duration : number;
-  tags : string[];
-  dateCreated : Date;
+
+  //Relationship & State
+  uploaderId : number
   isFavorite : boolean;
   isDeleted : boolean;
-  url : string;
 
+  dateCreated : Date;
 
 }
