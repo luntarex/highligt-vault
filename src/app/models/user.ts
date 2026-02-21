@@ -4,6 +4,8 @@ export interface User {
     email: string;
     description:string;
     profilePhotoUrl:string;
+    createdAt:Date;
+    
 }
 export interface RegisterRequest {
     username: string;

@@ -25,14 +25,15 @@ export class Library implements OnInit {
   user!: User;
   constructor(private clipService: ClipService) {}
 
-  ngOnInit(): void {
+  ngOnInit(): void {  //Backend bağlayınca değişcek
    this.clips = this.clipService.getClips();
    this.user = {
       id: '1',
       username: 'Haluk',
       email: 'haluk@example.com',
       profilePhotoUrl: 'https://i.pravatar.cc/150?img=3',
-      description: 'I am a gamer'
+      description: 'I am a gamer',
+      createdAt: new Date()
    };
   }
   handleDelete(id: number) {
