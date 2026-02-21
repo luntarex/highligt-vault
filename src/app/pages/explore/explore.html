@@ -1,0 +1,87 @@
+<div class="explore-page">
+
+  <div class="nav-header">
+   <button class="back-button" routerLink="/">
+    <span class="icon">&lt;</span> Explore
+   </button>
+  </div>
+
+  <div class="feed-container">
+    @for (post of feed; track post.id){
+     <article class="post-card">
+
+       <div class="post-header">
+         <div class="avatar-wrapper" [routerLink]="['/profile', post.author.id]">
+          @if(post.author.profilePhotoUrl){
+            <img [src]="post.author.profilePhotoUrl" alt="">
+          }
+          @else{
+            <div class="avatar-placeholder">
+              {{ post.author.username.charAt(0).toUpperCase() }}
+            </div>
+          }
+          <div class="user-info">
+            <span class="username" [routerLink]="['/profile', post.author.id]">{{ post.author.username }}</span>
+            <span class="time-ago">{{ post.timeAgo }}</span>
+          </div>
+         </div>
+       </div>
+       <div class="post-body">
+        <h2 class="post-title">{{ post.title }}</h2>
+
+        <div class="tag-row">
+          <span class="game-badge">{{post.game}}</span>
+          @for(tag of post.tags; track tag){
+            <span class="tag" [ngClass]="tag.toLowerCase()">{{tag}}</span>
+          }
+        </div>
+
+        <div class="video-container" (click)="togglePlay(post, videoPlayer)">
+          <video #videoPlayer
+                 [src]="post.videoUrl"
+                 class="post-video"
+                 loop
+                 muted
+                 playsinline
+                 (timeupdate)="onTimeUpdate(post, videoPlayer)"
+                 (loadedmetadata)="onMetadataLoaded(post, videoPlayer)">
+          </video>
+
+          <div class="play-button" [class.hidden]="playingPostId === post.id">▶</div>
+
+          <div class="controls-bar" (click)="$event.stopPropagation()">
+            <div class="progress-container" (click)="seekTo($event, post, videoPlayer)">
+              <div class="progress-bar" [style.width.%]="(post.currentTime || 0) / (post.duration || 1) * 100"></div>
+            </div>
+            <div class="time-display">
+              {{ formatTime(post.currentTime) }} / {{ formatTime(post.duration) }}
+            </div>
+          </div>
+        </div>
+       </div>
+
+       <div class="post-actions">
+          <button class="action-btn" [class.liked]="post.isLiked" (click)="toggleLike(post)">
+          <span class="icon">{{post.isLiked ? '♥' : '♡'}}</span>
+          <span class="count">{{post.likes}}</span>
+          </button>
+
+          <button class="action-btn" (click)="openComments(post)">
+            <span class="icon">💬</span>
+            <span class="count">{{post.comments}}</span>
+          </button>
+
+          <button class="action-btn share-btn">
+            <span class="icon">🔗</span>
+          </button>
+       </div>
+     </article>
+    }
+    @empty {
+      <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+        No clips found. Make sure your dummy data is in the TypeScript file!
+      </div>
+    }
+
+  </div>
+</div>

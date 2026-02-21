@@ -28,7 +28,7 @@ export class Library implements OnInit {
   ngOnInit(): void {  //Backend bağlayınca değişcek
    this.clips = this.clipService.getClips();
    this.user = {
-      id: '1',
+      id: 1,
       username: 'Haluk',
       email: 'haluk@example.com',
       profilePhotoUrl: 'https://i.pravatar.cc/150?img=3',
