@@ -5,6 +5,7 @@ import { BackLink } from '../../components/back-link/back-link';
 import { NgClass } from '@angular/common';
 import { ProfileService } from '../../services/profile.service';
 import { CustomUpload } from '../../components/custom-upload/custom-upload';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-profile-page',
@@ -14,29 +15,37 @@ import { CustomUpload } from '../../components/custom-upload/custom-upload';
 })
 export class ProfilePage implements OnInit {
 
-  // Start with empty/null data
   user: UserProfile | null = null;
   favoriteClips: FavoriteClip[] = [];
   showUploadModal: boolean = false;
+  currentProfileId: string | null = null;
 
-  // Inject the service
-  constructor(private profileService: ProfileService) { }
+  constructor(
+    private profileService: ProfileService,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
-    this.loadProfileData();
+    this.currentProfileId = this.route.snapshot.paramMap.get('id');
+
+    if (this.currentProfileId) {
+      console.log('Loading profile for User ID:', this.currentProfileId);
+    } else {
+      console.log('No ID in URL. Loading the logged-in user profile.');
+    }
+
+    this.loadProfileData(this.currentProfileId);
   }
 
-  loadProfileData(): void {
-    // 1. Fetch the user profile header info
-    this.profileService.getUserProfile().subscribe((profileData) => {
+  loadProfileData(id: string | null): void {
+    this.profileService.getUserProfile(id).subscribe((profileData) => {
       this.user = profileData;
     });
-
-    // 2. Fetch the favorite clips list
-    this.profileService.getFavoriteClips().subscribe((clipsData) => {
+    this.profileService.getFavoriteClips(id).subscribe((clipsData) => {
       this.favoriteClips = clipsData;
     });
   }
+
 
   addClips(): void {
     this.showUploadModal = true;

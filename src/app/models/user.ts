@@ -1,11 +1,11 @@
 export interface User {
-    id: string;
+    id: number;
     username: string;
     email: string;
     description:string;
     profilePhotoUrl:string;
     createdAt:Date;
-    
+
 }
 export interface RegisterRequest {
     username: string;
