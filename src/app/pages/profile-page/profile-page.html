@@ -1,0 +1,64 @@
+<div class="profile-page-container">
+<div class="back-link">
+  <app-back-link></app-back-link>
+</div>
+@if (user) {
+<section class="profile-page-header">
+<div class="avatar-container">
+  <div class="avatar">
+    <img src="{{user.profilePhotoUrl}}">
+  </div>
+
+  <h1 class="username">{{user.username}}</h1>
+  <p class="bio">{{user.description}}</p>
+  <div class="stats-row">
+    <div class="stat-item">
+      <span class="stat-value">{{user.totalClips}}</span>
+      <span class="stat-label">Clips</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{user.totalFavorites}}</span>
+      <span class="stat-label">Favorites</span>
+    </div>
+  </div>
+</div>
+</section>
+}
+<section class="favorites-section">
+  <div class="section-header">
+    <h2>Favorite Clips</h2>
+    <button class="add-btn" (click)="addClips()" >
+      <img src="assets/icons/upload.svg" class="btn-icon">
+      Add Clips
+    </button>
+  </div>
+  <div class="favorites-list">
+    @for (clip of favoriteClips; track clip.id) {
+    <div class="favorites-card">
+       <div class="thumbnail-preview">
+        <img src="{{clip.thumbnailUrl}}" alt="{{clip.title}}">
+        <span class="play-icon">▶</span>
+        <span class="timestamp">{{clip.durationFormatted}}</span>
+       </div>
+       <div class="clip-details">
+        <h3>{{clip.title}}</h3>
+        <p class="metadata">{{clip.game}} &middot; {{clip.timeAgo}}</p>
+       </div>
+        <div class="tags-row">
+          @for (tag of clip.tags; track tag) {
+          <span class="tag" [ngClass]="tag.toLowerCase()">{{tag}}</span>
+          }
+        </div>
+    </div>
+    }
+  </div>
+</section>
+
+@if (showUploadModal) {
+<div class="modal-overlay" (click)="closeUploadModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <app-custom-upload (close)="closeUploadModal()"></app-custom-upload>
+  </div>
+</div>
+}
+</div>
