@@ -120,4 +120,42 @@
     }
 
   </div>
+
+  @if (activePostForComments) {
+    <div class="comments-backdrop" (click)="closeComments()">
+
+      <div class="comments-modal" (click)="$event.stopPropagation()">
+
+        <div class="comments-header">
+          <h3>Comments</h3>
+          <button class="close-btn" (click)="closeComments()">✕</button>
+        </div>
+
+        <div class="comments-list">
+          @for (comment of mockComments; track comment.id) {
+            <div class="comment-item">
+              <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
+
+              <div class="comment-body">
+                <div class="comment-user">
+                  <span class="comment-username">{{ comment.username }}</span>
+                  <span class="comment-time">{{ comment.timeAgo }}</span>
+                </div>
+                <p class="comment-text">{{ comment.text }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="comment-input-area">
+          <div class="comment-avatar-placeholder">P</div>
+          <input type="text" class="comment-input" placeholder="Add a comment..."
+                 [(ngModel)]="newCommentText"
+                 (keyup.enter)="postComment()">
+          <button class="comment-post-btn" (click)="postComment()">Post</button>
+        </div>
+
+      </div>
+    </div>
+  }
 </div>

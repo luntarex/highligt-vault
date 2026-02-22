@@ -4,14 +4,24 @@ import { ExploreService } from '../../services/explore.service';
 import { RouterLink } from "@angular/router";
 import { NgClass } from "@angular/common";
 import { ClipService } from '../../services/clip.service';
+import { FormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.html',
   styleUrls: ['./explore.css'],
-  imports: [RouterLink, NgClass]
+  imports: [RouterLink, NgClass,FormsModule]
 })
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
+  activePostForComments: ExplorePost | null = null;
+  newCommentText: string = '';
+
+  mockComments = [
+    { id: 1, username: 'JettDash', text: 'Bro that flick at the end was insane 🔥', timeAgo: '1h' },
+    { id: 2, username: 'SilverSurfer', text: 'What sensitivity do you play on?', timeAgo: '3h' },
+    { id: 3, username: 'TacticalToad', text: 'I tried this lineup and died instantly lol', timeAgo: '5h' }
+  ];
 
   feed: ExplorePost[] = [];
   playingPostId: string | null = null;
@@ -181,6 +191,26 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openComments(post: ExplorePost) {
-    console.log('Opening comments for:', post.id);
+    this.activePostForComments = post;
+  }
+  closeComments() {
+    this.activePostForComments = null;
+  }
+  postComment() {
+    if (!this.newCommentText.trim()) return;
+
+    const newComment = {
+      id: Date.now(),
+      username: 'Player_1',
+      text: this.newCommentText,
+      timeAgo: 'Just now'
+    };
+
+    this.mockComments.unshift(newComment);
+    this.newCommentText = '';
+
+    if (this.activePostForComments) {
+      this.activePostForComments.comments++;
+    }
   }
 }
