@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Clip } from '../../models/clip';
+import { Clip } from '../../../core/models/clip';
 import { RouterLink } from "@angular/router";
 
 @Component({

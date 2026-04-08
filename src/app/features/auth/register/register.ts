@@ -1,9 +1,9 @@
-import { User } from './../../../models/user';
+import { User } from '../../../core/models/user';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { RegisterRequest } from '../../../models/user';
+import { RegisterRequest } from '../../../core/models/user';
 
 @Component({
   selector: 'app-register',

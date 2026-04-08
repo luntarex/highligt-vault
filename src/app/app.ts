@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { Sidebar } from "./components/sidebar/sidebar";
-import { Library } from './components/library/library';
-import { CustomUpload } from './components/custom-upload/custom-upload';
+import { Sidebar } from "./shared/sidebar/sidebar";
+import { CustomUpload } from './shared/custom-upload/custom-upload';
 
 @Component({
   selector: 'app-root',

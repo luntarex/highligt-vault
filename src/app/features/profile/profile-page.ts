@@ -1,10 +1,10 @@
 import { Component,OnInit } from '@angular/core';
-import { UserProfile } from '../../models/user-profile';
-import { FavoriteClip } from '../../models/favorite-clip';
-import { BackLink } from '../../components/back-link/back-link';
+import { UserProfile } from '../../core/models/user-profile';
+import { FavoriteClip } from '../../core/models/favorite-clip';
+import { BackLink } from '../../shared/back-link/back-link';
 import { NgClass } from '@angular/common';
-import { ProfileService } from '../../services/profile.service';
-import { CustomUpload } from '../../components/custom-upload/custom-upload';
+import { ProfileService } from '../../core/services/profile.service';
+import { CustomUpload } from '../../shared/custom-upload/custom-upload';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({

@@ -1,0 +1,68 @@
+<div class="explore-page">
+
+  <div class="nav-header">
+   <button class="back-button" routerLink="/">
+    <span class="icon">&lt;</span> Explore
+   </button>
+  </div>
+
+  <div class="feed-container">
+    @for (post of feed; track post.id){
+      <app-explore-post-card
+        [post]="post"
+        [playingPostId]="playingPostId"
+        (togglePlayEvent)="togglePlay($event)"
+        (toggleLikeEvent)="toggleLike($event)"
+        (openCommentsEvent)="openComments($event)"
+        (toggleMuteEvent)="toggleMute($event)"
+        (seekToEvent)="onSeekTo($event)"
+        (timeUpdateEvent)="onTimeUpdate($event)"
+        (metadataLoadedEvent)="onMetadataLoaded($event)"
+      />
+    }
+    @empty {
+      <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+        No clips found. Make sure your dummy data is in the TypeScript file!
+      </div>
+    }
+
+  </div>
+
+  @if (activePostForComments) {
+    <div class="comments-backdrop" (click)="closeComments()">
+
+      <div class="comments-modal" (click)="$event.stopPropagation()">
+
+        <div class="comments-header">
+          <h3>Comments</h3>
+          <button class="close-btn" (click)="closeComments()">✕</button>
+        </div>
+
+        <div class="comments-list">
+          @for (comment of mockComments; track comment.id) {
+            <div class="comment-item">
+              <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
+
+              <div class="comment-body">
+                <div class="comment-user">
+                  <span class="comment-username">{{ comment.username }}</span>
+                  <span class="comment-time">{{ comment.timeAgo }}</span>
+                </div>
+                <p class="comment-text">{{ comment.text }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="comment-input-area">
+          <div class="comment-avatar-placeholder">P</div>
+          <input type="text" class="comment-input" placeholder="Add a comment..."
+                 [(ngModel)]="newCommentText"
+                 (keyup.enter)="postComment()">
+          <button class="comment-post-btn" (click)="postComment()">Post</button>
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

@@ -2,9 +2,9 @@ import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { Clip } from '../../models/clip';
-import { ClipService } from '../../services/clip.service';
-import { BackLink } from '../back-link/back-link';
+import { Clip } from '../../core/models/clip';
+import { ClipService } from '../../core/services/clip.service';
+import { BackLink } from '../../shared/back-link/back-link';
 
 
 @Component({

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LoginRequest } from '../../../models/user';
+import { LoginRequest } from '../../../core/models/user';
 
 @Component({
   selector: 'app-login',

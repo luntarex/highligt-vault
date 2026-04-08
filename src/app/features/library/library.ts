@@ -1,12 +1,12 @@
-import { ClipCard } from './../clip-card/clip-card';
+import { ClipCard } from './clip-card/clip-card';
 import { Component,OnInit } from '@angular/core';
 import {CommonModule } from '@angular/common';
-import { ClipService } from '../../services/clip.service';
-import { Clip } from '../../models/clip'
-import { CustomDropdownComponent } from '../custom-dropdown/custom-dropdown';
+import { ClipService } from '../../core/services/clip.service';
+import { Clip } from '../../core/models/clip'
+import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { FormsModule } from '@angular/forms';
-import { User } from '../../models/user';
+import { User } from '../../core/models/user';
 
 
 @Component({

@@ -1,8 +1,8 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Clip } from '../../models/clip';
-import { ClipService } from '../../services/clip.service';
+import { Clip } from '../../core/models/clip';
+import { ClipService } from '../../core/services/clip.service';
 
 @Component({
   selector: 'app-custom-upload',

@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
-import { Library } from './components/library/library';
-import { ClipEditor } from './components/clip-editor/clip-editor';
-import { Register } from './pages/auth/register/register';
-import { Login } from './pages/auth/login/login';
-import { ProfilePage } from './pages/profile-page/profile-page';
-import { Explore } from './pages/explore/explore';
+import { Library } from './features/library/library';
+import { ClipEditor } from './features/clip-editor/clip-editor';
+import { Register } from './features/auth/register/register';
+import { Login } from './features/auth/login/login';
+import { ProfilePage } from './features/profile/profile-page';
+import { Explore } from './features/explore/explore';
+
 export const routes: Routes = [
   { path: '', component: Library },
   { path: 'clip-editor/:id', component: ClipEditor },
