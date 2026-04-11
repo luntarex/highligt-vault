@@ -17,7 +17,18 @@
     </div>
   </div>
   <div class="post-body">
-    <h2 class="post-title">{{ post.title }}</h2>
+    @if(isEditingTitle) {
+      <div class="edit-title-container">
+        <input type="text" class="edit-title-input" [(ngModel)]="editedTitle" 
+               (blur)="saveTitle()" 
+               (keyup.enter)="saveTitle()" 
+               (keyup.escape)="cancelEditingTitle()" 
+               autofocus>
+        <button class="save-title-btn" (mousedown)="saveTitle()">Save</button>
+      </div>
+    } @else {
+      <h2 class="post-title" (click)="startEditingTitle()" [class.editable]="authService.isAdmin()">{{ post.title }}</h2>
+    }
 
     <div class="tag-row">
       <span class="game-badge">{{post.game}}</span>

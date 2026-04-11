@@ -1,17 +1,44 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../../core/models/explore-post';
+import { AuthService } from '../../../core/services/auth.service';
+import { ExploreService } from '../../../core/services/explore.service';
 
 @Component({
   selector: 'app-explore-post-card',
   templateUrl: './explore-post-card.html',
   styleUrls: ['./explore-post-card.css'],
-  imports: [RouterLink, NgClass]
+  imports: [RouterLink, NgClass, FormsModule]
 })
 export class ExplorePostCard {
   @Input() post!: ExplorePost;
   @Input() playingPostId: string | null = null;
+
+  isEditingTitle = false;
+  editedTitle = '';
+
+  constructor(public authService: AuthService, private exploreService: ExploreService) {}
+
+  startEditingTitle() {
+    if (this.authService.isAdmin() && !this.isEditingTitle) {
+      this.isEditingTitle = true;
+      this.editedTitle = this.post.title;
+    }
+  }
+
+  saveTitle() {
+    if (this.isEditingTitle && this.editedTitle.trim() !== '') {
+      this.post.title = this.editedTitle.trim();
+      this.exploreService.updatePost(this.post);
+    }
+    this.isEditingTitle = false;
+  }
+
+  cancelEditingTitle() {
+    this.isEditingTitle = false;
+  }
 
   @Output() togglePlayEvent = new EventEmitter<{ post: ExplorePost; video: HTMLVideoElement }>();
   @Output() toggleLikeEvent = new EventEmitter<ExplorePost>();

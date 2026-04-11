@@ -1,0 +1,22 @@
+<div class="comments-container">
+    <div class="comments-header">
+        <h2>Comments</h2>
+        <app-back-link></app-back-link>
+    </div>
+    <div class="comments-list">
+        @for(comment of comments; track comment.id){
+            <div class="comment">
+                <div class="comment-author">
+                    <img [src]="user?.profilePhotoUrl" alt="">
+                    <div class="comment-author-info">
+                        <span class="comment-author-name">{{user?.username}}</span>
+                        <span class="comment-author-time">{{comment.timeAgo}}</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    <p>{{comment.content}}</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
