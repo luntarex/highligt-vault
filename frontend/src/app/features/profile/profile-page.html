@@ -57,7 +57,7 @@
 @if (showUploadModal) {
 <div class="modal-overlay" (click)="closeUploadModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <app-custom-upload (close)="closeUploadModal()"></app-custom-upload>
+    <app-custom-upload (close)="closeUploadModal()" [dropdownTitle]="'Add Favorites'" [dropdownDescription]="'Choose clips to add to your favorites.'"></app-custom-upload>
   </div>
 </div>
 }

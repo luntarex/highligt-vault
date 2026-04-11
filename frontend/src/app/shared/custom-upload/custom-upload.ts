@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Clip } from '../../core/models/clip';
@@ -16,7 +16,8 @@ export class CustomUpload implements OnInit {
   filteredClips: Clip[] = [];
   selectedClipIds: Set<number> = new Set();
   searchQuery: string = '';
-
+  @Input() dropdownTitle: string = 'Upload Clips';
+  @Input() dropdownDescription: string = 'Choose clips to upload to your profile.';
   @Output() close = new EventEmitter<void>();
 
   constructor(private clipService: ClipService) {}

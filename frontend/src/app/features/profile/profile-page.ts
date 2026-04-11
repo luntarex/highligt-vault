@@ -26,15 +26,17 @@ export class ProfilePage implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.currentProfileId = this.route.snapshot.paramMap.get('id');
+    this.route.paramMap.subscribe((params) => {
+      this.currentProfileId = params.get('id');
 
-    if (this.currentProfileId) {
-      console.log('Loading profile for User ID:', this.currentProfileId);
-    } else {
-      console.log('No ID in URL. Loading the logged-in user profile.');
-    }
+      if (this.currentProfileId) {
+        console.log('Loading profile for User ID:', this.currentProfileId);
+      } else {
+        console.log('No ID in URL. Loading the logged-in user profile.');
+      }
 
-    this.loadProfileData(this.currentProfileId);
+      this.loadProfileData(this.currentProfileId);
+    });
   }
 
   loadProfileData(id: string | null): void {
