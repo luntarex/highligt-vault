@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Clip } from '../../core/models/clip';
 import { ClipService } from '../../core/services/clip.service';
+import { AuthService } from '../../core/services/auth.service';
 import { BackLink } from '../../shared/back-link/back-link';
-
+import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 
 @Component({
   selector: 'app-clip-editor',
-  imports: [CommonModule, FormsModule, RouterModule, BackLink],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, CustomDropdownComponent],
   templateUrl: './clip-editor.html',
   styleUrl: './clip-editor.css',
 })
@@ -24,15 +25,41 @@ export class ClipEditor implements OnInit {
   @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('timeline') timelineRef!: ElementRef<HTMLDivElement>;
 
-  constructor(private clipService: ClipService, private route: ActivatedRoute, private router: Router) {}
+  constructor(private clipService: ClipService, private route: ActivatedRoute, private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
-    const clipId = idParam ? Number(idParam) : null;
-    if (clipId) {
-      const originalClip = this.clipService.getClip(clipId);
-      if (originalClip) {
-        this.clip = { ...originalClip, tags: [...originalClip.tags] };
+    
+    if (idParam === 'new') {
+      const state = history.state;
+      if (state && state.videoUrl) {
+         this.clip = {
+           id: 0,
+           title: 'My Highlight',
+           game: '',
+           notes: '',
+           tags: [],
+           url: state.videoUrl,
+           thumbnailUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop', // Temporary thumbnail
+           duration: 0,
+           currentTime: 0,
+           startTime: 0,
+           endTime: 0,
+           uploaderId: this.authService.getCurrentUserId(),
+           isFavorite: false,
+           isDeleted: false,
+           dateCreated: new Date()
+         };
+      } else {
+         this.router.navigate(['/']);
+      }
+    } else {
+      const clipId = idParam ? Number(idParam) : null;
+      if (clipId) {
+        const originalClip = this.clipService.getClip(clipId);
+        if (originalClip) {
+          this.clip = { ...originalClip, tags: [...originalClip.tags] };
+        }
       }
     }
   }
@@ -139,7 +166,11 @@ export class ClipEditor implements OnInit {
 
   saveClip(): void {
     if (this.clip) {
-      this.clipService.updateClip(this.clip);
+      if (this.clip.id === 0) {
+        this.clipService.addClip(this.clip);
+      } else {
+        this.clipService.updateClip(this.clip);
+      }
       this.router.navigate(['/']);
     }
   }

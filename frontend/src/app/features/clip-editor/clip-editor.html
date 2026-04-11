@@ -1,4 +1,5 @@
-<div class = 'editor-container' *ngIf = "clip; else notFound">
+@if(clip) {
+<div class = 'editor-container'>
 <header class = "editor-header">
   <app-back-link></app-back-link>
 </header>
@@ -51,6 +52,15 @@ class = "video-player"
       </div>
 
       <div class="form-group">
+        <label>Game</label>
+        <app-custom-dropdown 
+          [label]="'Select a game'"
+          [options]="['Valorant', 'League of Legends', 'CS2', 'Dota 2', 'Apex Legends', 'Other']"
+          [(selectedOption)]="clip.game"
+        ></app-custom-dropdown>
+      </div>
+
+      <div class="form-group">
         <label>Notes</label>
         <textarea [(ngModel)]="clip.notes" rows="4"></textarea>
       </div>
@@ -71,10 +81,9 @@ class = "video-player"
     </aside>
   </div>
 </div>
-
-<ng-template #notFound>
+} @else {
   <div class="editor-container not-found">
     <h2>Clip not found!</h2>
     <a routerLink="/" class="back-link">Return to Library</a>
   </div>
-</ng-template>
+}

@@ -38,11 +38,11 @@
        <div class="thumbnail-preview">
         <img src="{{clip.thumbnailUrl}}" alt="{{clip.title}}">
         <span class="play-icon">▶</span>
-        <span class="timestamp">{{clip.durationFormatted}}</span>
+        <span class="timestamp">{{formatDuration(clip.duration)}}</span>
        </div>
        <div class="clip-details">
         <h3>{{clip.title}}</h3>
-        <p class="metadata">{{clip.game}} &middot; {{clip.timeAgo}}</p>
+        <p class="metadata">{{clip.game}} &middot; {{formatTimeAgo(clip.dateCreated)}}</p>
        </div>
         <div class="tags-row">
           @for (tag of clip.tags; track tag) {

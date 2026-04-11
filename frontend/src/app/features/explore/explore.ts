@@ -4,6 +4,7 @@ import { ExploreService } from '../../core/services/explore.service';
 import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { ExplorePostCard } from './explore-post-card/explore-post-card';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-explore',
@@ -16,10 +17,13 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   newCommentText: string = '';
 
   mockComments = [
-    { id: 1, username: 'JettDash', text: 'Bro that flick at the end was insane 🔥', timeAgo: '1h' },
-    { id: 2, username: 'SilverSurfer', text: 'What sensitivity do you play on?', timeAgo: '3h' },
-    { id: 3, username: 'TacticalToad', text: 'I tried this lineup and died instantly lol', timeAgo: '5h' }
+    { id: 1, userId: 1, username: 'Player_1', text: 'Bro that flick at the end was insane 🔥', timeAgo: '1h' },
+    { id: 2, userId: 3, username: 'SilverSurfer', text: 'What sensitivity do you play on?', timeAgo: '3h' },
+    { id: 3, userId: 4, username: 'TacticalToad', text: 'I tried this lineup and died instantly lol', timeAgo: '5h' }
   ];
+
+  editingCommentId: number | null = null;
+  editingCommentText: string = '';
 
   feed: ExplorePost[] = [];
   playingPostId: string | null = null;
@@ -28,7 +32,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(ExplorePostCard) postCards!: QueryList<ExplorePostCard>;
   private observer: IntersectionObserver | null = null;
 
-  constructor(private exploreService: ExploreService) { }
+  constructor(private exploreService: ExploreService, public authService: AuthService) { }
 
   ngOnInit(): void {
     this.loadServiceData();
@@ -100,6 +104,11 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  deletePost(post: ExplorePost) {
+    this.exploreService.deletePost(post.id);
+    this.feed = this.feed.filter(p => p.id !== post.id);
+  }
+
   onTimeUpdate(data: { post: ExplorePost; video: HTMLVideoElement }) {
     if (this.playingPostId !== data.post.id) {
       data.post.currentTime = data.video.currentTime;
@@ -161,14 +170,18 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
   }
+
   closeComments() {
     this.activePostForComments = null;
+    this.editingCommentId = null;
   }
+
   postComment() {
     if (!this.newCommentText.trim()) return;
 
     const newComment = {
       id: Date.now(),
+      userId: this.authService.getCurrentUserId(),
       username: 'Player_1',
       text: this.newCommentText,
       timeAgo: 'Just now'
@@ -179,6 +192,33 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
     if (this.activePostForComments) {
       this.activePostForComments.comments++;
+    }
+  }
+
+  canEditComment(comment: any): boolean {
+    return this.authService.isAdmin() || this.authService.getCurrentUserId() === comment.userId;
+  }
+
+  startEditingComment(comment: any) {
+    this.editingCommentId = comment.id;
+    this.editingCommentText = comment.text;
+  }
+
+  saveComment(comment: any) {
+    if (this.editingCommentText.trim()) {
+      comment.text = this.editingCommentText.trim();
+    }
+    this.editingCommentId = null;
+  }
+
+  deleteComment(comment: any) {
+    if (this.authService.isAdmin() && comment.userId !== this.authService.getCurrentUserId()) {
+      comment.text = '[Removed a comment from the system for violating terms of service]';
+    } else {
+      this.mockComments = this.mockComments.filter(c => c.id !== comment.id);
+      if (this.activePostForComments) {
+        this.activePostForComments.comments--;
+      }
     }
   }
 }

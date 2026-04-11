@@ -36,4 +36,9 @@ export class AuthService {
     // Mock logic: currently always return true so admin features can be tested
     return true;
   }
+
+  getCurrentUserId(): number {
+    // Mock logic: currently return 1 (Player One)
+    return 1;
+  }
 }

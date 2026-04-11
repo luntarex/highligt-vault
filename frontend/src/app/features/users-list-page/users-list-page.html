@@ -1,0 +1,30 @@
+<div class="users-page">
+
+    <div class="header">
+        <h1>Users</h1>
+    </div>
+
+    <div class="users-grid">
+      @for(user of users; track user.id){
+        <div class="user-card">
+            <img [src]="user.profilePhotoUrl" alt="{{ user.username }}" class="avatar">
+
+            <div class="user-info">
+                <h3>{{ user.username }}</h3>
+                <p class="bio">{{ user.description }}</p>
+                <p class="stats">{{ user.totalClips }} clips • {{ user.totalFavorites }} favorites</p>
+            </div>
+
+            <div class="actions">
+                <button class="follow-btn" (click)="followUser(user.id)">
+                    Follow
+                </button>
+                <button class="view-btn" (click)="viewProfile(user.id)">
+                    View Profile
+                </button>
+            </div>
+        </div>
+    }
+    </div>
+
+</div>

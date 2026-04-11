@@ -33,7 +33,8 @@ export class Library implements OnInit {
       email: 'haluk@example.com',
       profilePhotoUrl: 'https://i.pravatar.cc/150?img=3',
       description: 'I am a gamer',
-      createdAt: new Date()
+      createdAt: new Date(),
+      isAdmin:true,
    };
   }
   handleDelete(id: number) {

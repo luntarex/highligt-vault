@@ -21,8 +21,12 @@ export class ExplorePostCard {
 
   constructor(public authService: AuthService, private exploreService: ExploreService) {}
 
+  canEdit(): boolean {
+    return this.authService.isAdmin() || this.authService.getCurrentUserId() === this.post.author.id;
+  }
+
   startEditingTitle() {
-    if (this.authService.isAdmin() && !this.isEditingTitle) {
+    if (this.canEdit() && !this.isEditingTitle) {
       this.isEditingTitle = true;
       this.editedTitle = this.post.title;
     }
@@ -43,6 +47,7 @@ export class ExplorePostCard {
   @Output() togglePlayEvent = new EventEmitter<{ post: ExplorePost; video: HTMLVideoElement }>();
   @Output() toggleLikeEvent = new EventEmitter<ExplorePost>();
   @Output() openCommentsEvent = new EventEmitter<ExplorePost>();
+  @Output() deletePostEvent = new EventEmitter<ExplorePost>();
   @Output() toggleMuteEvent = new EventEmitter<{ event: MouseEvent; video: HTMLVideoElement }>();
   @Output() seekToEvent = new EventEmitter<{ event: MouseEvent; post: ExplorePost; video: HTMLVideoElement }>();
   @Output() timeUpdateEvent = new EventEmitter<{ post: ExplorePost; video: HTMLVideoElement }>();
@@ -52,6 +57,10 @@ export class ExplorePostCard {
 
   get videoElement(): HTMLVideoElement | null {
     return this.videoPlayerRef?.nativeElement ?? null;
+  }
+
+  deletePost() {
+    this.deletePostEvent.emit(this.post);
   }
 
   onTogglePlay(video: HTMLVideoElement) {

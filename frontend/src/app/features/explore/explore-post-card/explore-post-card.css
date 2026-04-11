@@ -72,6 +72,40 @@
   color: var(--text-secondary);
 }
 
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.top-edit-btn, .top-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-edit-btn:hover {
+  background-color: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+}
+
+.top-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--heart-red);
+}
+
+.top-edit-btn svg, .top-delete-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* --- POST BODY --- */
 .post-body {
   margin-bottom: 16px;
@@ -81,18 +115,6 @@
   font-size: 16px;
   font-weight: 500;
   margin: 0 0 12px 0;
-}
-
-.post-title.editable {
-  cursor: text;
-  transition: color 0.2s;
-  padding: 4px;
-  border-radius: 4px;
-  margin-left: -4px;
-}
-
-.post-title.editable:hover {
-  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .edit-title-container {
