@@ -1,6 +1,6 @@
 import { Component,OnInit } from '@angular/core';
-import { UserProfile } from '../../core/models/user-profile';
-import { FavoriteClip } from '../../core/models/favorite-clip';
+import { User } from '../../core/models/user';
+import { Clip } from '../../core/models/clip';
 import { BackLink } from '../../shared/back-link/back-link';
 import { NgClass } from '@angular/common';
 import { ProfileService } from '../../core/services/profile.service';
@@ -15,8 +15,8 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ProfilePage implements OnInit {
 
-  user: UserProfile | null = null;
-  favoriteClips: FavoriteClip[] = [];
+  user: User | null = null;
+  favoriteClips: Clip[] = [];
   showUploadModal: boolean = false;
   currentProfileId: string | null = null;
 
@@ -55,5 +55,16 @@ export class ProfilePage implements OnInit {
 
   closeUploadModal(): void {
     this.showUploadModal = false;
+  }
+
+  formatDuration(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  formatTimeAgo(date: Date): string {
+    // Basic mock implementation. In a real app, you'd use a robust library like date-fns
+    return '14mo ago';
   }
 }

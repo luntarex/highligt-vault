@@ -1,7 +1,6 @@
 <div class="app-container">
-  <app-sidebar *ngIf="!isAuthPage" (uploadClicked)="onUploadClick()"></app-sidebar>
+  <app-sidebar *ngIf="!isAuthPage"></app-sidebar>
   <div class="main-content">
     <router-outlet></router-outlet>
   </div>
-  <app-custom-upload *ngIf="showUpload" (close)="onUploadClose()"></app-custom-upload>
 </div>

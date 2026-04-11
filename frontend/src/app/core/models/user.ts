@@ -5,7 +5,9 @@ export interface User {
     description:string;
     profilePhotoUrl:string;
     createdAt:Date;
-
+    isAdmin:boolean;
+    totalClips?: number;
+    totalFavorites?: number;
 }
 export interface RegisterRequest {
     username: string;

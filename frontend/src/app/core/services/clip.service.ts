@@ -105,6 +105,8 @@ export class ClipService {
   }
 
   addClip(clip: Clip): void {
+    const maxId = this.mockClips.length > 0 ? Math.max(...this.mockClips.map(c => c.id)) : 0;
+    clip.id = maxId + 1;
     this.mockClips.unshift(clip);
   }
 

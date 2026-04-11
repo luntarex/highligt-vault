@@ -36,6 +36,14 @@
         <span class="link-text">Explore</span>
       </a>
     </li>
+    @if(authService.isAdmin()){
+    <li>
+      <a routerLink="/users" routerLinkActive="active">
+        <img src="assets/icons/compass.svg" alt="Community" class="nav-icon">
+        <span class="link-text">Users</span>
+      </a>
+    </li>
+  }
   </ul>
 
   <div class="separator"></div>
@@ -62,7 +70,8 @@
   <div class="separator"></div>
 
   <div class="upload-btn">
-    <button (click)="uploadClicked.emit()">
+    <input type="file" #fileInput (change)="onFileSelected($event)" accept="video/*" style="display: none;">
+    <button (click)="fileInput.click()">
       <img src="assets/icons/upload.svg" alt="Upload" class="upload-icon">
       <span class="upload-text">Upload Clip</span>
     </button>

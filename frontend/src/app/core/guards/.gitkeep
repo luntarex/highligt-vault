@@ -1,5 +1,0 @@
-// Guards will be implemented here (e.g., AuthGuard, RoleGuard)
-// Example:
-// export const authGuard: CanActivateFn = (route, state) => {
-//   return inject(AuthService).isAuthenticated();
-// };

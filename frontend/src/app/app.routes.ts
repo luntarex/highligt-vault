@@ -6,6 +6,8 @@ import { Login } from './features/auth/login/login';
 import { ProfilePage } from './features/profile/profile-page';
 import { Explore } from './features/explore/explore';
 import { UserComments } from './features/user-comments/user-comments';
+import { UsersListPage } from './features/users-list-page/users-list-page';
+import { AdminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: Library },
@@ -15,5 +17,6 @@ export const routes: Routes = [
   { path : 'profile/:id', component : ProfilePage},
   { path: 'profile', component: ProfilePage },
   { path: 'explore', component: Explore },
-  { path: 'user-comments/:userId', component: UserComments }
+  { path: 'user-comments/:userId', component: UserComments },
+  { path: 'users', component: UsersListPage, canActivate: [AdminGuard] }
 ];

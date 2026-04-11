@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,9 +11,10 @@ import { CommonModule } from '@angular/common';
 export class CustomDropdownComponent {
   @Input() options: string[] = [];
   @Input() label: string = '';
+  @Input() selectedOption: string = '';
+  @Output() selectedOptionChange = new EventEmitter<string>();
 
   isOpen = false;
-  selectedOption: string = '';
 
   constructor(private eRef: ElementRef) {}
 
@@ -23,6 +24,7 @@ export class CustomDropdownComponent {
 
   selectOption(option: string) {
     this.selectedOption = option;
+    this.selectedOptionChange.emit(this.selectedOption);
     this.isOpen = false;
   }
 

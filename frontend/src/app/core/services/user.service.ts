@@ -14,6 +14,9 @@ export class UserService {
       description: 'Valorant player',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=1',
+      isAdmin:false,
+      totalClips: 42,
+      totalFavorites: 12
     },
     {
       id: 2,
@@ -22,6 +25,9 @@ export class UserService {
       description: 'Valorant player',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=2',
+      isAdmin:false,
+      totalClips: 89,
+      totalFavorites: 24
     },
     {
       id: 3,
@@ -30,6 +36,9 @@ export class UserService {
       description: 'Valorant player',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=3',
+      isAdmin:false,
+      totalClips: 15,
+      totalFavorites: 5
     },
     {
       id: 4,
@@ -38,6 +47,9 @@ export class UserService {
       description: 'Valorant player',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=4',
+      isAdmin:false,
+      totalClips: 3,
+      totalFavorites: 0
     },
     {
       id: 5,
@@ -46,8 +58,15 @@ export class UserService {
       description: 'Valorant player',
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=5',
+      isAdmin:true,
+      totalClips: 104,
+      totalFavorites: 56
     },
   ];
+
+  getAllUsers(): Observable<User[]> {
+    return of(this.mockUsers);
+  }
 
   getUserById(id: number): Observable<User | null> {
     return of(this.mockUsers.find(u => u.id === id) || null);

@@ -194,7 +194,7 @@
   margin-bottom: 8px;
 }
 
-input, textarea {
+input, textarea, select {
   width: 100%;
   background-color: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
@@ -204,9 +204,10 @@ input, textarea {
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
+  appearance: none;
 }
 
-input:focus, textarea:focus { border-color: hsl(var(--primary)); }
+input:focus, textarea:focus, select:focus { border-color: hsl(var(--primary)); }
 
 .tags-display {
   display: flex;

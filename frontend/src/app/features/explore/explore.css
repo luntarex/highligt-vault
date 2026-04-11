@@ -253,3 +253,69 @@
 .comment-post-btn:hover {
   opacity: 0.8;
 }
+
+/* Comment Actions */
+.comment-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.cmnt-icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  opacity: 0.6;
+}
+
+.cmnt-icon-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.del-msg-btn:hover {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.cmnt-icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.edit-comment-area {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.edit-comment-input {
+  flex: 1;
+  background-color: var(--bg-main);
+  border: 1px solid var(--accent-purple);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 4px 8px;
+  outline: none;
+  font-size: 13px;
+}
+
+.save-comment-btn {
+  background-color: var(--accent-purple);
+  color: var(--bg-main);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
