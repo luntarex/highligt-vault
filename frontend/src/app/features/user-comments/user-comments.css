@@ -1,0 +1,101 @@
+:host {
+    --bg-main: rgb(30, 30, 30);
+    --bg-card: rgb(37, 37, 38);
+    --text-primary: rgb(255, 255, 255);
+    --text-secondary: rgb(170, 170, 170);
+    --border-color: rgb(51, 51, 51);
+    --accent-purple: rgb(180, 158, 225);
+}
+
+.comments-container {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.comments-header {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comments-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.comments-list {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.comment {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.comment:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: rgba(180, 158, 225, 0.3);
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.comment-author img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: rgb(55, 55, 55);
+    border: 1px solid var(--border-color);
+}
+
+.comment-author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-author-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.comment-author-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.comment-content {
+    padding-left: 52px; /* aligns text with username, past the 40px avatar + 12px gap */
+}
+
+.comment-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgb(230, 230, 230);
+}

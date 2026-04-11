@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { RegisterRequest } from '../../../core/models/user';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -21,6 +22,8 @@ export class Register {
   showPassword = false;
   showConfirmPassword = false;
 
+  constructor(private authService: AuthService) {}
+
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
@@ -28,7 +31,13 @@ export class Register {
   toggleConfirmPasswordVisibility() {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
+  
   onSubmit() {
-    console.log('Registiring user data sent to the backend',this.registerRequest);
+    this.authService.register(this.registerRequest).subscribe(success => {
+      if(success) {
+        // Navigate or show success message
+        console.log("Registration successful");
+      }
+    });
   }
 }

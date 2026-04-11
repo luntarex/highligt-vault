@@ -45,4 +45,19 @@ feed: ExplorePost[] = [
   getFeed(): Observable<ExplorePost[]> {
     return of(this.feed);
   }
+  addPost(post: ExplorePost): void {
+    this.feed.push(post);
+  }
+  deletePost(id: string): void {
+    this.feed = this.feed.filter(post => post.id !== id);
+  }
+  updatePost(updatedPost: ExplorePost): void {
+    const index = this.feed.findIndex(p => p.id === updatedPost.id);
+    if (index !== -1) {
+      this.feed[index] = updatedPost;
+    }
+  }
+  getPostById(id: string): Observable<ExplorePost | undefined> {
+    return of(this.feed.find(p => p.id === id));
+  }
 }
