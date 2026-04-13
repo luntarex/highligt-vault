@@ -2,7 +2,7 @@
 <div class="back-link">
   <app-back-link></app-back-link>
 </div>
-@if (user) {
+<ng-container *ngIf="user">
 <section class="profile-page-header">
 <div class="avatar-container">
   <div class="avatar">
@@ -13,17 +13,17 @@
   <p class="bio">{{user.description}}</p>
   <div class="stats-row">
     <div class="stat-item">
-      <span class="stat-value">{{user.totalClips}}</span>
+      <span class="stat-value">{{user.totalClips || 0}}</span>
       <span class="stat-label">Clips</span>
     </div>
     <div class="stat-item">
-      <span class="stat-value">{{user.totalFavorites}}</span>
+      <span class="stat-value">{{user.totalFavorites || 0}}</span>
       <span class="stat-label">Favorites</span>
     </div>
   </div>
 </div>
 </section>
-}
+</ng-container>
 <section class="favorites-section">
   <div class="section-header">
     <h2>Favorite Clips</h2>

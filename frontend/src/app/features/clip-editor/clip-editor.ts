@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -21,11 +21,20 @@ export class ClipEditor implements OnInit {
   isDraggingStart: boolean = false;
   isDraggingEnd: boolean = false;
   isDraggingSeek: boolean = false;
+  fileToUpload: File | null = null;
+  isUploading: boolean = false;
+  uploadStatus: string = '';
 
   @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('timeline') timelineRef!: ElementRef<HTMLDivElement>;
 
-  constructor(private clipService: ClipService, private route: ActivatedRoute, private router: Router, private authService: AuthService) {}
+  constructor(
+    private clipService: ClipService, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -33,6 +42,7 @@ export class ClipEditor implements OnInit {
     if (idParam === 'new') {
       const state = history.state;
       if (state && state.videoUrl) {
+         this.fileToUpload = state.file || null;
          this.clip = {
            id: 0,
            title: 'My Highlight',
@@ -56,10 +66,12 @@ export class ClipEditor implements OnInit {
     } else {
       const clipId = idParam ? Number(idParam) : null;
       if (clipId) {
-        const originalClip = this.clipService.getClip(clipId);
-        if (originalClip) {
-          this.clip = { ...originalClip, tags: [...originalClip.tags] };
-        }
+        this.clipService.getClip(clipId).subscribe(originalClip => {
+          if (originalClip) {
+            this.clip = { ...originalClip, tags: [...originalClip.tags] };
+            this.cdr.detectChanges();
+          }
+        });
       }
     }
   }
@@ -166,12 +178,53 @@ export class ClipEditor implements OnInit {
 
   saveClip(): void {
     if (this.clip) {
-      if (this.clip.id === 0) {
-        this.clipService.addClip(this.clip);
-      } else {
-        this.clipService.updateClip(this.clip);
+      if (this.clip.id === 0 && !this.isUploading) {
+        if (!this.fileToUpload) {
+          alert("No video file selected!");
+          return;
+        }
+        
+        this.isUploading = true;
+        this.uploadStatus = 'Uploading video to stream server...';
+        this.cdr.detectChanges();
+        
+        const formData = new FormData();
+        formData.append('file', this.fileToUpload);
+        
+        fetch('https://tmpfiles.org/api/v1/upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                let rawUrl = data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                this.clip!.url = rawUrl;
+                
+                this.uploadStatus = 'Saving highlight to vault...';
+                this.cdr.detectChanges();
+
+                this.clipService.addClip(this.clip!).subscribe(() => {
+                    this.isUploading = false;
+                    this.cdr.detectChanges();
+                    this.router.navigate(['/']);
+                });
+            } else {
+                this.isUploading = false;
+                this.cdr.detectChanges();
+                alert('Upload failed: ' + JSON.stringify(data));
+            }
+        })
+        .catch(err => {
+            this.isUploading = false;
+            this.cdr.detectChanges();
+            console.error(err);
+            alert('Upload error: ' + err.message);
+        });
+
+      } else if (this.clip.id !== 0 && !this.isUploading) {
+        this.clipService.updateClip(this.clip).subscribe(() => this.router.navigate(['/']));
       }
-      this.router.navigate(['/']);
     }
   }
 }

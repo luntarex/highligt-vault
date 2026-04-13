@@ -16,7 +16,7 @@ export class App {
   constructor(private router: Router) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.isAuthPage = ['/register', '/login'].includes(event.urlAfterRedirects);
+        this.isAuthPage = ['/register', '/login', '/welcome', '/complete-profile'].includes(event.urlAfterRedirects);
       }
     });
   }

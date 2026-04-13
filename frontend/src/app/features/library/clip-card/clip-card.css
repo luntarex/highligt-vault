@@ -1,5 +1,6 @@
 
 .card-container {
+  position: relative;
   background-color: hsl(var(--card));
   border-radius: var(--radius);
   overflow: hidden;
@@ -60,15 +61,61 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
-.delete-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ff4d4d;
+.action-btn {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+}
+
+.recover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
+}
+
+.card-container:hover .recover-overlay {
+  opacity: 1;
+}
+
+.recover-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #a855f7;
 }
 
 .card-container:hover .delete-btn {
   opacity: 1;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 77, 77, 0.2);
+  color: #ff4d4d;
+  border-color: #ff4d4d;
 }
 
 .delete-btn svg { width: 14px; height: 14px; }

@@ -23,8 +23,10 @@ export class CustomUpload implements OnInit {
   constructor(private clipService: ClipService) {}
 
   ngOnInit(): void {
-    this.clips = this.clipService.getClips();
-    this.filteredClips = this.clips;
+    this.clipService.getClips().subscribe(clips => {
+      this.clips = clips;
+      this.filteredClips = this.clips;
+    });
   }
 
   onSearch(): void {

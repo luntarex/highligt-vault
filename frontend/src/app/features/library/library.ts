@@ -1,7 +1,9 @@
 import { ClipCard } from './clip-card/clip-card';
-import { Component,OnInit } from '@angular/core';
-import {CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ClipService } from '../../core/services/clip.service';
+import { ProfileService } from '../../core/services/profile.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Clip } from '../../core/models/clip'
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 import { RouterLink, RouterLinkActive } from "@angular/router";
@@ -22,31 +24,46 @@ export class Library implements OnInit {
   sortOptions = ['Date', 'Duration'];
 
   clips: Clip[] = [];
-  user!: User;
-  constructor(private clipService: ClipService) {}
+  user: User | null = null;
 
-  ngOnInit(): void {  //Backend bağlayınca değişcek
-   this.clips = this.clipService.getClips();
-   this.user = {
-      id: 1,
-      username: 'Haluk',
-      email: 'haluk@example.com',
-      profilePhotoUrl: 'https://i.pravatar.cc/150?img=3',
-      description: 'I am a gamer',
-      createdAt: new Date(),
-      isAdmin:true,
-   };
+  constructor(
+    private clipService: ClipService,
+    private profileService: ProfileService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    const userId = this.authService.getCurrentUserId();
+    this.clipService.getClips(userId).subscribe(clips => {
+      this.clips = clips;
+      this.cdr.detectChanges();
+    });
+
+    const currentUserId = this.authService.getCurrentUserId();
+    if (currentUserId) {
+      this.profileService.getUserProfile(currentUserId.toString()).subscribe(profile => {
+        this.user = profile;
+        this.cdr.detectChanges();
+      });
+    }
   }
   handleDelete(id: number) {
-    this.clipService.deleteClip(id);
-    this.clips = this.clipService.getClips();
+    this.clipService.deleteClip(id).subscribe(() => {
+      this.clipService.getClips().subscribe(clips => {
+        this.clips = clips;
+        this.cdr.detectChanges();
+      });
+    });
   }
 
   searchQuery: string = '';
 
   onSearch() {
-    this.clips = this.clipService.getClips().filter(clip =>
-      clip.title.toLowerCase().startsWith(this.searchQuery.toLowerCase())
-    );
+    this.clipService.getClips().subscribe(clips => {
+      this.clips = clips.filter(clip =>
+        clip.title.toLowerCase().startsWith(this.searchQuery.toLowerCase())
+      );
+    });
   }
 }
