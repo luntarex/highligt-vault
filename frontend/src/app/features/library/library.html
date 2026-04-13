@@ -33,10 +33,12 @@
 </app-custom-dropdown>
     </div>
 
-    <div class = "profile-nav" >
-      <a routerLink="/profile" routerLinkActive="active">
-        <img src="{{ user.profilePhotoUrl }}">
-      </a>
+    <div class="profile-nav">
+      <ng-container *ngIf="user">
+        <a routerLink="/profile" routerLinkActive="active">
+          <img [src]="user.profilePhotoUrl ? user.profilePhotoUrl : 'assets/icons/default-avatar.png'">
+        </a>
+      </ng-container>
      </div>
   </header>
 

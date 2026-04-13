@@ -1,0 +1,48 @@
+<div class="auth-container">
+  <div class="auth-header">
+    <h2>Highlight Vault</h2>
+    <p>Complete your profile, {{ username }}</p>
+  </div>
+
+  <div class="auth-card">
+    <!-- Avatar Picker -->
+    <div class="avatar-section">
+      <div class="current-avatar">
+        <img [src]="getSelectedAvatarUrl()" alt="Selected avatar">
+      </div>
+      <p class="section-label">Choose your avatar</p>
+      <div class="avatar-grid">
+        @for (avatar of avatarOptions; track avatar; let i = $index) {
+          <div
+            class="avatar-option"
+            [ngClass]="{'selected': i === selectedAvatarIndex}"
+            (click)="selectAvatar(i)">
+            <img [src]="avatar" alt="Avatar option">
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label>About You</label>
+      <textarea
+        [(ngModel)]="description"
+        name="description"
+        placeholder="Write a short bio about yourself..."
+        rows="4"
+        maxlength="300">
+      </textarea>
+      <small class="char-count">{{ description.length }} / 300</small>
+    </div>
+
+    <!-- Save Button -->
+    <button
+      class="submit-btn"
+      (click)="onSave()"
+      [disabled]="saving">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      {{ saving ? 'Saving...' : 'Save Profile' }}
+    </button>
+  </div>
+</div>

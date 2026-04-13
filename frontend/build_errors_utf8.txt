@@ -1,0 +1,67 @@
+﻿[33m>[39m Building...
+[32mÔêÜ[39m Building...
+Application bundle generation failed. [2.166 seconds] - 2026-04-13T20:14:25.598Z
+
+node.exe : [1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2740: Type '{ tags: any[]; source: Observable<any>
+ | undefined; operator: Operator<any, Clip> | undefined; }' is missing the following properties from type 'Clip': id, t
+itle, game, notes, and 10 more.[0m [1m[35m[plugin angular-compiler][0m
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[31m[31mX...r-compiler][0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+    src/app/features/clip-editor/clip-editor.ts:61:10:
+[37m      61 Ôöé           [32mthis.clip[37m = { ...originalClip, tags: [...originalClip.ta...
+         ÔòÁ           [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'tags' does not exist on type 'Observable<Clip>'.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/clip-editor/clip-editor.ts:61:64:
+[37m      61 Ôöé ...    this.clip = { ...originalClip, tags: [...originalClip.[32mtags[37m] };
+         ÔòÁ                                                              [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2740: Type 'Observable<Clip[]>' is missing the following properties fr
+om type 'Clip[]': length, pop, push, concat, and 28 more.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/library/library.ts:29:3:
+[37m      29 Ôöé    [32mthis.clips[37m = this.clipService.getClips();
+         ÔòÁ    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2740: Type 'Observable<Clip[]>' is missing the following properties fr
+om type 'Clip[]': length, pop, push, concat, and 28 more.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/library/library.ts:42:4:
+[37m      42 Ôöé     [32mthis.clips[37m = this.clipService.getClips();
+         ÔòÁ     [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'filter' does not exist on type 'Observable<Clip[]>'.[
+0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/library/library.ts:48:45:
+[37m      48 Ôöé     this.clips = this.clipService.getClips().[32mfilter[37m(clip =>
+         ÔòÁ                                              [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'clip' implicitly has an 'any' type.[0m [1m[35m[plu
+gin angular-compiler][0m
+
+    src/app/features/library/library.ts:48:52:
+[37m      48 Ôöé     this.clips = this.clipService.getClips().filter([32mclip[37m =>
+         ÔòÁ                                                     [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2740: Type 'Observable<Clip[]>' is missing the following properties fr
+om type 'Clip[]': length, pop, push, concat, and 28 more.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/shared/custom-upload/custom-upload.ts:26:4:
+[37m      26 Ôöé     [32mthis.clips[37m = this.clipService.getClips();
+         ÔòÁ     [32m~~~~~~~~~~[0m
+
+[39m[22m

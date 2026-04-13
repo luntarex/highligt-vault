@@ -2,7 +2,7 @@ import { User } from '../../../core/models/user';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { RegisterRequest } from '../../../core/models/user';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -22,7 +22,7 @@ export class Register {
   showPassword = false;
   showConfirmPassword = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -31,12 +31,17 @@ export class Register {
   toggleConfirmPasswordVisibility() {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
-  
+
   onSubmit() {
-    this.authService.register(this.registerRequest).subscribe(success => {
-      if(success) {
-        // Navigate or show success message
-        console.log("Registration successful");
+    this.authService.register(this.registerRequest).subscribe(res => {
+      if(res) {
+        // Auto-login after successful registration
+        this.authService.login({
+          username: this.registerRequest.username,
+          password: this.registerRequest.password
+        }).subscribe(() => {
+          this.router.navigate(['/complete-profile']);
+        });
       }
     });
   }

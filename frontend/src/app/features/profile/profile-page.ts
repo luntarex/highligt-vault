@@ -1,15 +1,15 @@
-import { Component,OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { User } from '../../core/models/user';
 import { Clip } from '../../core/models/clip';
 import { BackLink } from '../../shared/back-link/back-link';
-import { NgClass } from '@angular/common';
+import { NgClass, CommonModule } from '@angular/common';
 import { ProfileService } from '../../core/services/profile.service';
 import { CustomUpload } from '../../shared/custom-upload/custom-upload';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [BackLink, NgClass, CustomUpload],
+  imports: [BackLink, NgClass, CommonModule, CustomUpload],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
@@ -22,7 +22,8 @@ export class ProfilePage implements OnInit {
 
   constructor(
     private profileService: ProfileService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -40,11 +41,24 @@ export class ProfilePage implements OnInit {
   }
 
   loadProfileData(id: string | null): void {
-    this.profileService.getUserProfile(id).subscribe((profileData) => {
-      this.user = profileData;
+    this.profileService.getUserProfile(id).subscribe({
+      next: (profileData) => {
+        console.log('Profile data received:', profileData);
+        this.user = profileData;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load profile:', err);
+      }
     });
-    this.profileService.getFavoriteClips(id).subscribe((clipsData) => {
-      this.favoriteClips = clipsData;
+    this.profileService.getFavoriteClips(id).subscribe({
+      next: (clipsData) => {
+        this.favoriteClips = clipsData;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load clips:', err);
+      }
     });
   }
 
@@ -63,8 +77,27 @@ export class ProfilePage implements OnInit {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
-  formatTimeAgo(date: Date): string {
-    // Basic mock implementation. In a real app, you'd use a robust library like date-fns
-    return '14mo ago';
+  formatTimeAgo(dateInput: Date | string): string {
+    if (!dateInput) return '';
+    const date = new Date(dateInput);
+    const now = new Date();
+    const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+
+    if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+    
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) return `${diffInDays}d ago`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+    
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears}y ago`;
   }
 }

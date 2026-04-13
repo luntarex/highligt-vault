@@ -1,0 +1,192 @@
+.welcome-container {
+  min-height: 100vh;
+  background-color: #1e1b26;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 60px 20px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(179, 136, 235, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+}
+
+.logo-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(179, 136, 235, 0.12);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px auto;
+  color: #b388eb;
+  border: 1px solid rgba(179, 136, 235, 0.2);
+}
+
+.logo-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.5px;
+}
+
+.hero h1 .accent {
+  background: linear-gradient(135deg, #b388eb, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: #999;
+  line-height: 1.7;
+  margin: 0 0 40px 0;
+}
+
+/* ── CTA Buttons ── */
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+  cursor: pointer;
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #b388eb, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 20px rgba(179, 136, 235, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(179, 136, 235, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ccc;
+  border: 1px solid #444;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ── Features ── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 0 40px 80px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: #24222a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+  transition: transform 0.2s, border-color 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: #b388eb44;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(179, 136, 235, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #b388eb;
+}
+
+.feature-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.feature-card h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  color: #888;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Footer ── */
+.welcome-footer {
+  text-align: center;
+  padding: 30px 20px;
+  border-top: 1px solid #2a2833;
+  color: #555;
+  font-size: 0.8rem;
+}
