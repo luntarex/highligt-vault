@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -24,7 +24,8 @@ export class MessagesComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
@@ -41,6 +42,7 @@ export class MessagesComponent implements OnInit {
   loadConversations(): void {
     this.messageService.getConversations(this.currentUserId).subscribe(convs => {
       this.conversations = convs;
+      this.cdr.detectChanges();
     });
   }
 
@@ -50,6 +52,7 @@ export class MessagesComponent implements OnInit {
     this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
       this.currentConversation = msgs;
       this.loading = false;
+      this.cdr.detectChanges();
       // Mark as read
       this.currentConversation.forEach(m => {
         if (m.receiverId === this.currentUserId && !m.isRead) {

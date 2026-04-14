@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PlaylistService } from '../../core/services/playlist.service';
@@ -25,7 +25,8 @@ export class PlaylistView implements OnInit {
     private route: ActivatedRoute,
     private playlistService: PlaylistService,
     private clipService: ClipService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -47,6 +48,7 @@ export class PlaylistView implements OnInit {
       next: (data) => {
         this.playlist = data;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to load playlist', err);
@@ -79,6 +81,7 @@ export class PlaylistView implements OnInit {
         // filter out clips already in the playlist
         const existingIds = this.playlist?.clips?.map(c => c.id) || [];
         this.availableClips = clips.filter(c => !existingIds.includes(c.id));
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Failed to load available clips', err)
     });
