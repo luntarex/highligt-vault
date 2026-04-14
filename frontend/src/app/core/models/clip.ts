@@ -17,6 +17,7 @@ export  interface Clip{
   uploaderId : number
   isFavorite : boolean;
   isDeleted : boolean;
+  isPublic : boolean;
 
   dateCreated : Date;
 
