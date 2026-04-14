@@ -6,11 +6,12 @@ import { MessageService } from '../../core/services/message.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { Message, Conversation } from '../../core/models/message.model';
+import { BackLink } from '../../shared/back-link/back-link';
 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink],
   templateUrl: './messages.html',
   styleUrls: ['./messages.css']
 })
