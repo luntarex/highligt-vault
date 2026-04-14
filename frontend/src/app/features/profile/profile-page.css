@@ -278,8 +278,8 @@
 }
 
 .message-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  color: white;
+  background: hsl(0, 0%, 50%);
+  color: hsl(0, 0%, 10%);
   border: none;
   padding: 10px 24px;
   border-radius: 30px;
@@ -287,11 +287,12 @@
   font-size: 14px;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .message-btn:hover {
+  background: hsl(0, 0%, 60%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 

@@ -5,8 +5,8 @@
       <h2>Messages</h2>
     </div>
     <div class="conversation-list">
-      <div *ngFor="let conv of conversations" 
-           class="conversation-item" 
+      <div *ngFor="let conv of conversations"
+           class="conversation-item"
            [class.active]="conv.other_user_id === selectedUserId"
            (click)="selectUser(conv.other_user_id)">
         <img [src]="conv.profile_photo_url || 'https://i.pravatar.cc/150?img=1'" alt="Avatar" class="avatar">
@@ -30,11 +30,14 @@
   <main class="chat-area">
     <div *ngIf="selectedUserId; else noSelection" class="chat-content">
       <header class="chat-header">
-        <h3>Chatting with {{ selectedUserId }}</h3> <!-- Fixed later with username -->
+        <img [src]="selectedUserPhoto || 'https://i.pravatar.cc/150?img=1'"
+             alt="Avatar"
+             class="header-avatar">
+        <h3>{{ selectedUsername }}</h3>
       </header>
 
       <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
-        <div *ngFor="let msg of currentConversation" 
+        <div *ngFor="let msg of currentConversation"
              class="message-wrapper"
              [class.sent]="msg.senderId === currentUserId"
              [class.received]="msg.senderId !== currentUserId">
@@ -43,17 +46,17 @@
             <span class="msg-time">{{ msg.createdAt | date:'shortTime' }}</span>
           </div>
         </div>
-        <div *ngIf="loading" class="loading-spinner">Loading...</div>
       </div>
 
       <footer class="chat-input">
         <form (ngSubmit)="sendMessage()">
-          <input type="text" 
-                 name="message" 
-                 [(ngModel)]="newMessageContent" 
+          <input type="text"
+                 name="message"
+                 [(ngModel)]="newMessageContent"
                  placeholder="Type a message..."
-                 autocomplete="off">
-          <button type="submit" [disabled]="!newMessageContent.trim()">Send</button>
+                 autocomplete="off"
+                 (keydown.enter)="$event.preventDefault(); sendMessage()">
+          <button type="submit" [disabled]="!newMessageContent.trim() || isSending">Send</button>
         </form>
       </footer>
     </div>
