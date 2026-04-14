@@ -82,6 +82,10 @@ public class ClipService {
         clipRepository.softDeleteClip(id);
     }
 
+    public void hardDeleteClip(Long id) {
+        clipRepository.hardDeleteClip(id);
+    }
+
     public List<Map<String, Object>> getDeletedClipsByUserId(Long uploaderId) {
         return clipRepository.findAllDeletedByUserId(uploaderId);
     }

@@ -22,6 +22,9 @@ export class Trash implements OnInit {
   showRecoverModal = false;
   clipToRecover: number | null = null;
 
+  showDeleteModal = false;
+  clipToDelete: number | null = null;
+
   constructor(
     private clipService: ClipService,
     private authService: AuthService,
@@ -77,5 +80,33 @@ export class Trash implements OnInit {
   onCancelRecovery(): void {
     this.showRecoverModal = false;
     this.clipToRecover = null;
+  }
+
+  handleHardDelete(clipId: number): void {
+    this.clipToDelete = clipId;
+    this.showDeleteModal = true;
+  }
+
+  onConfirmDelete(): void {
+    if (this.clipToDelete) {
+      this.clipService.hardDeleteClip(this.clipToDelete).subscribe({
+        next: () => {
+          this.deletedClips = this.deletedClips.filter(c => c.id !== this.clipToDelete);
+          this.showDeleteModal = false;
+          this.clipToDelete = null;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          alert('Failed to delete clip permanently: ' + err.message);
+          this.showDeleteModal = false;
+          this.clipToDelete = null;
+        }
+      });
+    }
+  }
+
+  onCancelDelete(): void {
+    this.showDeleteModal = false;
+    this.clipToDelete = null;
   }
 }

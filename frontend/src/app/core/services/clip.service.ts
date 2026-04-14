@@ -36,6 +36,10 @@ export class ClipService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  hardDeleteClip(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/trash/${id}/hard`);
+  }
+
   updateClip(updatedClip: Clip): Observable<any> {
     return this.http.put(`${this.apiUrl}/${updatedClip.id}`, updatedClip);
   }

@@ -14,12 +14,18 @@ export class ClipCard {
   @Input() mode: 'library' | 'trash' = 'library';
   @Output() removeClip = new EventEmitter<number>();
   @Output() recoverClip = new EventEmitter<number>();
+  @Output() hardDeleteClip = new EventEmitter<number>();
 
   constructor(private router: Router) {}
 
   onDelete(event: Event) {
     event.stopPropagation();
     this.removeClip.emit(this.clip.id);
+  }
+
+  onHardDelete(event: Event) {
+    event.stopPropagation();
+    this.hardDeleteClip.emit(this.clip.id);
   }
 
   handleCardClick(event: Event) {

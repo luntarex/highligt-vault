@@ -32,7 +32,8 @@
         *ngFor="let clip of deletedClips" 
         [clip]="clip" 
         mode="trash"
-        (recoverClip)="handleRecover($event)">
+        (recoverClip)="handleRecover($event)"
+        (hardDeleteClip)="handleHardDelete($event)">
       </app-clip-card>
     </div>
   </main>
@@ -45,5 +46,16 @@
     cancelText="Maybe later"
     (confirmed)="onConfirmRecovery()"
     (cancelled)="onCancelRecovery()">
+  </app-confirm-dialog>
+
+  <app-confirm-dialog
+    *ngIf="showDeleteModal"
+    title="Delete Permanently"
+    message="Are you sure you want to permanently delete this highlight? This cannot be undone."
+    confirmText="Delete"
+    cancelText="Cancel"
+    type="danger"
+    (confirmed)="onConfirmDelete()"
+    (cancelled)="onCancelDelete()">
   </app-confirm-dialog>
 </div>
