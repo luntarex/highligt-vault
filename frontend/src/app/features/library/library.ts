@@ -58,8 +58,9 @@ export class Library implements OnInit {
     }
   }
   handleDelete(id: number) {
+    const userId = this.authService.getCurrentUserId();
     this.clipService.deleteClip(id).subscribe(() => {
-      this.clipService.getClips().subscribe(clips => {
+      this.clipService.getClips(userId).subscribe(clips => {
         this.clips = clips;
         this.cdr.detectChanges();
       });
