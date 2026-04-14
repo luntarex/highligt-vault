@@ -1,13 +1,17 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-back-link',
-  imports: [RouterModule],
+  standalone: true,
   templateUrl: './back-link.html',
   styleUrl: './back-link.css',
 })
 export class BackLink {
-  
 
+  constructor(private location: Location) {}
+
+  goBack(): void {
+    this.location.back();
+  }
 }

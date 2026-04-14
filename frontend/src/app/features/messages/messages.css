@@ -22,6 +22,11 @@
     border-bottom: 1px solid hsl(0, 0%, 18%);
 }
 
+.sidebar-header app-back-link {
+    display: block;
+    margin-bottom: 10px;
+}
+
 .sidebar-header h2 {
     margin: 0;
     font-size: 1.5rem;
