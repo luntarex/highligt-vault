@@ -92,9 +92,28 @@ public class ClipRepository {
         jdbcTemplate.update(sql, id);
     }
 
+    public Long getGameIdByNameOrCreate(String gameName) {
+        if (gameName == null || gameName.trim().isEmpty()) {
+            return 1L;
+        }
+        String findSql = "SELECT id FROM games WHERE name = ?";
+        List<Long> gameIds = jdbcTemplate.queryForList(findSql, Long.class, gameName);
+        if (gameIds.isEmpty()) {
+            org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO games (name) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, gameName);
+                return ps;
+            }, keyHolder);
+            return keyHolder.getKey().longValue();
+        } else {
+            return gameIds.get(0);
+        }
+    }
+
     public Long insertClip(String title, String videoUrl, String thumbnailUrl, 
-                           Double duration, Double startTime, Double endTime, String notes, Long uploaderId) {
-        String sql = "INSERT INTO clips (title, video_url, thumbnail_url, duration, start_time, end_time, notes, uploader_id, game_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
+                           Double duration, Double startTime, Double endTime, String notes, Long uploaderId, Long gameId) {
+        String sql = "INSERT INTO clips (title, video_url, thumbnail_url, duration, start_time, end_time, notes, uploader_id, game_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
@@ -107,15 +126,16 @@ public class ClipRepository {
             ps.setObject(6, endTime);
             ps.setString(7, notes);
             ps.setObject(8, uploaderId);
+            ps.setObject(9, gameId);
             return ps;
         }, keyHolder);
         
         return keyHolder.getKey().longValue();
     }
     
-    public void updateClip(Long id, String title, String notes) {
-        String sql = "UPDATE clips SET title = ?, notes = ? WHERE id = ?";
-        jdbcTemplate.update(sql, title, notes, id);
+    public void updateClip(Long id, String title, String notes, Long gameId) {
+        String sql = "UPDATE clips SET title = ?, notes = ?, game_id = ? WHERE id = ?";
+        jdbcTemplate.update(sql, title, notes, gameId, id);
     }
     
     public void clearTagsForClip(Long clipId) {

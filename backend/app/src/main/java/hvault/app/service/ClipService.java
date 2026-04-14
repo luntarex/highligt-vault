@@ -47,8 +47,10 @@ public class ClipService {
         Double endTime = clipData.get("endTime") != null ? Double.valueOf(clipData.get("endTime").toString()) : 0.0;
         
         Long uploaderId = clipData.get("uploaderId") != null ? Long.valueOf(clipData.get("uploaderId").toString()) : 1L;
+        String gameName = (String) clipData.get("game");
+        Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
 
-        Long clipId = clipRepository.insertClip(title, videoUrl, thumbnailUrl, duration, startTime, endTime, notes, uploaderId);
+        Long clipId = clipRepository.insertClip(title, videoUrl, thumbnailUrl, duration, startTime, endTime, notes, uploaderId, gameId);
 
         List<String> tags = (List<String>) clipData.get("tags");
         if (tags != null) {
@@ -62,8 +64,10 @@ public class ClipService {
     public void updateClip(Long id, Map<String, Object> clipData) {
         String title = (String) clipData.get("title");
         String notes = (String) clipData.get("notes");
+        String gameName = (String) clipData.get("game");
+        Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
         
-        clipRepository.updateClip(id, title, notes);
+        clipRepository.updateClip(id, title, notes, gameId);
         
         clipRepository.clearTagsForClip(id);
         List<String> tags = (List<String>) clipData.get("tags");

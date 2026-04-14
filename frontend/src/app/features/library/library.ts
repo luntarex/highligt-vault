@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ClipService } from '../../core/services/clip.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { GameService } from '../../core/services/game.service';
 import { Clip } from '../../core/models/clip'
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 import { RouterLink, RouterLinkActive } from "@angular/router";
@@ -19,7 +20,7 @@ import { User } from '../../core/models/user';
 })
 export class Library implements OnInit {
 
-  games = ['All Games', 'CS2', 'LOL', 'Valorant', 'Dota 2', 'Rocket League', 'Apex Legends', 'Overwatch', 'Fortnite', 'PUBG', 'Marvel Rivals'];
+  games = ['All Games'];
   tags = ['All Tags', 'Ace', 'Clutch', 'Funny', 'Fail', 'Sniper', 'Win'];
   sortOptions = ['Date', 'Duration'];
 
@@ -30,6 +31,7 @@ export class Library implements OnInit {
     private clipService: ClipService,
     private profileService: ProfileService,
     private authService: AuthService,
+    private gameService: GameService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -37,6 +39,11 @@ export class Library implements OnInit {
     const userId = this.authService.getCurrentUserId();
     this.clipService.getClips(userId).subscribe(clips => {
       this.clips = clips;
+      this.cdr.detectChanges();
+    });
+
+    this.gameService.getGameNames().subscribe(names => {
+      this.games = ['All Games', ...names];
       this.cdr.detectChanges();
     });
 
