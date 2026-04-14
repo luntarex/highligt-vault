@@ -24,7 +24,9 @@ public class UserRepository {
     public List<Map<String, Object>> findAllUsersWithPostCount() {
         String sql = """
             SELECT u.id, u.username, u.email, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
-                   COUNT(p.id) AS postCount
+                   COUNT(p.id) AS postCount,
+                   (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
+                   (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
             FROM users u
             LEFT JOIN posts p ON u.id = p.user_id
             GROUP BY u.id, u.username, u.email, u.profile_photo_url, u.created_at, u.isAdmin
