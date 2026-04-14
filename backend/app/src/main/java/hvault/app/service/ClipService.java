@@ -25,6 +25,18 @@ public class ClipService {
         return clipRepository.findAllByUserId(uploaderId);
     }
     
+    public List<Map<String, Object>> getFavoritesByUserId(Long userId) {
+        return clipRepository.findFavoritesByUserId(userId);
+    }
+
+    public void addFavorite(Long userId, Long clipId) {
+        clipRepository.addFavorite(userId, clipId);
+    }
+
+    public void removeFavorite(Long userId, Long clipId) {
+        clipRepository.removeFavorite(userId, clipId);
+    }
+    
     public List<Map<String, Object>> getAllClips() {
         return clipRepository.findAllClips();
     }

@@ -12,5 +12,7 @@ export interface ExplorePost {
   tags: string[];
   currentTime?: number;
   duration?: number;
+  clipId?: string;
+  isFavorited?: boolean;
 }
 

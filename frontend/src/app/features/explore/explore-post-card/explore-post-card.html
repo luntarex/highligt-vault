@@ -121,6 +121,18 @@
       <span class="count">{{post.comments}}</span>
     </button>
 
+    <button class="action-btn" [class.favorited]="post.isFavorited" (click)="onToggleFavorite()">
+      @if (post.isFavorited) {
+        <svg viewBox="0 0 24 24" class="icon" fill="currentColor">
+          <path d="M5 3C5 2.44772 5.44772 2 6 2H18C18.5523 2 19 2.44772 19 3V21.1382C19 21.6577 18.3117 21.8596 18.0218 21.4248L12 12.3923L5.97816 21.4248C5.68832 21.8596 5 21.6577 5 21.1382V3Z"/>
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 3C5 2.44772 5.44772 2 6 2H18C18.5523 2 19 2.44772 19 3V21.1382C19 21.6577 18.3117 21.8596 18.0218 21.4248L12 12.3923L5.97816 21.4248C5.68832 21.8596 5 21.6577 5 21.1382V3Z"/>
+        </svg>
+      }
+    </button>
+
     <button class="action-btn share-btn">
       <svg viewBox="0 0 24 24" class="s-icon" stroke="currentColor" fill="none">
         <circle cx="18.5" cy="5" r="3.5"/>

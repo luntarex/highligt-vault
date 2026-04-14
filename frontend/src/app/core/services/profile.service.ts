@@ -24,7 +24,7 @@ export class ProfileService {
 
   getFavoriteClips(id?: string | null): Observable<Clip[]> {
     const userId = id ? id : this.authService.getCurrentUserId().toString();
-    return this.http.get<Clip[]>(`${this.apiClipsUrl}?uploaderId=${userId}`);
+    return this.http.get<Clip[]>(`${this.apiClipsUrl}/favorites/${userId}`);
   }
 
   updateUserProfile(userId: number, data: { description: string; profilePhotoUrl: string }): Observable<any> {

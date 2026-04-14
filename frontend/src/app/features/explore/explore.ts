@@ -181,6 +181,18 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  toggleFavorite(post: ExplorePost) {
+    if (!post.clipId) return;
+    const userId = this.authService.getCurrentUserId();
+    if (post.isFavorited) {
+      post.isFavorited = false;
+      this.exploreService.unfavoriteClip(post.clipId, userId).subscribe();
+    } else {
+      post.isFavorited = true;
+      this.exploreService.favoriteClip(post.clipId, userId).subscribe();
+    }
+  }
+
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
     this.comments = [];

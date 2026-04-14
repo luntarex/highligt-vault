@@ -46,6 +46,7 @@ export class ExplorePostCard {
 
   @Output() togglePlayEvent = new EventEmitter<{ post: ExplorePost; video: HTMLVideoElement }>();
   @Output() toggleLikeEvent = new EventEmitter<ExplorePost>();
+  @Output() toggleFavoriteEvent = new EventEmitter<ExplorePost>();
   @Output() openCommentsEvent = new EventEmitter<ExplorePost>();
   @Output() deletePostEvent = new EventEmitter<ExplorePost>();
   @Output() toggleMuteEvent = new EventEmitter<{ event: MouseEvent; video: HTMLVideoElement }>();
@@ -69,6 +70,10 @@ export class ExplorePostCard {
 
   onToggleLike() {
     this.toggleLikeEvent.emit(this.post);
+  }
+
+  onToggleFavorite() {
+    this.toggleFavoriteEvent.emit(this.post);
   }
 
   onOpenComments() {
