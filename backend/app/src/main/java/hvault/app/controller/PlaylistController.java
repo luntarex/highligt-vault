@@ -1,5 +1,6 @@
 package hvault.app.controller;
 
+import hvault.app.service.PlaylistService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,16 +11,24 @@ import java.util.Map;
 @RequestMapping("/api/playlists")
 public class PlaylistController {
 
+    private final PlaylistService playlistService;
+
+    public PlaylistController(PlaylistService playlistService) {
+        this.playlistService = playlistService;
+    }
+
     /**
      * GET /api/playlists/user/{userId}
      * Get all playlists belonging to a user.
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getPlaylistsByUserId(@PathVariable Long userId) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 1, "name", "Stub Playlist", "description", "My best clips", "userId", userId)
-        ));
+        try {
+            List<Map<String, Object>> playlists = playlistService.getPlaylistsByUserId(userId);
+            return ResponseEntity.ok(playlists);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -28,13 +37,14 @@ public class PlaylistController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlaylistById(@PathVariable Long id) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of(
-            "id", id,
-            "name", "Stub Playlist",
-            "description", "My best clips",
-            "clips", List.of()
-        ));
+        try {
+            Map<String, Object> playlist = playlistService.getPlaylistById(id);
+            return ResponseEntity.ok(playlist);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -43,8 +53,16 @@ public class PlaylistController {
      */
     @PostMapping
     public ResponseEntity<?> createPlaylist(@RequestBody Map<String, Object> request) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of("message", "Playlist created successfully", "id", 1));
+        try {
+            Long userId = Long.valueOf(request.get("userId").toString());
+            String name = (String) request.get("name");
+            String description = (String) request.get("description");
+            
+            Long id = playlistService.createPlaylist(userId, name, description);
+            return ResponseEntity.ok(Map.of("message", "Playlist created successfully", "id", id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -53,8 +71,15 @@ public class PlaylistController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePlaylist(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of("message", "Playlist updated successfully"));
+        try {
+            String name = (String) request.get("name");
+            String description = (String) request.get("description");
+            
+            playlistService.updatePlaylist(id, name, description);
+            return ResponseEntity.ok(Map.of("message", "Playlist updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -63,8 +88,12 @@ public class PlaylistController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePlaylist(@PathVariable Long id) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of("message", "Playlist deleted successfully"));
+        try {
+            playlistService.deletePlaylist(id);
+            return ResponseEntity.ok(Map.of("message", "Playlist deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -73,8 +102,12 @@ public class PlaylistController {
      */
     @PostMapping("/{id}/clips/{clipId}")
     public ResponseEntity<?> addClipToPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of("message", "Clip added to playlist"));
+        try {
+            playlistService.addClipToPlaylist(id, clipId);
+            return ResponseEntity.ok(Map.of("message", "Clip added to playlist"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
@@ -83,7 +116,11 @@ public class PlaylistController {
      */
     @DeleteMapping("/{id}/clips/{clipId}")
     public ResponseEntity<?> removeClipFromPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
-        // TODO: Wire to PlaylistService
-        return ResponseEntity.ok(Map.of("message", "Clip removed from playlist"));
+        try {
+            playlistService.removeClipFromPlaylist(id, clipId);
+            return ResponseEntity.ok(Map.of("message", "Clip removed from playlist"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

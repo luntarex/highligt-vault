@@ -52,16 +52,16 @@
 
     <div class="playlist-header" *ngIf="!isCollapsed">
       <span class="playlist-title">PLAYLISTS</span>
-      <button class="add-btn" title="Create Playlist">
+      <button class="add-btn" title="Create Playlist" (click)="createPlaylist()">
         <img src="assets/icons/plus-square.svg" alt="Add Playlist" class="add-icon">
       </button>
     </div>
 
     <ul class="nav-links playlist-list">
-      <li *ngFor="let listName of playlists">
-        <a class="playlist-item">
+      <li *ngFor="let playlist of playlists">
+        <a class="playlist-item" [routerLink]="['/playlist', playlist.id]" routerLinkActive="active">
           <img src="assets/icons/movieclip.svg"  class="nav-icon">
-          <span class="link-text">{{ listName }}</span>
+          <span class="link-text">{{ playlist.name }}</span>
         </a>
       </li>
     </ul>

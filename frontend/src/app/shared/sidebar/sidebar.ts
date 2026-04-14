@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { PlaylistService } from '../../core/services/playlist.service';
+import { Playlist } from '../../core/models/playlist';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,12 +12,47 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.css']
 })
-export class Sidebar {
+export class Sidebar implements OnInit {
   isCollapsed = false;
 
-  playlists: string[] = ['2024 Montage', 'Funny Moments', 'Best Clutches'];
+  playlists: Playlist[] = [];
+  userId: number | null = null;
 
-  constructor(public authService: AuthService, private router: Router) {}
+  constructor(
+    public authService: AuthService, 
+    private router: Router,
+    private playlistService: PlaylistService
+  ) {}
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.userId = this.authService.getCurrentUserId();
+      this.loadPlaylists();
+    }
+  }
+
+  loadPlaylists(): void {
+    if (!this.userId) return;
+    this.playlistService.getUserPlaylists(this.userId).subscribe({
+      next: (data) => {
+        this.playlists = data;
+      },
+      error: (err) => console.error('Failed to load playlists', err)
+    });
+  }
+
+  createPlaylist(): void {
+    if (!this.userId) return;
+    const name = prompt('Enter a name for the new playlist:');
+    if (name && name.trim().length > 0) {
+      this.playlistService.createPlaylist(this.userId, name).subscribe({
+        next: (response) => {
+          this.loadPlaylists();
+        },
+        error: (err) => console.error('Failed to create playlist', err)
+      });
+    }
+  }
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
