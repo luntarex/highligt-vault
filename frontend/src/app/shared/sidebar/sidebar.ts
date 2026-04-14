@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,7 +21,8 @@ export class Sidebar implements OnInit {
   constructor(
     public authService: AuthService, 
     private router: Router,
-    private playlistService: PlaylistService
+    private playlistService: PlaylistService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -36,6 +37,7 @@ export class Sidebar implements OnInit {
     this.playlistService.getUserPlaylists(this.userId).subscribe({
       next: (data) => {
         this.playlists = data;
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Failed to load playlists', err)
     });
