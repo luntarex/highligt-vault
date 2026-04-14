@@ -18,19 +18,22 @@
 
     <div class="filters">
       <app-custom-dropdown
-  [label]="'All Games'"
-  [options]="games">
-</app-custom-dropdown>
+        [label]="'All Games'"
+        [options]="games"
+        (selectedOptionChange)="onGameFilter($event)">
+      </app-custom-dropdown>
 
-<app-custom-dropdown
-  [label]="'All Tags'"
-  [options]="tags">
-</app-custom-dropdown>
+      <app-custom-dropdown
+        [label]="'All Tags'"
+        [options]="tags"
+        (selectedOptionChange)="onTagFilter($event)">
+      </app-custom-dropdown>
 
-<app-custom-dropdown
-  [label]="'Sort by'"
-  [options]="sortOptions">
-</app-custom-dropdown>
+      <app-custom-dropdown
+        [label]="'Sort by'"
+        [options]="sortOptions"
+        (selectedOptionChange)="onSortChange($event)">
+      </app-custom-dropdown>
     </div>
 
     <div class="profile-dropdown-wrapper" style="position: relative;">

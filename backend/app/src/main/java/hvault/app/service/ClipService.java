@@ -22,11 +22,21 @@ public class ClipService {
     }
 
     public List<Map<String, Object>> getClipsByUserId(Long uploaderId) {
-        return clipRepository.findAllByUserId(uploaderId);
+        List<Map<String, Object>> clips = clipRepository.findAllByUserId(uploaderId);
+        for (Map<String, Object> clip : clips) {
+            Long clipId = ((Number) clip.get("id")).longValue();
+            clip.put("tags", clipRepository.getTagsForClip(clipId));
+        }
+        return clips;
     }
     
     public List<Map<String, Object>> getAllClips() {
-        return clipRepository.findAllClips();
+        List<Map<String, Object>> clips = clipRepository.findAllClips();
+        for (Map<String, Object> clip : clips) {
+            Long clipId = ((Number) clip.get("id")).longValue();
+            clip.put("tags", clipRepository.getTagsForClip(clipId));
+        }
+        return clips;
     }
 
     public Map<String, Object> getClipById(Long id) {
