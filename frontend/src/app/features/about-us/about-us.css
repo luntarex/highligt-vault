@@ -1,0 +1,113 @@
+.about-us-container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.about-us-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.logo-section {
+    position: relative;
+    padding: 20px;
+}
+
+.company-logo {
+    max-width: 400px;
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3));
+    animation: float 6s ease-in-out infinite;
+}
+
+.team-section {
+    width: 100%;
+    text-align: center;
+}
+
+.team-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    color: #a855f7;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #f3f4f6;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.member-item:hover {
+    transform: translateX(10px);
+    color: #a855f7;
+}
+
+.dev-prefix {
+    background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    font-size: 1.25rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+@media (max-width: 640px) {
+    .about-us-card {
+        padding: 40px 20px;
+    }
+    .member-item {
+        font-size: 1.25rem;
+    }
+    .company-logo {
+        max-width: 100%;
+    }
+}

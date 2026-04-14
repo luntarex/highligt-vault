@@ -220,3 +220,35 @@
     margin: 0;
     display: none;
 }
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid hsl(0, 0%, 18%);
+}
+
+.about-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: hsl(0, 0%, 60%) !important;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.about-link:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white !important;
+}
+
+.about-link .nav-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
+}
+
+.about-link:hover .nav-icon {
+    opacity: 1;
+}
