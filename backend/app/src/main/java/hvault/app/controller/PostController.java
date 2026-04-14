@@ -33,11 +33,10 @@ public class PostController {
     public ResponseEntity<?> getPostById(@PathVariable Long id) {
         // TODO: Wire to PostService
         return ResponseEntity.ok(Map.of(
-            "id", id,
-            "caption", "Stub post caption",
-            "userId", 1,
-            "clipId", 1
-        ));
+                "id", id,
+                "caption", "Stub post caption",
+                "userId", 1,
+                "clipId", 1));
     }
 
     /**
@@ -50,7 +49,7 @@ public class PostController {
         Long userId = Long.valueOf(request.get("userId").toString());
         Long clipId = Long.valueOf(request.get("clipId").toString());
         String caption = (String) request.get("caption");
-        
+
         Long id = postService.createPost(userId, clipId, caption);
         return ResponseEntity.ok(Map.of("message", "Post created successfully", "id", id));
     }
