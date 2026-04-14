@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MessageService } from '../../core/services/message.service';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../core/services/user.service';
 import { Message, Conversation } from '../../core/models/message.model';
 
 @Component({
@@ -22,12 +23,14 @@ export class MessagesComponent implements OnInit {
   newMessageContent: string = '';
   currentUserId: number;
   isSending: boolean = false;
+  loading: boolean = false;
 
   constructor(
     private messageService: MessageService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private userService: UserService
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
@@ -51,8 +54,22 @@ export class MessagesComponent implements OnInit {
   selectUser(userId: number): void {
     this.selectedUserId = userId;
     const conversation = this.conversations.find(c => c.other_user_id === userId);
-    this.selectedUsername = conversation?.username || '';
-    this.selectedUserPhoto = conversation?.profile_photo_url || '';
+    
+    if (conversation) {
+      this.selectedUsername = conversation.username || '';
+      this.selectedUserPhoto = conversation.profile_photo_url || '';
+    } else {
+      // If we jumped straight here without a past conversation, fetch user info separately
+      this.selectedUsername = 'Loading...';
+      this.userService.getUserById(userId).subscribe(user => {
+        if (user) {
+          this.selectedUsername = user.username;
+          this.selectedUserPhoto = user.profilePhotoUrl || 'https://i.pravatar.cc/150?img=1';
+          this.cdr.detectChanges();
+        }
+      });
+    }
+    
     // Mesajları yükle (eski mesajları koruyarak)
     this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
       this.currentConversation = msgs;

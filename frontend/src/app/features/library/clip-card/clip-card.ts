@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Clip } from '../../../core/models/clip';
-import { RouterLink, Router } from "@angular/router";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-clip-card',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './clip-card.html',
   styleUrl: './clip-card.css',
 })
