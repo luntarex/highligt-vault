@@ -2,27 +2,53 @@
   <!-- Sidebar: Conversation List -->
   <aside class="conversation-sidebar">
     <div class="sidebar-header">
-      <app-back-link></app-back-link>
-      <h2>Messages</h2>
+      <div class="header-top">
+        <app-back-link></app-back-link>
+        <h2>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Messages
+        </h2>
+      </div>
+      <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" placeholder="Search conversations..." [(ngModel)]="searchQuery" (input)="onSearch()">
+      </div>
     </div>
     <div class="conversation-list">
-      <div *ngFor="let conv of conversations"
+      <div *ngFor="let conv of filteredConversations"
            class="conversation-item"
            [class.active]="conv.other_user_id === selectedUserId"
+           [class.unread]="!conv.is_read && conv.sender_id !== currentUserId"
            (click)="selectUser(conv.other_user_id)">
-        <img [src]="conv.profile_photo_url || 'https://i.pravatar.cc/150?img=1'" alt="Avatar" class="avatar">
+        <div class="avatar-wrapper">
+          <img [src]="conv.profile_photo_url || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar">
+          <span class="online-dot" *ngIf="conv.other_user_id === selectedUserId"></span>
+        </div>
         <div class="conversation-info">
-          <div class="header">
+          <div class="conv-header">
             <span class="username">{{ conv.username }}</span>
             <span class="time">{{ conv.created_at | date:'shortTime' }}</span>
           </div>
-          <p class="last-message" [class.unread]="!conv.is_read && conv.sender_id !== currentUserId">
-            {{ conv.content }}
+          <p class="last-message" [class.unread-text]="!conv.is_read && conv.sender_id !== currentUserId">
+            <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">You: </span>{{ conv.content }}
           </p>
         </div>
+        <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
+      </div>
+      <div *ngIf="filteredConversations.length === 0 && conversations.length > 0" class="no-results">
+        <p>No conversations found.</p>
       </div>
       <div *ngIf="conversations.length === 0" class="no-messages">
-        No conversations yet.
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <p>No conversations yet</p>
+        <a routerLink="/explore" class="find-users-link">Find people to chat with</a>
       </div>
     </div>
   </aside>
@@ -31,13 +57,21 @@
   <main class="chat-area">
     <div *ngIf="selectedUserId; else noSelection" class="chat-content">
       <header class="chat-header">
-        <img [src]="selectedUserPhoto || 'https://i.pravatar.cc/150?img=1'"
-             alt="Avatar"
-             class="header-avatar">
-        <h3>{{ selectedUsername }}</h3>
+        <div class="chat-header-left">
+          <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar">
+          <div class="header-user-info">
+            <h3>{{ selectedUsername }}</h3>
+          </div>
+        </div>
       </header>
 
       <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+        <div class="chat-start-notice" *ngIf="currentConversation.length > 0">
+          <div class="start-avatar">
+            <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="">
+          </div>
+          <p>This is the beginning of your conversation with <strong>{{ selectedUsername }}</strong></p>
+        </div>
         <div *ngFor="let msg of currentConversation"
              class="message-wrapper"
              [class.sent]="msg.senderId === currentUserId"
@@ -51,22 +85,44 @@
 
       <footer class="chat-input">
         <form (ngSubmit)="sendMessage()">
-          <input type="text"
-                 name="message"
-                 [(ngModel)]="newMessageContent"
-                 placeholder="Type a message..."
-                 autocomplete="off"
-                 (keydown.enter)="$event.preventDefault(); sendMessage()">
-          <button type="submit" [disabled]="!newMessageContent.trim() || isSending">Send</button>
+          <div class="input-wrapper">
+            <input type="text"
+                   name="message"
+                   [(ngModel)]="newMessageContent"
+                   placeholder="Type a message..."
+                   autocomplete="off"
+                   (keydown.enter)="$event.preventDefault(); sendMessage()">
+          </div>
+          <button type="submit" [disabled]="!newMessageContent.trim() || isSending" class="send-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
         </form>
       </footer>
     </div>
 
     <ng-template #noSelection>
       <div class="no-selection">
-        <i class="dm-icon">📩</i>
-        <h3>Select a user to start chatting</h3>
-        <button routerLink="/users">Find users</button>
+        <div class="no-selection-content">
+          <div class="no-selection-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h3>Your Messages</h3>
+          <p>Select a conversation or start a new one</p>
+          <a routerLink="/explore" class="start-chat-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Find People
+          </a>
+        </div>
       </div>
     </ng-template>
   </main>
