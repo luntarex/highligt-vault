@@ -1,5 +1,6 @@
 package hvault.app.controller;
 
+import hvault.app.service.MessageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,30 +11,44 @@ import java.util.Map;
 @RequestMapping("/api/messages")
 public class MessageController {
 
+    private final MessageService messageService;
+
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
+    }
+
     /**
-     * GET /api/messages/{userId}
+     * GET /api/messages/conversations?userId=...
+     * Get list of all conversations for the user.
+     */
+    @GetMapping("/conversations")
+    public ResponseEntity<?> getConversations(@RequestParam Long userId) {
+        return ResponseEntity.ok(messageService.getConversations(userId));
+    }
+
+    /**
+     * GET /api/messages/{userId}?currentUserId=...
      * Get conversation with a specific user.
      */
     @GetMapping("/{userId}")
     public ResponseEntity<?> getConversation(
             @PathVariable Long userId,
             @RequestParam Long currentUserId) {
-        // TODO: Wire to MessageService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 1, "senderId", currentUserId, "receiverId", userId,
-                    "content", "Stub message", "isRead", true)
-        ));
+        return ResponseEntity.ok(messageService.getConversation(currentUserId, userId));
     }
 
     /**
      * POST /api/messages
      * Send a new message.
-     * Expects: { senderId, receiverId, content }
      */
     @PostMapping
     public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> request) {
-        // TODO: Wire to MessageService
-        return ResponseEntity.ok(Map.of("message", "Message sent successfully", "id", 1));
+        Long senderId = Long.valueOf(request.get("senderId").toString());
+        Long receiverId = Long.valueOf(request.get("receiverId").toString());
+        String content = (String) request.get("content");
+        
+        messageService.sendMessage(senderId, receiverId, content);
+        return ResponseEntity.ok(Map.of("message", "Message sent successfully"));
     }
 
     /**
@@ -42,7 +57,7 @@ public class MessageController {
      */
     @PutMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
-        // TODO: Wire to MessageService
+        messageService.markAsRead(id);
         return ResponseEntity.ok(Map.of("message", "Message marked as read"));
     }
 }

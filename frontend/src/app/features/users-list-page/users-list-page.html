@@ -22,6 +22,9 @@
                 <button class="view-btn" (click)="viewProfile(user.id)">
                     View Profile
                 </button>
+                <button class="message-btn" [routerLink]="['/messages', user.id]">
+                    Message
+                </button>
             </div>
         </div>
     }
