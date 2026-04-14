@@ -10,7 +10,8 @@
 .users-page {
   background-color: var(--bg-main);
   color: var(--text-primary);
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
   padding: 40px;
   display: flex;
   flex-direction: column;
