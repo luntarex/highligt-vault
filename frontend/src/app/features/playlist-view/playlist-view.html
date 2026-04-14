@@ -6,20 +6,38 @@
       <span class="clip-count">{{ playlist.clips?.length || 0 }} Clips</span>
     </div>
     <div class="header-right">
+      <button class="header-action-btn edit-btn" (click)="openEditDialog()" title="Edit Playlist">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      </button>
+      <button class="header-action-btn delete-btn" (click)="openDeleteConfirm()" title="Delete Playlist">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
       <button class="add-clip-btn" (click)="openAddModal()">
-        <img src="assets/icons/plus.svg" alt="Add" onerror="this.src=''; this.className='fallback-icon add-icon';">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Existing Clip
       </button>
     </div>
   </div>
 
   <div class="clips-grid" *ngIf="playlist.clips && playlist.clips.length > 0; else noClips">
-    <div class="clip-card" *ngFor="let clip of playlist.clips" [routerLink]="['/clip', clip.id]">
+    <div class="clip-card" *ngFor="let clip of playlist.clips" [routerLink]="['/clip-editor', clip.id]">
       <div class="thumbnail">
         <img [src]="clip.thumbnailUrl || 'assets/placeholder-thumb.jpg'" [alt]="clip.title">
         <span class="duration" *ngIf="clip.duration">{{ formatDuration(clip.duration) }}</span>
         <button class="remove-btn" (click)="removeClip(clip.id, $event)" title="Remove from Playlist">
-            <img src="assets/icons/trash.svg" alt="X" onerror="this.src=''; this.innerText='X';">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
       </div>
       <div class="clip-info">
@@ -64,3 +82,37 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Playlist Dialog -->
+<app-playlist-dialog
+  *ngIf="showEditDialog"
+  mode="edit"
+  [initialName]="playlist?.name || ''"
+  [initialDescription]="playlist?.description || ''"
+  (created)="onEditSaved($event)"
+  (cancelled)="onEditCancelled()">
+</app-playlist-dialog>
+
+<!-- Delete Playlist Confirm -->
+<app-confirm-dialog
+  *ngIf="showDeleteConfirm"
+  title="Delete Playlist"
+  [message]="'Are you sure you want to delete \'' + (playlist?.name || '') + '\'? This action cannot be undone.'"
+  confirmText="Delete"
+  cancelText="Cancel"
+  type="danger"
+  (confirmed)="onConfirmDelete()"
+  (cancelled)="onCancelDelete()">
+</app-confirm-dialog>
+
+<!-- Remove Clip Confirm -->
+<app-confirm-dialog
+  *ngIf="showRemoveClipConfirm"
+  title="Remove Clip"
+  message="Are you sure you want to remove this clip from the playlist?"
+  confirmText="Remove"
+  cancelText="Cancel"
+  type="danger"
+  (confirmed)="onConfirmRemoveClip()"
+  (cancelled)="onCancelRemoveClip()">
+</app-confirm-dialog>
