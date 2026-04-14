@@ -221,83 +221,35 @@
     display: none;
 }
 
-/* ─── Playlist Item Wrapper ─── */
-.playlist-item-wrapper {
-    position: relative;
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid hsl(0, 0%, 18%);
 }
 
-.playlist-item-wrapper:hover .more-btn {
+.about-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: hsl(0, 0%, 60%) !important;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.about-link:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white !important;
+}
+
+.about-link .nav-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
+}
+
+.about-link:hover .nav-icon {
     opacity: 1;
 }
-
-.more-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: hsl(0, 0%, 50%);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: all 0.15s ease;
-    z-index: 2;
-}
-
-.more-btn:hover {
-    background-color: hsl(0, 0%, 20%);
-    color: white;
-}
-
-/* ─── Context Menu ─── */
-.playlist-context-menu {
-    position: absolute;
-    top: 100%;
-    right: 4px;
-    background-color: hsl(0, 0%, 14%);
-    border: 1px solid hsl(0, 0%, 22%);
-    border-radius: 10px;
-    min-width: 140px;
-    padding: 6px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    animation: ctxFadeIn 0.15s ease-out;
-}
-
-@keyframes ctxFadeIn {
-    from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.context-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 8px 12px;
-    background: none;
-    border: none;
-    color: hsl(0, 0%, 75%);
-    font-size: 0.85rem;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-    text-align: left;
-}
-
-.context-item:hover {
-    background-color: hsl(0, 0%, 20%);
-    color: white;
-}
-
-.context-item.context-danger:hover {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
 }
