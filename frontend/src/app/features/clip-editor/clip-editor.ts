@@ -5,6 +5,7 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Clip } from '../../core/models/clip';
 import { ClipService } from '../../core/services/clip.service';
 import { AuthService } from '../../core/services/auth.service';
+import { GameService } from '../../core/services/game.service';
 import { BackLink } from '../../shared/back-link/back-link';
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 
@@ -24,6 +25,7 @@ export class ClipEditor implements OnInit {
   fileToUpload: File | null = null;
   isUploading: boolean = false;
   uploadStatus: string = '';
+  games: string[] = ['Other'];
 
   @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('timeline') timelineRef!: ElementRef<HTMLDivElement>;
@@ -33,10 +35,18 @@ export class ClipEditor implements OnInit {
     private route: ActivatedRoute, 
     private router: Router, 
     private authService: AuthService,
+    private gameService: GameService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.gameService.getGameNames().subscribe(names => {
+      if(names && names.length > 0) {
+        this.games = names;
+      }
+      this.cdr.detectChanges();
+    });
+
     const idParam = this.route.snapshot.paramMap.get('id');
     
     if (idParam === 'new') {

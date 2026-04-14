@@ -1,7 +1,20 @@
 <div class="users-page">
 
     <div class="header">
-        <h1>Users</h1>
+        <h1>Admin Control Panel</h1>
+    </div>
+
+    <div class="admin-section" style="width: 100%; max-width: 900px; margin-bottom: 40px;">
+      <h2>Manage Games</h2>
+      <div class="add-game-form" style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="text" [(ngModel)]="newGameName" placeholder="Enter new game name" style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: white;" />
+        <button (click)="addGame()" class="add-btn" style="padding: 10px 20px; border-radius: 8px; background: var(--accent-purple); color: var(--bg-main); border: none; cursor: pointer; font-weight: bold;">Add Game</button>
+      </div>
+      <p class="msg" *ngIf="addGameMessage" style="color: var(--accent-purple); margin-top: 10px;">{{addGameMessage}}</p>
+    </div>
+
+    <div class="header">
+        <h2>Users</h2>
     </div>
 
     <div class="users-grid">
