@@ -8,6 +8,8 @@ export interface User {
     isAdmin:boolean;
     totalClips?: number;
     totalFavorites?: number;
+    followers?: number;
+    following?: number;
 }
 export interface RegisterRequest {
     username: string;

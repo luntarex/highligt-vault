@@ -25,4 +25,16 @@ public class UserService {
     public boolean updateProfile(Long id, String description, String profilePhotoUrl) {
         return userRepository.updateProfile(id, description, profilePhotoUrl) > 0;
     }
+
+    public void followUser(Long followerId, Long followedId) {
+        userRepository.followUser(followerId, followedId);
+    }
+
+    public void unfollowUser(Long followerId, Long followedId) {
+        userRepository.unfollowUser(followerId, followedId);
+    }
+
+    public boolean isFollowing(Long followerId, Long followedId) {
+        return userRepository.isFollowing(followerId, followedId);
+    }
 }

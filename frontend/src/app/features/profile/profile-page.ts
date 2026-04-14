@@ -20,6 +20,7 @@ export class ProfilePage implements OnInit {
   favoriteClips: Clip[] = [];
   showUploadModal: boolean = false;
   currentProfileId: string | null = null;
+  isFollowing: boolean = false;
 
   constructor(
     private profileService: ProfileService,
@@ -61,6 +62,44 @@ export class ProfilePage implements OnInit {
         console.error('Failed to load clips:', err);
       }
     });
+
+    if (id) {
+      this.profileService.isFollowing(id).subscribe({
+        next: (res) => {
+          this.isFollowing = res.isFollowing;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Failed to load follow status:', err)
+      });
+    }
+  }
+
+  toggleFollow(): void {
+    if (!this.currentProfileId || !this.user) return;
+
+    if (this.isFollowing) {
+      this.profileService.unfollowUser(this.currentProfileId).subscribe({
+        next: () => {
+          this.isFollowing = false;
+          if (this.user) {
+            this.user.followers = (this.user.followers || 1) - 1;
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Failed to unfollow:', err)
+      });
+    } else {
+      this.profileService.followUser(this.currentProfileId).subscribe({
+        next: () => {
+          this.isFollowing = true;
+          if (this.user) {
+            this.user.followers = (this.user.followers || 0) + 1;
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Failed to follow:', err)
+      });
+    }
   }
 
 

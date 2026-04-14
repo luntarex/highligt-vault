@@ -10,13 +10,19 @@ import java.util.Map;
 @RequestMapping("/api/follows")
 public class FollowController {
 
+    private final hvault.app.service.UserService userService;
+
+    public FollowController(hvault.app.service.UserService userService) {
+        this.userService = userService;
+    }
+
     /**
      * POST /api/follows/{userId}
      * Follow a user.
      */
     @PostMapping("/{userId}")
     public ResponseEntity<?> followUser(@PathVariable Long userId, @RequestParam Long followerId) {
-        // TODO: Wire to FollowService
+        userService.followUser(followerId, userId);
         return ResponseEntity.ok(Map.of("message", "Followed user successfully"));
     }
 
@@ -26,8 +32,18 @@ public class FollowController {
      */
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> unfollowUser(@PathVariable Long userId, @RequestParam Long followerId) {
-        // TODO: Wire to FollowService
+        userService.unfollowUser(followerId, userId);
         return ResponseEntity.ok(Map.of("message", "Unfollowed user successfully"));
+    }
+
+    /**
+     * GET /api/follows/{userId}/is-following
+     * Check if a user is following another user.
+     */
+    @GetMapping("/{userId}/is-following")
+    public ResponseEntity<Map<String, Boolean>> isFollowing(@PathVariable Long userId, @RequestParam Long followerId) {
+        boolean following = userService.isFollowing(followerId, userId);
+        return ResponseEntity.ok(Map.of("isFollowing", following));
     }
 
     /**
