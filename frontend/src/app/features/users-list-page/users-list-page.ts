@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterModule, RouterLink } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-users-list-page',
-  imports: [FormsModule, CommonModule, RouterModule, RouterLink],
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './users-list-page.html',
   styleUrl: './users-list-page.css',
 })
@@ -23,7 +23,7 @@ export class UsersListPage implements OnInit {
   ngOnInit(): void {
     this.userService.getAllUsers().subscribe(users => {
       this.users = users;
-      this.cdr.detectChanges();
+     this.cdr.detectChanges();
     });
   }
 

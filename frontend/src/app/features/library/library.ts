@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { Clip } from '../../core/models/clip'
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
-import { RouterLink, RouterLinkActive } from "@angular/router";
+import { RouterLink, RouterLinkActive, Router } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user';
 
@@ -26,13 +26,15 @@ export class Library implements OnInit {
 
   clips: Clip[] = [];
   user: User | null = null;
+  isProfileMenuOpen: boolean = false;
 
   constructor(
     private clipService: ClipService,
     private profileService: ProfileService,
     private authService: AuthService,
     private gameService: GameService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -72,5 +74,14 @@ export class Library implements OnInit {
         clip.title.toLowerCase().startsWith(this.searchQuery.toLowerCase())
       );
     });
+  }
+
+  toggleProfileMenu() {
+    this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  signOut() {
+    this.authService.logout();
+    this.router.navigate(['/welcome']);
   }
 }
