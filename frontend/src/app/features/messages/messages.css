@@ -1,31 +1,32 @@
 .messages-container {
     display: flex;
-    height: calc(100vh - 80px); /* Adjust based on your layout's header height */
-    background: #0f172a;
-    color: #f8fafc;
+    height: calc(100vh - 80px);
+    background: hsl(0, 0%, 10%);
+    color: hsl(0, 0%, 98%);
     overflow: hidden;
+    width: 100%;
 }
 
 /* Sidebar Styling */
 .conversation-sidebar {
     width: 350px;
-    border-right: 1px solid #1e293b;
+    border-right: 1px solid hsl(0, 0%, 18%);
     display: flex;
     flex-direction: column;
-    background: #1e293b;
+    background: hsl(0, 0%, 10%);
+    flex-shrink: 0;
 }
 
 .sidebar-header {
     padding: 20px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid hsl(0, 0%, 18%);
 }
 
 .sidebar-header h2 {
     margin: 0;
     font-size: 1.5rem;
-    background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: hsl(0, 0%, 75%);
+    font-weight: 600;
 }
 
 .conversation-list {
@@ -39,16 +40,19 @@
     padding: 15px 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    border-bottom: 1px solid #0f172a1a;
+    border-bottom: 1px solid hsl(0, 0%, 12%);
+    color: hsl(0, 0%, 75%);
 }
 
 .conversation-item:hover {
-    background: #334155;
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
 }
 
 .conversation-item.active {
-    background: #0f172a;
-    border-left: 4px solid #3b82f6;
+    background: hsl(0, 0%, 16%);
+    border-left: 4px solid hsl(0, 0%, 75%);
+    color: hsl(0, 0%, 95%);
 }
 
 .avatar {
@@ -57,7 +61,7 @@
     border-radius: 50%;
     margin-right: 15px;
     object-fit: cover;
-    border: 2px solid #334155;
+    border: 2px solid hsl(0, 0%, 25%);
 }
 
 .conversation-info {
@@ -73,17 +77,17 @@
 
 .username {
     font-weight: 600;
-    color: #f1f5f9;
+    color: hsl(0, 0%, 95%);
 }
 
 .time {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: hsl(0, 0%, 55%);
 }
 
 .last-message {
     font-size: 0.875rem;
-    color: #94a3b8;
+    color: hsl(0, 0%, 55%);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -91,7 +95,7 @@
 }
 
 .last-message.unread {
-    color: #3b82f6;
+    color: hsl(0, 0%, 75%);
     font-weight: 600;
 }
 
@@ -100,26 +104,41 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #0f172a;
+    background: hsl(0, 0%, 10%);
     position: relative;
+    min-width: 0;
 }
 
 .chat-content {
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }
 
 .chat-header {
     padding: 20px;
-    border-bottom: 1px solid #1e293b;
-    background: #1e293b4d;
+    border-bottom: 1px solid hsl(0, 0%, 18%);
+    background: hsl(0, 0%, 12%);
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid hsl(0, 0%, 25%);
 }
 
 .chat-header h3 {
     margin: 0;
     font-size: 1.25rem;
+    color: hsl(0, 0%, 95%);
+    font-weight: 600;
 }
 
 .message-history {
@@ -129,6 +148,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+    background: hsl(0, 0%, 10%);
 }
 
 .message-wrapper {
@@ -152,14 +172,14 @@
 }
 
 .sent .message-bubble {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    color: white;
+    background: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 95%);
     border-bottom-right-radius: 4px;
 }
 
 .received .message-bubble {
-    background: #1e293b;
-    color: #f1f5f9;
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
     border-bottom-left-radius: 4px;
 }
 
@@ -169,13 +189,15 @@
     margin-top: 4px;
     display: block;
     text-align: right;
+    color: hsl(0, 0%, 98%);
 }
 
 /* Input Area */
 .chat-input {
     padding: 20px;
-    border-top: 1px solid #1e293b;
-    background: #1e293b4d;
+    border-top: 1px solid hsl(0, 0%, 18%);
+    background: hsl(0, 0%, 10%);
+    flex-shrink: 0;
 }
 
 .chat-input form {
@@ -185,32 +207,33 @@
 
 .chat-input input {
     flex: 1;
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: hsl(0, 0%, 12%);
+    border: 1px solid hsl(0, 0%, 20%);
     padding: 12px 20px;
     border-radius: 25px;
-    color: white;
+    color: hsl(0, 0%, 98%);
     outline: none;
     transition: border-color 0.2s;
 }
 
 .chat-input input:focus {
-    border-color: #3b82f6;
+    border-color: hsl(0, 0%, 40%);
 }
 
 .chat-input button {
-    background: #3b82f6;
-    color: white;
+    background: hsl(0, 0%, 55%);
+    color: hsl(0, 0%, 10%);
     border: none;
     padding: 0 25px;
     border-radius: 25px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .chat-input button:hover:not(:disabled) {
-    background: #2563eb;
+    background: hsl(0, 0%, 65%);
+    transform: translateY(-2px);
 }
 
 .chat-input button:disabled {
@@ -225,7 +248,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #94a3b8;
+    color: hsl(0, 0%, 63.9%);
     text-align: center;
 }
 
@@ -238,8 +261,8 @@
 .no-selection button {
     margin-top: 15px;
     background: transparent;
-    border: 1px solid #3b82f6;
-    color: #3b82f6;
+    border: 1px solid hsl(0, 0%, 50%);
+    color: hsl(0, 0%, 75%);
     padding: 8px 20px;
     border-radius: 4px;
     cursor: pointer;
@@ -247,6 +270,7 @@
 }
 
 .no-selection button:hover {
-    background: #3b82f6;
-    color: white;
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
+    border-color: hsl(0, 0%, 75%);
 }

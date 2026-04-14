@@ -17,9 +17,11 @@ export class MessagesComponent implements OnInit {
   conversations: Conversation[] = [];
   currentConversation: Message[] = [];
   selectedUserId: number | null = null;
+  selectedUsername: string = '';
+  selectedUserPhoto: string = '';
   newMessageContent: string = '';
   currentUserId: number;
-  loading: boolean = false;
+  isSending: boolean = false;
 
   constructor(
     private messageService: MessageService,
@@ -48,7 +50,10 @@ export class MessagesComponent implements OnInit {
 
   selectUser(userId: number): void {
     this.selectedUserId = userId;
-    this.loading = true;
+    const conversation = this.conversations.find(c => c.other_user_id === userId);
+    this.selectedUsername = conversation?.username || '';
+    this.selectedUserPhoto = conversation?.profile_photo_url || '';
+    // Mesajları yükle (eski mesajları koruyarak)
     this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
       this.currentConversation = msgs;
       this.loading = false;
@@ -63,14 +68,21 @@ export class MessagesComponent implements OnInit {
   }
 
   sendMessage(): void {
-    if (!this.newMessageContent.trim() || !this.selectedUserId) return;
+    if (!this.newMessageContent.trim() || !this.selectedUserId || this.isSending) return;
 
+    this.isSending = true;
     this.messageService.sendMessage(this.currentUserId, this.selectedUserId, this.newMessageContent)
-      .subscribe(() => {
-        this.newMessageContent = '';
-        this.selectUser(this.selectedUserId!);
-        this.loadConversations();
-      });
+      .subscribe(
+        () => {
+          this.newMessageContent = '';
+          this.isSending = false;
+          this.selectUser(this.selectedUserId!);
+          this.loadConversations();
+        },
+        () => {
+          this.isSending = false;
+        }
+      );
   }
 
   getOtherParty(conv: Conversation): string {
