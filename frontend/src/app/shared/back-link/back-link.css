@@ -1,13 +1,6 @@
 .back-link-container {
- padding: 32px;
-  background-color: hsl(var(--background));
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
+  display: inline-block;
   font-family: 'Inter', sans-serif;
-  color: white;
 }
 
 .back-link {
