@@ -12,8 +12,12 @@ export class ExploreService {
 
   constructor(private http: HttpClient) {}
 
-  getFeed(): Observable<ExplorePost[]> {
-    return this.http.get<ExplorePost[]>(this.apiUrl);
+  getFeed(userId?: number): Observable<ExplorePost[]> {
+    let url = this.apiUrl;
+    if (userId) {
+      url += `?userId=${userId}`;
+    }
+    return this.http.get<ExplorePost[]>(url);
   }
   
   addPost(post: any): Observable<any> {
@@ -30,5 +34,13 @@ export class ExploreService {
   
   getPostById(id: string): Observable<ExplorePost> {
     return this.http.get<ExplorePost>(`${this.apiUrl}/${id}`);
+  }
+
+  likePost(postId: string, userId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${postId}/like?userId=${userId}`, {});
+  }
+
+  unlikePost(postId: string, userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${postId}/like?userId=${userId}`);
   }
 }

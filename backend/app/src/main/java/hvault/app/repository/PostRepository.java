@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class PostRepository {
@@ -47,7 +49,7 @@ public class PostRepository {
         return jdbcTemplate.update(sql, newCaption, id);
     }
 
-    public java.util.List<java.util.Map<String, Object>> findAllPostsWithDetails() {
+    public List<Map<String, Object>> findAllPostsWithDetails() {
         String sql = """
             SELECT p.id, p.caption, p.created_at,
                    c.title AS clip_title, c.video_url, c.duration,
@@ -62,5 +64,35 @@ public class PostRepository {
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
+    }
+
+    /**
+     * Like a post (insert into post_likes).
+     */
+    public void likePost(Long postId, Long userId) {
+        // Avoid duplicate likes
+        String checkSql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
+        int count = jdbcTemplate.queryForObject(checkSql, Integer.class, postId, userId);
+        if (count == 0) {
+            String sql = "INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            jdbcTemplate.update(sql, postId, userId);
+        }
+    }
+
+    /**
+     * Unlike a post (delete from post_likes).
+     */
+    public void unlikePost(Long postId, Long userId) {
+        String sql = "DELETE FROM post_likes WHERE post_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql, postId, userId);
+    }
+
+    /**
+     * Check if a user has liked a specific post.
+     */
+    public boolean isLikedByUser(Long postId, Long userId) {
+        String sql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
+        int count = jdbcTemplate.queryForObject(sql, Integer.class, postId, userId);
+        return count > 0;
     }
 }

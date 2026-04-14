@@ -19,9 +19,13 @@ public class PostController {
     /**
      * GET /api/posts
      * Get explore feed — all public posts.
+     * Optionally pass ?userId= to include isLiked per post.
      */
     @GetMapping
-    public ResponseEntity<?> getAllPosts() {
+    public ResponseEntity<?> getAllPosts(@RequestParam(required = false) Long userId) {
+        if (userId != null) {
+            return ResponseEntity.ok(postService.getAllPostsForUser(userId));
+        }
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
@@ -31,7 +35,6 @@ public class PostController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable Long id) {
-        // TODO: Wire to PostService
         return ResponseEntity.ok(Map.of(
                 "id", id,
                 "caption", "Stub post caption",
@@ -72,7 +75,6 @@ public class PostController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
-        // TODO: Wire to PostService
         return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
     }
 
@@ -82,7 +84,7 @@ public class PostController {
      */
     @PostMapping("/{id}/like")
     public ResponseEntity<?> likePost(@PathVariable Long id, @RequestParam Long userId) {
-        // TODO: Wire to PostService
+        postService.likePost(id, userId);
         return ResponseEntity.ok(Map.of("message", "Post liked"));
     }
 
@@ -92,7 +94,7 @@ public class PostController {
      */
     @DeleteMapping("/{id}/like")
     public ResponseEntity<?> unlikePost(@PathVariable Long id, @RequestParam Long userId) {
-        // TODO: Wire to PostService
+        postService.unlikePost(id, userId);
         return ResponseEntity.ok(Map.of("message", "Post unliked"));
     }
 }

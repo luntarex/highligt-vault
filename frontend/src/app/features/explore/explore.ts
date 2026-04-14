@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ExploreService } from '../../core/services/explore.service';
+import { CommentService } from '../../core/services/comment.service';
 import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { ExplorePostCard } from './explore-post-card/explore-post-card';
@@ -16,11 +17,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
   newCommentText: string = '';
 
-  mockComments = [
-    { id: 1, userId: 1, username: 'Player_1', text: 'Bro that flick at the end was insane 🔥', timeAgo: '1h' },
-    { id: 2, userId: 3, username: 'SilverSurfer', text: 'What sensitivity do you play on?', timeAgo: '3h' },
-    { id: 3, userId: 4, username: 'TacticalToad', text: 'I tried this lineup and died instantly lol', timeAgo: '5h' }
-  ];
+  comments: any[] = [];
 
   editingCommentId: number | null = null;
   editingCommentText: string = '';
@@ -32,7 +29,12 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(ExplorePostCard) postCards!: QueryList<ExplorePostCard>;
   private observer: IntersectionObserver | null = null;
 
-  constructor(private exploreService: ExploreService, public authService: AuthService, private cdr: ChangeDetectorRef) { }
+  constructor(
+    private exploreService: ExploreService,
+    private commentService: CommentService,
+    public authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.loadServiceData();
@@ -95,7 +97,8 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadServiceData(): void {
-    this.exploreService.getFeed().subscribe((feedData) => {
+    const userId = this.authService.getCurrentUserId();
+    this.exploreService.getFeed(userId).subscribe((feedData) => {
       this.feed = feedData.map(post => ({
         ...post,
         currentTime: 0,
@@ -164,36 +167,65 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   toggleLike(post: ExplorePost) {
-    post.isLiked = !post.isLiked;
-    post.isLiked ? post.likes++ : post.likes--;
+    const userId = this.authService.getCurrentUserId();
+    if (post.isLiked) {
+      // Unlike
+      post.isLiked = false;
+      post.likes--;
+      this.exploreService.unlikePost(post.id, userId).subscribe();
+    } else {
+      // Like
+      post.isLiked = true;
+      post.likes++;
+      this.exploreService.likePost(post.id, userId).subscribe();
+    }
   }
 
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
+    this.comments = [];
+    this.commentService.getCommentsByPostId(post.id).subscribe(data => {
+      this.comments = data.map((c: any) => ({
+        id: c.id,
+        userId: c.userId,
+        username: c.username,
+        text: c.content,
+        timeAgo: this.formatTimeAgo(c.created_at)
+      }));
+      this.cdr.detectChanges();
+    });
   }
 
   closeComments() {
     this.activePostForComments = null;
     this.editingCommentId = null;
+    this.comments = [];
   }
 
   postComment() {
-    if (!this.newCommentText.trim()) return;
+    if (!this.newCommentText.trim() || !this.activePostForComments) return;
 
-    const newComment = {
-      id: Date.now(),
-      userId: this.authService.getCurrentUserId(),
-      username: 'Player_1',
-      text: this.newCommentText,
-      timeAgo: 'Just now'
-    };
+    const postId = this.activePostForComments.id;
+    const userId = this.authService.getCurrentUserId();
+    const content = this.newCommentText.trim();
 
-    this.mockComments.unshift(newComment);
+    this.commentService.addComment(postId, userId, content).subscribe((res: any) => {
+      const username = localStorage.getItem('username') || 'You';
+      this.comments.unshift({
+        id: res.id,
+        userId: userId,
+        username: username,
+        text: content,
+        timeAgo: 'Just now'
+      });
+
+      if (this.activePostForComments) {
+        this.activePostForComments.comments++;
+      }
+      this.cdr.detectChanges();
+    });
+
     this.newCommentText = '';
-
-    if (this.activePostForComments) {
-      this.activePostForComments.comments++;
-    }
   }
 
   canEditComment(comment: any): boolean {
@@ -207,19 +239,35 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
   saveComment(comment: any) {
     if (this.editingCommentText.trim()) {
-      comment.text = this.editingCommentText.trim();
+      this.commentService.updateComment(comment.id, this.editingCommentText.trim()).subscribe(() => {
+        comment.text = this.editingCommentText.trim();
+        this.editingCommentId = null;
+        this.cdr.detectChanges();
+      });
     }
-    this.editingCommentId = null;
   }
 
   deleteComment(comment: any) {
-    if (this.authService.isAdmin() && comment.userId !== this.authService.getCurrentUserId()) {
-      comment.text = '[Removed a comment from the system for violating terms of service]';
-    } else {
-      this.mockComments = this.mockComments.filter(c => c.id !== comment.id);
+    this.commentService.removeComment(comment.id).subscribe(() => {
+      this.comments = this.comments.filter(c => c.id !== comment.id);
       if (this.activePostForComments) {
         this.activePostForComments.comments--;
       }
-    }
+      this.cdr.detectChanges();
+    });
+  }
+
+  private formatTimeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d`;
   }
 }

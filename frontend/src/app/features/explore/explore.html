@@ -40,7 +40,7 @@
         </div>
 
         <div class="comments-list">
-          @for (comment of mockComments; track comment.id) {
+          @for (comment of comments; track comment.id) {
             <div class="comment-item">
               <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
 
