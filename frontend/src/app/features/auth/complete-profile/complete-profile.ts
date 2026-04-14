@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgClass } from '@angular/common';
@@ -37,7 +37,8 @@ export class CompleteProfile implements OnInit {
   constructor(
     private profileService: ProfileService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -46,10 +47,10 @@ export class CompleteProfile implements OnInit {
     this.profileService.getUserProfile(userId.toString()).subscribe(user => {
       if (user) {
         this.description = user.description || '';
-        // Try to match existing avatar
         const idx = this.avatarOptions.indexOf(user.profilePhotoUrl);
         if (idx !== -1) this.selectedAvatarIndex = idx;
       }
+      this.cdr.detectChanges();
     });
   }
 
