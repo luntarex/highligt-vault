@@ -21,6 +21,12 @@
       <span class="stat-label">Favorites</span>
     </div>
   </div>
+  
+  <div class="profile-actions" *ngIf="currentProfileId">
+    <button class="message-btn" [routerLink]="['/messages', currentProfileId]">
+      Send Message
+    </button>
+  </div>
 </div>
 </section>
 </ng-container>
