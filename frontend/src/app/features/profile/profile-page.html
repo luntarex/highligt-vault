@@ -44,10 +44,6 @@
 <section class="favorites-section">
   <div class="section-header">
     <h2>Favorite Clips</h2>
-    <button class="add-btn" (click)="addClips()" >
-      <img src="assets/icons/upload.svg" class="btn-icon">
-      Add Clips
-    </button>
   </div>
   <div class="favorites-list">
     @for (clip of favoriteClips; track clip.id) {
