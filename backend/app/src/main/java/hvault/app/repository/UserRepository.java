@@ -47,10 +47,43 @@ public class UserRepository {
     }
 
     public Map<String, Object> findById(Long id) {
-        String sql = "SELECT id, username, email, description, profile_photo_url AS profilePhotoUrl, isAdmin, created_at AS createdAt FROM users WHERE id = ?";
+        String sql = """
+            SELECT 
+                u.id, 
+                u.username, 
+                u.email, 
+                u.description, 
+                u.profile_photo_url AS profilePhotoUrl, 
+                u.isAdmin, 
+                u.created_at AS createdAt,
+                (SELECT COUNT(*) FROM follows f WHERE f.followed_id = u.id) AS followers,
+                (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS following
+            FROM users u WHERE u.id = ?
+            """;
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, id);
         return results.isEmpty() ? null : results.get(0);
     }
+
+    public void followUser(Long followerId, Long followedId) {
+        String sql = "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)";
+        try {
+            jdbcTemplate.update(sql, followerId, followedId);
+        } catch (Exception e) {
+            // Ignore if already following
+        }
+    }
+
+    public void unfollowUser(Long followerId, Long followedId) {
+        String sql = "DELETE FROM follows WHERE follower_id = ? AND followed_id = ?";
+        jdbcTemplate.update(sql, followerId, followedId);
+    }
+
+    public boolean isFollowing(Long followerId, Long followedId) {
+        String sql = "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followed_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, followerId, followedId);
+        return count != null && count > 0;
+    }
+
 
     public int updateProfile(Long id, String description, String profilePhotoUrl) {
         String sql = "UPDATE users SET description = ?, profile_photo_url = ? WHERE id = ?";

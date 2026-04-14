@@ -20,11 +20,22 @@
       <span class="stat-value">{{user.totalFavorites || 0}}</span>
       <span class="stat-label">Favorites</span>
     </div>
+    <div class="stat-item">
+      <span class="stat-value">{{user.followers || 0}}</span>
+      <span class="stat-label">Followers</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{user.following || 0}}</span>
+      <span class="stat-label">Following</span>
+    </div>
   </div>
   
   <div class="profile-actions" *ngIf="currentProfileId">
     <button class="message-btn" [routerLink]="['/messages', currentProfileId]">
       Send Message
+    </button>
+    <button class="message-btn" style="margin-left: 12px;" (click)="toggleFollow()">
+      {{ isFollowing ? 'Unfollow' : 'Follow' }}
     </button>
   </div>
 </div>

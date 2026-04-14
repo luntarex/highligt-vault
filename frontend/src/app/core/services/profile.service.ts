@@ -13,6 +13,8 @@ export class ProfileService {
   private apiUsersUrl = 'http://localhost:8080/api/users';
   private apiClipsUrl = 'http://localhost:8080/api/clips';
 
+  private apiFollowsUrl = 'http://localhost:8080/api/follows';
+
   constructor(private http: HttpClient, private authService: AuthService) { }
 
   getUserProfile(id?: string | null): Observable<User> {
@@ -27,6 +29,21 @@ export class ProfileService {
 
   updateUserProfile(userId: number, data: { description: string; profilePhotoUrl: string }): Observable<any> {
     return this.http.put(`${this.apiUsersUrl}/${userId}`, data);
+  }
+
+  followUser(targetUserId: string): Observable<any> {
+    const currentUserId = this.authService.getCurrentUserId();
+    return this.http.post(`${this.apiFollowsUrl}/${targetUserId}?followerId=${currentUserId}`, {});
+  }
+
+  unfollowUser(targetUserId: string): Observable<any> {
+    const currentUserId = this.authService.getCurrentUserId();
+    return this.http.delete(`${this.apiFollowsUrl}/${targetUserId}?followerId=${currentUserId}`);
+  }
+
+  isFollowing(targetUserId: string): Observable<{isFollowing: boolean}> {
+    const currentUserId = this.authService.getCurrentUserId();
+    return this.http.get<{isFollowing: boolean}>(`${this.apiFollowsUrl}/${targetUserId}/is-following?followerId=${currentUserId}`);
   }
 }
 
