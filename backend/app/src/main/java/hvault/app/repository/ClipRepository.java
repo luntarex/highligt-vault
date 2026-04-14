@@ -76,9 +76,18 @@ public class ClipRepository {
     }
 
     public void hardDeleteClip(Long id) {
-        // posts table has no ON DELETE CASCADE on clip_id, so delete posts first
-        // (comments and post_likes cascade from posts automatically)
+        // Manually delete related entities in case ON DELETE CASCADE is missing
+        List<Long> postIds = jdbcTemplate.queryForList("SELECT id FROM posts WHERE clip_id = ?", Long.class, id);
+        for (Long postId : postIds) {
+            jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
+            jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
+        }
         jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", id);
+        
+        jdbcTemplate.update("DELETE FROM clip_tags WHERE clip_id = ?", id);
+        jdbcTemplate.update("DELETE FROM playlist_items WHERE clip_id = ?", id);
+        jdbcTemplate.update("DELETE FROM user_favorites WHERE clip_id = ?", id);
+        
         jdbcTemplate.update("DELETE FROM clips WHERE id = ?", id);
     }
 
