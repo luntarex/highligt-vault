@@ -136,14 +136,14 @@
 }
 
 .view-btn {
-  background-color: transparent;
-  color: var(--text-primary);
+  background-color: var(--accent-purple);
+  color: var(--bg-main);
   border: 1px solid var(--border-color);
 }
 
 .view-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: var(--text-secondary);
+  filter: brightness(1.1);
+  transform: scale(1.02);
 }
 
 .message-btn {

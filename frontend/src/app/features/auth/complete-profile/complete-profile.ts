@@ -73,7 +73,7 @@ export class CompleteProfile implements OnInit {
     this.profileService.updateUserProfile(userId, payload).subscribe({
       next: () => {
         this.saving = false;
-        this.router.navigate(['/profile']);
+        this.router.navigate(['/explore']);
       },
       error: () => {
         this.saving = false;
