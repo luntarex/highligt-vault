@@ -79,6 +79,18 @@
     overflow: hidden;
 }
 
+.nav-links a:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white;
+}
+
+.nav-links a.active {
+    background-color: hsl(0, 0%, 16%);
+    color: white;
+    font-weight: 900;
+    box-shadow: inset 3px 0 0 #a855f7;
+}
+
 .sidebar-container.collapsed .nav-links a {
     justify-content: center;
     padding: 10px 0;
@@ -103,6 +115,11 @@
     height: 20px;
     filter: invert(0.8);
     flex-shrink: 0;
+}
+
+.nav-links a:hover .nav-icon,
+.nav-links a.active .nav-icon {
+    filter: invert(1);
 }
 
 .separator {

@@ -75,6 +75,13 @@ public class ClipRepository {
         jdbcTemplate.update(sql, id);
     }
 
+    public void hardDeleteClip(Long id) {
+        // posts table has no ON DELETE CASCADE on clip_id, so delete posts first
+        // (comments and post_likes cascade from posts automatically)
+        jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", id);
+        jdbcTemplate.update("DELETE FROM clips WHERE id = ?", id);
+    }
+
     public List<Map<String, Object>> findAllDeletedByUserId(Long uploaderId) {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,

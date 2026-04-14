@@ -120,6 +120,18 @@
 
 .delete-btn svg { width: 14px; height: 14px; }
 
+.hard-delete-btn {
+}
+
+.hard-delete-btn:hover {
+}
+
+.hard-delete-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #a855f7;
+}
+
 .clip-info {
   padding: 8px;
   display: flex;

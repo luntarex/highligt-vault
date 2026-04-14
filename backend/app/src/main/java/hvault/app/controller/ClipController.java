@@ -100,6 +100,22 @@ public class ClipController {
         }
     }
 
+    /**
+     * DELETE /api/clips/trash/{id}/hard
+     * Hard-delete a clip completely from the database.
+     */
+    @DeleteMapping("/trash/{id}/hard")
+    public ResponseEntity<?> hardDeleteClip(@PathVariable Long id) {
+        try {
+            clipService.hardDeleteClip(id);
+            return ResponseEntity.ok(Map.of("message", "Clip permanently deleted"));
+        } catch (Exception e) {
+            System.err.println("Database error hard-deleting clip: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/trash")
     public ResponseEntity<?> getDeletedClips(@RequestParam Long uploaderId) {
         return ResponseEntity.ok(clipService.getDeletedClipsByUserId(uploaderId));
