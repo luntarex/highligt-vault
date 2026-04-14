@@ -1,25 +1,24 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { GameService } from '../../core/services/game.service';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-users-list-page',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterModule, RouterLink],
   templateUrl: './users-list-page.html',
   styleUrl: './users-list-page.css',
 })
 export class UsersListPage implements OnInit {
-  
+
   users: User[] = [];
   newGameName: string = '';
   addGameMessage: string = '';
 
-  constructor(private userService: UserService, private router: Router, private gameService: GameService) {}
+  constructor(private userService: UserService, private router: Router, private gameService: GameService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.userService.getAllUsers().subscribe(users => {
