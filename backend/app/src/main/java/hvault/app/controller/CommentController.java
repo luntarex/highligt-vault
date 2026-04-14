@@ -22,10 +22,7 @@ public class CommentController {
      */
     @GetMapping("/post/{postId}")
     public ResponseEntity<?> getCommentsByPostId(@PathVariable Long postId) {
-        // TODO: Wire to CommentService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 1, "content", "Stub comment", "userId", 2, "postId", postId)
-        ));
+        return ResponseEntity.ok(commentService.getCommentsByPostId(postId));
     }
 
     /**
@@ -34,10 +31,7 @@ public class CommentController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getCommentsByUserId(@PathVariable Long userId) {
-        // TODO: Wire to CommentService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 1, "content", "Stub comment by user", "userId", userId, "postId", 1)
-        ));
+        return ResponseEntity.ok(commentService.getCommentsByUserId(userId));
     }
 
     /**
@@ -47,8 +41,15 @@ public class CommentController {
      */
     @PostMapping
     public ResponseEntity<?> addComment(@RequestBody Map<String, Object> request) {
-        // TODO: Wire to CommentService
-        return ResponseEntity.ok(Map.of("message", "Comment added successfully", "id", 1));
+        Long postId = Long.valueOf(request.get("postId").toString());
+        Long userId = Long.valueOf(request.get("userId").toString());
+        String content = (String) request.get("content");
+        Long parentCommentId = request.get("parentCommentId") != null
+            ? Long.valueOf(request.get("parentCommentId").toString())
+            : null;
+
+        Long id = commentService.addComment(postId, userId, content, parentCommentId);
+        return ResponseEntity.ok(Map.of("message", "Comment added successfully", "id", id));
     }
 
     /**
