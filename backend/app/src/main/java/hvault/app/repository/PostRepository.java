@@ -62,6 +62,7 @@ public class PostRepository {
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
             LEFT JOIN games g ON c.game_id = g.id
+            WHERE c.is_deleted = false OR c.is_deleted IS NULL
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
