@@ -53,14 +53,25 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         const postId = video.getAttribute('data-post-id');
 
         if (entry.isIntersecting) {
-          video.play().catch(() => {});
-
           if (postId) {
             this.playingPostId = postId;
             const post = this.feed.find(p => p.id === postId);
             if (post) {
+              const start = post.startTime || 0;
+              let end = post.endTime;
+              if (end === undefined || end === null || end === 0) {
+                end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
+              }
+              
+              if (video.currentTime < start || ((end - start) > 0.1 && video.currentTime >= end)) {
+                video.currentTime = start;
+              }
+              
+              video.play().catch(() => {});
               this.startProgressLoop(post, video);
             }
+          } else {
+            video.play().catch(() => {});
           }
         } else {
           video.pause();
@@ -128,9 +139,16 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     const container = data.event.currentTarget as HTMLElement;
     const rect = container.getBoundingClientRect();
     const x = data.event.clientX - rect.left;
-    const percentage = x / rect.width;
-    data.video.currentTime = percentage * (data.post.duration || 0);
-    data.post.currentTime = data.video.currentTime;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    
+    const start = data.post.startTime || 0;
+    const end = data.post.endTime || data.video.duration || 1;
+    const durationRange = end - start;
+    
+    const newTime = start + (percentage * durationRange);
+    
+    data.video.currentTime = newTime;
+    data.post.currentTime = newTime;
   }
 
   togglePlay(data: { post: ExplorePost; video: HTMLVideoElement }) {
@@ -139,6 +157,16 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
       this.playingPostId = null;
       this.stopProgressLoop();
     } else {
+      const start = data.post.startTime || 0;
+      let end = data.post.endTime;
+      if (end === undefined || end === null || end === 0) {
+        end = data.video.duration && !isNaN(data.video.duration) ? data.video.duration : Number.MAX_VALUE;
+      }
+      
+      if (data.video.currentTime < start || ((end - start) > 0.1 && data.video.currentTime >= end)) {
+        data.video.currentTime = start;
+      }
+      
       data.video.play();
       this.playingPostId = data.post.id;
       this.startProgressLoop(data.post, data.video);
@@ -154,6 +182,19 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     this.stopProgressLoop();
     const update = () => {
       post.currentTime = video.currentTime;
+      
+      const start = post.startTime || 0;
+      let end = post.endTime;
+      if (end === undefined || end === null || end === 0) {
+        end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
+      }
+      
+      // Prevent infinite 0-length loop which freezes the browser
+      if ((end - start) > 0.1 && video.currentTime >= end) {
+        video.currentTime = start;
+        video.play().catch(e => console.error("Replay error", e));
+      }
+      
       this.animationFrameId = requestAnimationFrame(update);
     };
     this.animationFrameId = requestAnimationFrame(update);

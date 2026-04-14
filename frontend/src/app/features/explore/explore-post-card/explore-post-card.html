@@ -59,7 +59,6 @@
       <video #videoPlayer
              [src]="post.videoUrl"
              class="post-video"
-             loop
              muted
              playsinline
              [attr.data-post-id]="post.id"
@@ -71,10 +70,10 @@
 
       <div class="controls-bar" (click)="$event.stopPropagation()">
         <div class="progress-container" (click)="onSeekTo($event, videoPlayer)">
-          <div class="progress-bar" [style.width.%]="(post.currentTime || 0) / (post.duration || 1) * 100"></div>
+          <div class="progress-bar" [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100"></div>
         </div>
         <div class="time-display">
-          {{ formatTime(post.currentTime) }} / {{ formatTime(post.duration) }}
+          {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} / {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
         </div>
         <button class="mute-button" (click)="onToggleMute($event, videoPlayer)">
           @if(videoPlayer.muted){
