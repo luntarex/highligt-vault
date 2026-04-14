@@ -43,4 +43,14 @@ export class ExploreService {
   unlikePost(postId: string, userId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${postId}/like?userId=${userId}`);
   }
+
+  favoriteClip(clipId: string, userId: number): Observable<any> {
+    const clipsApi = 'http://localhost:8080/api/clips';
+    return this.http.post(`${clipsApi}/${clipId}/favorite?userId=${userId}`, {});
+  }
+
+  unfavoriteClip(clipId: string, userId: number): Observable<any> {
+    const clipsApi = 'http://localhost:8080/api/clips';
+    return this.http.delete(`${clipsApi}/${clipId}/favorite?userId=${userId}`);
+  }
 }

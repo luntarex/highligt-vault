@@ -51,7 +51,7 @@ public class PostRepository {
 
     public List<Map<String, Object>> findAllPostsWithDetails() {
         String sql = """
-            SELECT p.id, p.caption, p.created_at,
+            SELECT p.id, p.caption, p.created_at, p.clip_id,
                    c.title AS clip_title, c.video_url, c.duration,
                    g.name AS game_name,
                    u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,

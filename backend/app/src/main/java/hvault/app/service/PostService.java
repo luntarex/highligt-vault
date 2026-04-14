@@ -12,9 +12,11 @@ import java.util.stream.Collectors;
 @Service
 public class PostService {
     private final PostRepository postRepository;
+    private final hvault.app.repository.ClipRepository clipRepository;
 
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, hvault.app.repository.ClipRepository clipRepository) {
         this.postRepository = postRepository;
+        this.clipRepository = clipRepository;
     }
 
     public Long createPost(Long userId, Long clipId, String caption) {
@@ -37,7 +39,10 @@ public class PostService {
         return postRepository.findAllPostsWithDetails().stream().map(row -> {
             Map<String, Object> mapped = new HashMap<>();
             Long postId = ((Number) row.get("id")).longValue();
+            Long clipId = ((Number) row.get("clip_id")).longValue();
+            
             mapped.put("id", postId.toString());
+            mapped.put("clipId", clipId.toString());
             mapped.put("title", row.get("caption"));
             mapped.put("game", row.get("game_name"));
             mapped.put("videoUrl", row.get("video_url"));
@@ -45,11 +50,12 @@ public class PostService {
             mapped.put("comments", row.get("comments"));
             mapped.put("timeAgo", "Recently");
 
-            // Check if current user liked this post
             if (currentUserId != null) {
                 mapped.put("isLiked", postRepository.isLikedByUser(postId, currentUserId));
+                mapped.put("isFavorited", clipRepository.isFavorited(currentUserId, clipId));
             } else {
                 mapped.put("isLiked", false);
+                mapped.put("isFavorited", false);
             }
 
             Map<String, Object> author = new HashMap<>();

@@ -45,7 +45,40 @@ public class ClipRepository {
             """;
         return jdbcTemplate.queryForList(sql, uploaderId);
     }
+    public List<Map<String, Object>> findFavoritesByUserId(Long userId) {
+        String sql = """
+            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
+            FROM user_favorites uf
+            JOIN clips c ON uf.clip_id = c.id
+            LEFT JOIN games g ON c.game_id = g.id
+            WHERE uf.user_id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
+            ORDER BY uf.created_at DESC
+            """;
+        return jdbcTemplate.queryForList(sql, userId);
+    }
     
+    public void addFavorite(Long userId, Long clipId) {
+        String checkSql = "SELECT COUNT(*) FROM user_favorites WHERE user_id = ? AND clip_id = ?";
+        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, clipId);
+        if (count == null || count == 0) {
+            jdbcTemplate.update(
+                "INSERT INTO user_favorites (user_id, clip_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+                userId, clipId
+            );
+        }
+    }
+
+    public void removeFavorite(Long userId, Long clipId) {
+        jdbcTemplate.update("DELETE FROM user_favorites WHERE user_id = ? AND clip_id = ?", userId, clipId);
+    }
+
+    public boolean isFavorited(Long userId, Long clipId) {
+        String sql = "SELECT COUNT(*) FROM user_favorites WHERE user_id = ? AND clip_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, clipId);
+        return count != null && count > 0;
+    }
+
     public List<Map<String, Object>> findAllClips() {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,

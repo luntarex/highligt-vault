@@ -53,6 +53,42 @@ public class ClipController {
     }
 
     /**
+     * GET /api/clips/favorites/{userId}
+     * List all clips a user has marked as favorite.
+     */
+    @GetMapping("/favorites/{userId}")
+    public ResponseEntity<?> getFavoritesByUserId(@PathVariable Long userId) {
+        List<Map<String, Object>> clips = clipService.getFavoritesByUserId(userId);
+        return ResponseEntity.ok(clips);
+    }
+
+    /**
+     * POST /api/clips/{id}/favorite?userId={userId}
+     */
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<?> addFavorite(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            clipService.addFavorite(userId, id);
+            return ResponseEntity.ok(Map.of("message", "Clip favorited"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/clips/{id}/favorite?userId={userId}
+     */
+    @DeleteMapping("/{id}/favorite")
+    public ResponseEntity<?> removeFavorite(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            clipService.removeFavorite(userId, id);
+            return ResponseEntity.ok(Map.of("message", "Clip unfavorited"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * POST /api/clips
      * Create a new clip.
      */
