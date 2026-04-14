@@ -124,7 +124,7 @@ export class Library implements OnInit {
       filtered.sort((a, b) => (b.duration || 0) - (a.duration || 0));
     } else {
       // Default: Date (newest first)
-      filtered.sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime());
+      filtered.sort((a, b) => b.id - a.id);
     }
 
     this.clips = filtered;
