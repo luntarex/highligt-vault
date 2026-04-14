@@ -24,9 +24,14 @@ export class Library implements OnInit {
   tags = ['All Tags', 'Ace', 'Clutch', 'Funny', 'Fail', 'Sniper', 'Win'];
   sortOptions = ['Date', 'Duration'];
 
+  allClips: Clip[] = [];
   clips: Clip[] = [];
   user: User | null = null;
   isProfileMenuOpen: boolean = false;
+
+  selectedGame: string = 'All Games';
+  selectedTag: string = 'All Tags';
+  selectedSort: string = 'Date';
 
   constructor(
     private clipService: ClipService,
@@ -40,7 +45,8 @@ export class Library implements OnInit {
   ngOnInit(): void {
     const userId = this.authService.getCurrentUserId();
     this.clipService.getClips(userId).subscribe(clips => {
-      this.clips = clips;
+      this.allClips = clips;
+      this.applyFilters();
       this.cdr.detectChanges();
     });
 
@@ -61,7 +67,8 @@ export class Library implements OnInit {
     const userId = this.authService.getCurrentUserId();
     this.clipService.deleteClip(id).subscribe(() => {
       this.clipService.getClips(userId).subscribe(clips => {
-        this.clips = clips;
+        this.allClips = clips;
+        this.applyFilters();
         this.cdr.detectChanges();
       });
     });
@@ -70,11 +77,58 @@ export class Library implements OnInit {
   searchQuery: string = '';
 
   onSearch() {
-    this.clipService.getClips().subscribe(clips => {
-      this.clips = clips.filter(clip =>
+    this.applyFilters();
+  }
+
+  onGameFilter(game: string) {
+    this.selectedGame = game;
+    this.applyFilters();
+  }
+
+  onTagFilter(tag: string) {
+    this.selectedTag = tag;
+    this.applyFilters();
+  }
+
+  onSortChange(sort: string) {
+    this.selectedSort = sort;
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    let filtered = [...this.allClips];
+
+    // Search filter
+    if (this.searchQuery.trim()) {
+      filtered = filtered.filter(clip =>
         clip.title.toLowerCase().startsWith(this.searchQuery.toLowerCase())
       );
-    });
+    }
+
+    // Game filter
+    if (this.selectedGame && this.selectedGame !== 'All Games') {
+      filtered = filtered.filter(clip =>
+        clip.game?.toLowerCase() === this.selectedGame.toLowerCase()
+      );
+    }
+
+    // Tag filter
+    if (this.selectedTag && this.selectedTag !== 'All Tags') {
+      filtered = filtered.filter(clip =>
+        clip.tags?.some(t => t.toLowerCase() === this.selectedTag.toLowerCase())
+      );
+    }
+
+    // Sort
+    if (this.selectedSort === 'Duration') {
+      filtered.sort((a, b) => (b.duration || 0) - (a.duration || 0));
+    } else {
+      // Default: Date (newest first)
+      filtered.sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime());
+    }
+
+    this.clips = filtered;
+    this.cdr.detectChanges();
   }
 
   toggleProfileMenu() {
