@@ -272,3 +272,27 @@
   max-height: 90vh;
   overflow-y: auto;
 }
+
+.profile-actions {
+  margin-top: 24px;
+}
+
+.message-btn {
+  background: hsl(0, 0%, 50%);
+  color: hsl(0, 0%, 10%);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.message-btn:hover {
+  background: hsl(0, 0%, 60%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+

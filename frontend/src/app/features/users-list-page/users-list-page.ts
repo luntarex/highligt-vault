@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { GameService } from '../../core/services/game.service';
@@ -23,6 +24,7 @@ export class UsersListPage implements OnInit {
   ngOnInit(): void {
     this.userService.getAllUsers().subscribe(users => {
       this.users = users;
+      this.cdr.detectChanges();
     });
   }
 

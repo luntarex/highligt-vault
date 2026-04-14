@@ -195,21 +195,30 @@ export class ClipEditor implements OnInit {
         }
         
         this.isUploading = true;
-        this.uploadStatus = 'Uploading video to stream server...';
+        this.uploadStatus = 'Uploading video to Cloudinary...';
         this.cdr.detectChanges();
         
         const formData = new FormData();
         formData.append('file', this.fileToUpload);
+        formData.append('upload_preset', 'hvault_unsigned');
         
-        fetch('https://tmpfiles.org/api/v1/upload', {
+        fetch('https://api.cloudinary.com/v1_1/dticc1u7k/video/upload', {
           method: 'POST',
           body: formData
         })
         .then(res => res.json())
         .then(data => {
-            if(data.status === 'success') {
-                let rawUrl = data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-                this.clip!.url = rawUrl;
+            if(data.secure_url) {
+                this.clip!.url = data.secure_url;
+                
+                // Auto-generate thumbnail from the uploaded video
+                const publicId = data.public_id;
+                this.clip!.thumbnailUrl = `https://res.cloudinary.com/dticc1u7k/video/upload/so_1,w_400,h_300,c_fill/${publicId}.jpg`;
+                
+                // Use Cloudinary's reported duration if available
+                if (data.duration) {
+                  this.clip!.duration = data.duration;
+                }
                 
                 this.uploadStatus = 'Saving highlight to vault...';
                 this.cdr.detectChanges();
@@ -222,7 +231,7 @@ export class ClipEditor implements OnInit {
             } else {
                 this.isUploading = false;
                 this.cdr.detectChanges();
-                alert('Upload failed: ' + JSON.stringify(data));
+                alert('Upload failed: ' + (data.error?.message || JSON.stringify(data)));
             }
         })
         .catch(err => {

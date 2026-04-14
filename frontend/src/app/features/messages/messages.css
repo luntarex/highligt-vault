@@ -1,0 +1,276 @@
+.messages-container {
+    display: flex;
+    height: calc(100vh - 80px);
+    background: hsl(0, 0%, 10%);
+    color: hsl(0, 0%, 98%);
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Sidebar Styling */
+.conversation-sidebar {
+    width: 350px;
+    border-right: 1px solid hsl(0, 0%, 18%);
+    display: flex;
+    flex-direction: column;
+    background: hsl(0, 0%, 10%);
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid hsl(0, 0%, 18%);
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: hsl(0, 0%, 75%);
+    font-weight: 600;
+}
+
+.conversation-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid hsl(0, 0%, 12%);
+    color: hsl(0, 0%, 75%);
+}
+
+.conversation-item:hover {
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
+}
+
+.conversation-item.active {
+    background: hsl(0, 0%, 16%);
+    border-left: 4px solid hsl(0, 0%, 75%);
+    color: hsl(0, 0%, 95%);
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+    border: 2px solid hsl(0, 0%, 25%);
+}
+
+.conversation-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-info .header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.username {
+    font-weight: 600;
+    color: hsl(0, 0%, 95%);
+}
+
+.time {
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 55%);
+}
+
+.last-message {
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 55%);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.last-message.unread {
+    color: hsl(0, 0%, 75%);
+    font-weight: 600;
+}
+
+/* Chat Area Styling */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: hsl(0, 0%, 10%);
+    position: relative;
+    min-width: 0;
+}
+
+.chat-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.chat-header {
+    padding: 20px;
+    border-bottom: 1px solid hsl(0, 0%, 18%);
+    background: hsl(0, 0%, 12%);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid hsl(0, 0%, 25%);
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: hsl(0, 0%, 95%);
+    font-weight: 600;
+}
+
+.message-history {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: hsl(0, 0%, 10%);
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.message-wrapper.sent {
+    align-self: flex-end;
+}
+
+.message-wrapper.received {
+    align-self: flex-start;
+}
+
+.message-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    position: relative;
+}
+
+.sent .message-bubble {
+    background: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 95%);
+    border-bottom-right-radius: 4px;
+}
+
+.received .message-bubble {
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
+    border-bottom-left-radius: 4px;
+}
+
+.msg-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 4px;
+    display: block;
+    text-align: right;
+    color: hsl(0, 0%, 98%);
+}
+
+/* Input Area */
+.chat-input {
+    padding: 20px;
+    border-top: 1px solid hsl(0, 0%, 18%);
+    background: hsl(0, 0%, 10%);
+    flex-shrink: 0;
+}
+
+.chat-input form {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    background: hsl(0, 0%, 12%);
+    border: 1px solid hsl(0, 0%, 20%);
+    padding: 12px 20px;
+    border-radius: 25px;
+    color: hsl(0, 0%, 98%);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.chat-input input:focus {
+    border-color: hsl(0, 0%, 40%);
+}
+
+.chat-input button {
+    background: hsl(0, 0%, 55%);
+    color: hsl(0, 0%, 10%);
+    border: none;
+    padding: 0 25px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chat-input button:hover:not(:disabled) {
+    background: hsl(0, 0%, 65%);
+    transform: translateY(-2px);
+}
+
+.chat-input button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty States */
+.no-selection, .no-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: hsl(0, 0%, 63.9%);
+    text-align: center;
+}
+
+.dm-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-selection button {
+    margin-top: 15px;
+    background: transparent;
+    border: 1px solid hsl(0, 0%, 50%);
+    color: hsl(0, 0%, 75%);
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.no-selection button:hover {
+    background: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 95%);
+    border-color: hsl(0, 0%, 75%);
+}

@@ -5,11 +5,12 @@ import { BackLink } from '../../shared/back-link/back-link';
 import { NgClass, CommonModule } from '@angular/common';
 import { ProfileService } from '../../core/services/profile.service';
 import { CustomUpload } from '../../shared/custom-upload/custom-upload';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [BackLink, NgClass, CommonModule, CustomUpload],
+  standalone: true,
+  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })

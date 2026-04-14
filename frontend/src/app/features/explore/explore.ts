@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ExploreService } from '../../core/services/explore.service';
 import { RouterLink } from "@angular/router";
@@ -32,7 +32,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(ExplorePostCard) postCards!: QueryList<ExplorePostCard>;
   private observer: IntersectionObserver | null = null;
 
-  constructor(private exploreService: ExploreService, public authService: AuthService) { }
+  constructor(private exploreService: ExploreService, public authService: AuthService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.loadServiceData();
@@ -101,6 +101,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         currentTime: 0,
         duration: 0
       }));
+      this.cdr.detectChanges();
     });
   }
 

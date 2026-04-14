@@ -1,0 +1,66 @@
+<div class="playlist-container" *ngIf="playlist; else loadingOrError">
+  <div class="playlist-header">
+    <div class="header-left">
+      <h1>{{ playlist.name }}</h1>
+      <p class="description" *ngIf="playlist.description">{{ playlist.description }}</p>
+      <span class="clip-count">{{ playlist.clips?.length || 0 }} Clips</span>
+    </div>
+    <div class="header-right">
+      <button class="add-clip-btn" (click)="openAddModal()">
+        <img src="assets/icons/plus.svg" alt="Add" onerror="this.src=''; this.className='fallback-icon add-icon';">
+        Add Existing Clip
+      </button>
+    </div>
+  </div>
+
+  <div class="clips-grid" *ngIf="playlist.clips && playlist.clips.length > 0; else noClips">
+    <div class="clip-card" *ngFor="let clip of playlist.clips" [routerLink]="['/clip', clip.id]">
+      <div class="thumbnail">
+        <img [src]="clip.thumbnailUrl || 'assets/placeholder-thumb.jpg'" [alt]="clip.title">
+        <span class="duration" *ngIf="clip.duration">{{ formatDuration(clip.duration) }}</span>
+        <button class="remove-btn" (click)="removeClip(clip.id, $event)" title="Remove from Playlist">
+            <img src="assets/icons/trash.svg" alt="X" onerror="this.src=''; this.innerText='X';">
+        </button>
+      </div>
+      <div class="clip-info">
+        <h3>{{ clip.title }}</h3>
+        <span class="game-tag" *ngIf="clip.game">{{ clip.game }}</span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noClips>
+    <div class="empty-state">
+      <p>This playlist is empty.</p>
+      <button class="btn-primary" (click)="openAddModal()">Add your first clip</button>
+    </div>
+  </ng-template>
+</div>
+
+<ng-template #loadingOrError>
+  <div class="loading-state" *ngIf="isLoading">Loading playlist...</div>
+  <div class="error-state" *ngIf="!isLoading">Playlist not found or you don't have permission.</div>
+</ng-template>
+
+<!-- Add Clip Modal -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add Clip to Playlist</h2>
+      <button class="close-btn" (click)="closeAddModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="availableClips.length === 0">No available clips to add.</p>
+      <div class="clip-list">
+        <div class="modal-clip-item" *ngFor="let clip of availableClips">
+          <img [src]="clip.thumbnailUrl || 'assets/placeholder-thumb.jpg'" [alt]="clip.title" class="tiny-thumb">
+          <div class="modal-clip-info">
+            <h4>{{ clip.title }}</h4>
+            <span>{{ clip.game }}</span>
+          </div>
+          <button class="add-btn" (click)="addClipToPlaylist(clip)">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

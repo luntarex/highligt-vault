@@ -12,9 +12,12 @@ import { UsersListPage } from './features/users-list-page/users-list-page';
 import { Trash } from './features/trash/trash';
 import { AdminGuard } from './core/guards/admin.guard';
 import { AuthGuard } from './core/guards/auth.guard';
+import { PlaylistView } from './features/playlist-view/playlist-view';
+import { MessagesComponent } from './features/messages/messages';
 
 export const routes: Routes = [
   { path: '', component: Library, canActivate: [AuthGuard] },
+  { path: 'playlist/:id', component: PlaylistView, canActivate: [AuthGuard] },
   { path: 'welcome', component: Welcome },
   { path: 'trash', component: Trash, canActivate: [AuthGuard] },
   { path: 'clip-editor/:id', component: ClipEditor, canActivate: [AuthGuard] },
@@ -25,5 +28,7 @@ export const routes: Routes = [
   { path: 'profile', component: ProfilePage, canActivate: [AuthGuard] },
   { path: 'explore', component: Explore, canActivate: [AuthGuard] },
   { path: 'user-comments/:userId', component: UserComments, canActivate: [AuthGuard] },
-  { path: 'users', component: UsersListPage, canActivate: [AdminGuard] }
+  { path: 'users', component: UsersListPage, canActivate: [AdminGuard] },
+  { path: 'messages', component: MessagesComponent, canActivate: [AuthGuard] },
+  { path: 'messages/:userId', component: MessagesComponent, canActivate: [AuthGuard] }
 ];

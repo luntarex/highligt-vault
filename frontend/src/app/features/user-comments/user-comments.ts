@@ -1,5 +1,5 @@
 import { User } from './../../core/models/user';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { BackLink } from '../../shared/back-link/back-link';
 import { CommentService } from '../../core/services/comment.service';
 import { ActivatedRoute } from '@angular/router';
@@ -17,7 +17,7 @@ export class UserComments implements OnInit {
   userId!: number;
   user : User|null = null;
 
-  constructor(private commentService: CommentService, private route: ActivatedRoute, private userService: UserService) {}
+  constructor(private commentService: CommentService, private route: ActivatedRoute, private userService: UserService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('userId');
@@ -25,10 +25,12 @@ export class UserComments implements OnInit {
 
     this.commentService.getCommentsByUserId(this.userId).subscribe((comments) => {
       this.comments = comments;
+      this.cdr.detectChanges();
     });
 
     this.userService.getUserById(this.userId).subscribe((user) => {
       this.user = user;
+      this.cdr.detectChanges();
     });
   }
 }
