@@ -26,7 +26,7 @@ export class Login {
   onLogin() {
     this.authService.login(this.loginRequest).subscribe(success => {
       if(success) {
-        this.router.navigate(['/']);
+        this.router.navigate(['/explore']);
       }
     });
   }

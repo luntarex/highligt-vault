@@ -10,6 +10,12 @@
 
   <ul class="nav-links">
     <li>
+      <a routerLink="/explore" routerLinkActive="active">
+        <img src="assets/icons/compass.svg" alt="Explore" class="nav-icon">
+        <span class="link-text">Explore</span>
+      </a>
+    </li>
+    <li>
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
         <img src="assets/icons/notebook.svg" alt="Library" class="nav-icon">
         <span class="link-text">Library</span>
@@ -30,12 +36,7 @@
       </a>
     </li>
 
-    <li>
-      <a routerLink="/explore" routerLinkActive="active">
-        <img src="assets/icons/compass.svg" alt="Explore" class="nav-icon">
-        <span class="link-text">Explore</span>
-      </a>
-    </li>
+
     @if(authService.isAdmin()){
     <li>
       <a routerLink="/users" routerLinkActive="active">
