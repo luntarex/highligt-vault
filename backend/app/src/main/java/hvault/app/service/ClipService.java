@@ -10,9 +10,11 @@ import hvault.app.repository.ClipRepository;
 @Service
 public class ClipService {
     private final ClipRepository clipRepository;
+    private final PostService postService;
 
-    public ClipService(ClipRepository clipRepository) {
+    public ClipService(ClipRepository clipRepository, PostService postService) {
         this.clipRepository = clipRepository;
+        this.postService = postService;
     }
 
     public List<Map<String, Object>> getClipsCommentedByUser(Long userId) {
@@ -57,6 +59,11 @@ public class ClipService {
             for (String tag : tags) {
                 clipRepository.insertTagIfNotExistAndLink(clipId, tag.trim().toLowerCase());
             }
+        }
+        
+        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
+        if (Boolean.TRUE.equals(isPublic)) {
+            postService.createPost(uploaderId, clipId, title);
         }
     }
 

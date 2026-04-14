@@ -68,6 +68,7 @@ export class ClipEditor implements OnInit {
            uploaderId: this.authService.getCurrentUserId(),
            isFavorite: false,
            isDeleted: false,
+           isPublic: true,
            dateCreated: new Date()
          };
       } else {
