@@ -1,0 +1,47 @@
+<div class="favorites-container">
+  <header class="favorites-header">
+     <div class="header-content">
+       <h1 class="favorites-title">Favorites</h1>
+       <p class="favorites-subtitle">Your saved highlights, all in one place.</p>
+     </div>
+     <app-back-link></app-back-link>
+  </header>
+
+  <main class="favorites-content">
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading favorites...</p>
+    </div>
+
+    <div *ngIf="!isLoading && favoriteClips.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <h2>No favorites yet</h2>
+      <p>Clips you mark as favorite will show up here.</p>
+      <a routerLink="/explore" class="btn-primary">Explore Clips</a>
+    </div>
+
+    <div *ngIf="!isLoading && favoriteClips.length > 0" class="clips-grid">
+      <app-clip-card 
+        *ngFor="let clip of favoriteClips" 
+        [clip]="clip" 
+        mode="favorites"
+        (removeClip)="handleRemoveFavorite($event)">
+      </app-clip-card>
+    </div>
+  </main>
+
+  <app-confirm-dialog
+    *ngIf="showRemoveModal"
+    title="Remove from Favorites"
+    message="Are you sure you want to remove this clip from your favorites?"
+    confirmText="Remove"
+    cancelText="Cancel"
+    type="danger"
+    (confirmed)="onConfirmRemove()"
+    (cancelled)="onCancelRemove()">
+  </app-confirm-dialog>
+</div>

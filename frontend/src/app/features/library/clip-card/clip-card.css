@@ -120,6 +120,37 @@
 
 .delete-btn svg { width: 14px; height: 14px; }
 
+/* Unfavorite button */
+.unfav-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.card-container:hover .unfav-btn {
+  opacity: 1;
+}
+
+.unfav-btn svg { width: 16px; height: 16px; }
+
+.unfav-btn:hover {
+  background: rgba(255, 77, 77, 0.2);
+  color: #ff4d4d;
+  border-color: #ff4d4d;
+}
+
 .hard-delete-btn {
 }
 

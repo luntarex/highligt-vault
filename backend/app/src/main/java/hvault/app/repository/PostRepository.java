@@ -53,6 +53,7 @@ public class PostRepository {
         String sql = """
             SELECT p.id, p.caption, p.created_at, p.clip_id,
                    c.title AS clip_title, c.video_url, c.duration,
+                   c.start_time AS start_time, c.end_time AS end_time,
                    g.name AS game_name,
                    u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
                    (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS likes,
@@ -61,6 +62,7 @@ public class PostRepository {
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
             LEFT JOIN games g ON c.game_id = g.id
+            WHERE c.is_deleted = false OR c.is_deleted IS NULL
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);

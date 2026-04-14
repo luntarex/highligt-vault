@@ -52,6 +52,14 @@ export class ClipService {
     return this.http.put(`${this.apiUrl}/trash/recover/${id}`, {});
   }
 
+  getFavorites(userId: number): Observable<Clip[]> {
+    return this.http.get<Clip[]>(`${this.apiUrl}/favorites/${userId}`);
+  }
+
+  removeFavorite(clipId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${clipId}/favorite?userId=${userId}`);
+  }
+
   formatDuration(seconds: number): string {
     if (!seconds) return '0:00';
     const m = Math.floor(seconds / 60);
