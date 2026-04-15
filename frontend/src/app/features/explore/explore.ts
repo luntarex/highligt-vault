@@ -6,6 +6,7 @@ import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { ExplorePostCard } from './explore-post-card/explore-post-card';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-explore',
@@ -31,15 +32,22 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren(ExplorePostCard) postCards!: QueryList<ExplorePostCard>;
   private observer: IntersectionObserver | null = null;
 
+  currentUserPhotoUrl: string = '';
+
   constructor(
     private exploreService: ExploreService,
     private commentService: CommentService,
     public authService: AuthService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.loadServiceData();
+    this.authService.userPhoto$.subscribe(url => {
+      this.currentUserPhotoUrl = url;
+      this.cdr.detectChanges();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -241,6 +249,15 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
     this.comments = [];
+
+    const currentUserId = this.authService.getCurrentUserId();
+    this.userService.getUserById(currentUserId).subscribe(user => {
+      if (user && user.profilePhotoUrl) {
+        this.currentUserPhotoUrl = user.profilePhotoUrl;
+      }
+      this.cdr.detectChanges();
+    });
+
     this.cdr.detectChanges();
     this.commentService.getCommentsByPostId(post.id).subscribe(data => {
       const allComments = data.map((c: any) => ({
@@ -328,7 +345,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
     this.commentService.addComment(postId, userId, content, parentId).subscribe((res: any) => {
       const username = localStorage.getItem('username') || 'You';
-      const currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
+      const currentUserPhoto = this.currentUserPhotoUrl;
       let replyTargetUserId = undefined;
       let replyTargetUsername = undefined;
       let cleanText = content;
@@ -410,7 +427,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get currentUserPhoto(): string {
-    return localStorage.getItem('profile_photo_url') || '';
+    return this.currentUserPhotoUrl;
   }
 
   private formatTimeAgo(dateStr: string): string {
