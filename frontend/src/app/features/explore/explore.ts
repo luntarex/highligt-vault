@@ -206,7 +206,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
       }
 
-      // Prevent infinite 0-length loop which freezes the browser
       if ((end - start) > 0.1 && video.currentTime >= end) {
         video.currentTime = start;
         video.play().catch(e => console.error("Replay error", e));
@@ -272,32 +271,30 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
           return;
         }
 
-        // Defensive mapping: Handle potential case differences from DB (e.g., content vs CONTENT)
-        const allComments = data.map((c: any) => {
-          const raw = (key: string) => c[key] || c[key.toUpperCase()] || c[key.toLowerCase()];
-          return {
-            id: raw('id'),
-            userId: raw('userId'),
-            username: raw('username'),
-            profilePhoto: raw('profilePhoto'),
-            text: raw('content') || '',
-            timeAgo: this.formatTimeAgo(raw('created_at')),
-            parentCommentId: raw('parentCommentId'),
-            replies: []
-          };
-        });
+        const raw = (obj: any, key: string) => obj[key] !== undefined ? obj[key] : (obj[key.toUpperCase()] !== undefined ? obj[key.toUpperCase()] : obj[key.toLowerCase()]);
+
+        const allMapped = data.map((c: any) => ({
+          id: Number(raw(c, 'id')),
+          userId: Number(raw(c, 'userId')),
+          username: raw(c, 'username') || 'Unknown',
+          profilePhoto: raw(c, 'profilePhoto'),
+          text: raw(c, 'content') || '',
+          cleanText: raw(c, 'content') || '',
+          timeAgo: this.formatTimeAgo(raw(c, 'created_at')),
+          parentCommentId: raw(c, 'parentCommentId') ? Number(raw(c, 'parentCommentId')) : null,
+          replyTargetUserId: undefined as number | undefined,
+          replyTargetUsername: undefined as string | undefined,
+          replies: [] as any[]
+        }));
 
         const parentMap = new Map();
-        allComments.forEach(c => parentMap.set(c.id, c));
+        allMapped.forEach(c => parentMap.set(c.id, c));
 
         const topLevel: any[] = [];
-        allComments.forEach(c => {
-          c.cleanText = c.text;
-
+        allMapped.forEach(c => {
           if (c.parentCommentId) {
             const parent = parentMap.get(c.parentCommentId);
             if (parent) {
-              // If it's a reply, tag it
               const tag = `@${parent.username} `;
               if (c.text.startsWith(tag)) {
                 c.cleanText = c.text.substring(tag.length);
@@ -305,7 +302,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
               c.replyTargetUserId = parent.userId;
               c.replyTargetUsername = parent.username;
 
-              // Find the root ancestor to keep UI flat (only 1 level deep)
               let root = parent;
               while (root.parentCommentId && parentMap.has(root.parentCommentId)) {
                 root = parentMap.get(root.parentCommentId);
@@ -318,15 +314,17 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
             topLevel.push(c);
           }
         });
+
         topLevel.forEach(c => {
-          if (c.replies) c.replies.reverse();
+          c.replies = [...new Set(c.replies)];
+          c.replies.reverse();
         });
 
         this.comments = topLevel;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading comments:', err);
+        console.error('Fetch comments error:', err);
         this.comments = [];
         this.cdr.detectChanges();
       }
