@@ -380,7 +380,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
       }
 
       const newCmnt = {
-        id: res.id,
+        id: Number(res.id),
         userId: userId,
         username: username,
         profilePhoto: currentUserPhoto,
@@ -453,13 +453,19 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private executeDeleteComment(comment: any) {
-    this.commentService.removeComment(comment.id).subscribe(() => {
-      this.comments = this.comments.filter(c => c.id !== comment.id);
-      this.comments.forEach(c => {
+    const targetId = Number(comment.id);
+    this.commentService.removeComment(targetId).subscribe(() => {
+      // Create a fresh array copy to trigger change detection
+      const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
+      
+      updatedComments.forEach(c => {
         if (c.replies) {
-           c.replies = c.replies.filter((r: any) => r.id !== comment.id);
+           c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
         }
       });
+
+      this.comments = updatedComments;
+      
       if (this.activePostForComments) {
         this.activePostForComments.comments--;
       }
