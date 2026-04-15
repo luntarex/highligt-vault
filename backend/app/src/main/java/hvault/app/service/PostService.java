@@ -75,4 +75,12 @@ public class PostService {
     public void unlikePost(Long postId, Long userId) {
         postRepository.unlikePost(postId, userId);
     }
+
+    public void deletePostsByClipId(Long clipId) {
+        postRepository.deleteByClipId(clipId);
+    }
+
+    public boolean hasPostForClip(Long clipId) {
+        return postRepository.existsByClipId(clipId);
+    }
 }

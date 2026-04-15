@@ -61,6 +61,11 @@ public class PostRepository {
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
             LEFT JOIN games g ON c.game_id = g.id
+<<<<<<< Updated upstream
+=======
+            WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+              AND (c.is_public = true)
+>>>>>>> Stashed changes
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
@@ -93,6 +98,22 @@ public class PostRepository {
     public boolean isLikedByUser(Long postId, Long userId) {
         String sql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
         int count = jdbcTemplate.queryForObject(sql, Integer.class, postId, userId);
+        return count > 0;
+    }
+
+    public void deleteByClipId(Long clipId) {
+        // First delete related likes and comments for posts of this clip
+        List<Long> postIds = jdbcTemplate.queryForList("SELECT id FROM posts WHERE clip_id = ?", Long.class, clipId);
+        for (Long postId : postIds) {
+            jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
+            jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
+        }
+        jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", clipId);
+    }
+
+    public boolean existsByClipId(Long clipId) {
+        String sql = "SELECT COUNT(*) FROM posts WHERE clip_id = ?";
+        int count = jdbcTemplate.queryForObject(sql, Integer.class, clipId);
         return count > 0;
     }
 }

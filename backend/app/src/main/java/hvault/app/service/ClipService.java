@@ -63,8 +63,9 @@ public class ClipService {
         Long uploaderId = clipData.get("uploaderId") != null ? Long.valueOf(clipData.get("uploaderId").toString()) : 1L;
         String gameName = (String) clipData.get("game");
         Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
+        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
 
-        Long clipId = clipRepository.insertClip(title, videoUrl, thumbnailUrl, duration, startTime, endTime, notes, uploaderId, gameId);
+        Long clipId = clipRepository.insertClip(title, videoUrl, thumbnailUrl, duration, startTime, endTime, notes, uploaderId, gameId, isPublic);
 
         List<String> tags = (List<String>) clipData.get("tags");
         if (tags != null) {
@@ -73,7 +74,6 @@ public class ClipService {
             }
         }
         
-        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
         if (Boolean.TRUE.equals(isPublic)) {
             postService.createPost(uploaderId, clipId, title);
         }
@@ -85,8 +85,21 @@ public class ClipService {
         String notes = (String) clipData.get("notes");
         String gameName = (String) clipData.get("game");
         Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
+        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
         
-        clipRepository.updateClip(id, title, notes, gameId);
+        clipRepository.updateClip(id, title, notes, gameId, isPublic);
+        
+        // Handle explore post visibility: create or remove post based on isPublic
+        if (Boolean.TRUE.equals(isPublic)) {
+            // If making public and no post exists, create one
+            if (!postService.hasPostForClip(id)) {
+                Long uploaderId = clipData.get("uploaderId") != null ? Long.valueOf(clipData.get("uploaderId").toString()) : 1L;
+                postService.createPost(uploaderId, id, title);
+            }
+        } else {
+            // If making private, remove from explore
+            postService.deletePostsByClipId(id);
+        }
         
         clipRepository.clearTagsForClip(id);
         List<String> tags = (List<String>) clipData.get("tags");
