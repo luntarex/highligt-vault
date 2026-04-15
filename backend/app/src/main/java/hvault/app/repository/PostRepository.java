@@ -56,14 +56,18 @@ public class PostRepository {
                    c.start_time AS start_time, c.end_time AS end_time,
                    g.name AS game_name,
                    u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
-                   (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS likes,
-                   (SELECT COUNT(*) FROM comments cm WHERE cm.post_id = p.id) AS comments
+                   COUNT(DISTINCT pl.user_id) AS likes,
+                   COUNT(DISTINCT cm.id) AS comments
             FROM posts p
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
             LEFT JOIN games g ON c.game_id = g.id
+            LEFT JOIN post_likes pl ON pl.post_id = p.id
+            LEFT JOIN comments cm ON cm.post_id = p.id
             WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
               AND (c.is_public = true)
+            GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration, 
+                     c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
