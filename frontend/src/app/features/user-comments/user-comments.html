@@ -5,7 +5,12 @@
     </div>
     <div class="comments-list">
         @for(comment of comments; track comment.id){
-            <div class="comment">
+            <div class="comment" [class.tos-violation]="isTosViolation(comment.content)" style="position: relative;">
+                <div class="admin-actions" *ngIf="isAdmin && !user?.isAdmin && !isTosViolation(comment.content)" style="position: absolute; top: 16px; right: 16px; z-index: 5;">
+                  <button (click)="openModerateModal(comment)" class="moderate-btn">
+                    Moderate
+                  </button>
+                </div>
                 <div class="comment-author">
                     <img [src]="user?.profilePhotoUrl" alt="">
                     <div class="comment-author-info">
@@ -18,5 +23,19 @@
                 </div>
             </div>
         }
+    </div>
+
+    <!-- Moderation Modal -->
+    <div class="modal-overlay" *ngIf="showModerateModal" (click)="closeModerateModal()">
+      <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <h2>Moderate Comment</h2>
+        <p>Choose an action for this comment by <strong>{{user?.username}}</strong>.</p>
+        
+        <div class="modal-actions">
+          <button class="modal-tos-btn" (click)="moderateTosViolation()">Mark as TOS Violation</button>
+          <button class="modal-delete-btn" (click)="moderateDelete()">Delete Completely</button>
+          <button class="modal-cancel-btn" (click)="closeModerateModal()">Cancel</button>
+        </div>
+      </div>
     </div>
 </div>
