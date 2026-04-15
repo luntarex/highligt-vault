@@ -181,23 +181,24 @@
 }
 
 .upload-btn {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    padding: 10px 12px;
+    padding: 0;
+    margin-bottom: 4px;
 }
 
 .upload-btn button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
     background: none;
     border: none;
     color: hsl(0, 0%, 75%);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    height: 44px;
+    overflow: hidden;
+    text-align: left;
 }
 .upload-icon {
     width: 20px;
@@ -212,6 +213,14 @@
     opacity: 1;
     transition: opacity 0.2s ease;
     font-size: large;
+}
+.upload-btn button:hover {
+    background-color: hsl(0, 0%, 16%);
+    color: white;
+}
+
+.upload-btn button:hover .upload-icon {
+    filter: invert(1);
 }
 
 .sidebar-container.collapsed .upload-text {

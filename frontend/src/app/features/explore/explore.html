@@ -7,25 +7,48 @@
   </div>
 
   <div class="feed-container">
-    @for (post of feed; track post.id){
-      <app-explore-post-card
-        [post]="post"
-        [playingPostId]="playingPostId"
-        (togglePlayEvent)="togglePlay($event)"
-        (toggleLikeEvent)="toggleLike($event)"
-        (toggleFavoriteEvent)="toggleFavorite($event)"
-        (openCommentsEvent)="openComments($event)"
-        (deletePostEvent)="deletePost($event)"
-        (toggleMuteEvent)="toggleMute($event)"
-        (seekToEvent)="onSeekTo($event)"
-        (timeUpdateEvent)="onTimeUpdate($event)"
-        (metadataLoadedEvent)="onMetadataLoaded($event)"
-      />
-    }
-    @empty {
-      <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
-        No clips found. Make sure your dummy data is in the TypeScript file!
-      </div>
+    @if (isLoading) {
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card">
+          <div class="skeleton-header">
+            <div class="skeleton-avatar skeleton-pulse"></div>
+            <div class="skeleton-meta">
+              <div class="skeleton-line skeleton-pulse" style="width: 35%; height: 12px;"></div>
+              <div class="skeleton-line skeleton-pulse" style="width: 20%; height: 10px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-video skeleton-pulse"></div>
+          <div class="skeleton-actions">
+            <div class="skeleton-circle skeleton-pulse"></div>
+            <div class="skeleton-circle skeleton-pulse"></div>
+            <div class="skeleton-circle skeleton-pulse"></div>
+          </div>
+        </div>
+      }
+    } @else {
+      @for (post of feed; track post.id){
+        <app-explore-post-card
+          [post]="post"
+          [playingPostId]="playingPostId"
+          (togglePlayEvent)="togglePlay($event)"
+          (toggleLikeEvent)="toggleLike($event)"
+          (toggleFavoriteEvent)="toggleFavorite($event)"
+          (openCommentsEvent)="openComments($event)"
+          (deletePostEvent)="deletePost($event)"
+          (toggleMuteEvent)="toggleMute($event)"
+          (seekToEvent)="onSeekTo($event)"
+          (timeUpdateEvent)="onTimeUpdate($event)"
+          (metadataLoadedEvent)="onMetadataLoaded($event)"
+        />
+      }
+      @empty {
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <p>No posts yet. Be the first to share a clip!</p>
+        </div>
+      }
     }
 
   </div>
