@@ -76,8 +76,9 @@ export class ProfileEdit implements OnInit {
       next: () => {
         this.saving = false;
         localStorage.setItem('username', this.username);
+        this.authService.updatePhoto(this.selectedPhotoUrl);
         this.toast.success('Profile updated successfully!');
-        this.router.navigate(['/profile']);
+        this.router.navigate(['/profile', userId]);
       },
       error: (err) => {
         this.saving = false;

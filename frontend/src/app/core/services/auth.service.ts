@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { RegisterRequest, LoginRequest } from '../models/user';
 import { Observable } from 'rxjs';
 import { tap, shareReplay } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,8 @@ import { tap, shareReplay } from 'rxjs/operators';
 export class AuthService {
 
   private apiUrl = 'http://localhost:8080/api/auth';
+  private userPhotoSubject = new BehaviorSubject<string>(localStorage.getItem('profile_photo_url') || '');
+  public userPhoto$ = this.userPhotoSubject.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -21,7 +24,10 @@ export class AuthService {
           localStorage.setItem('auth_token', res.token || 'dummy');
           localStorage.setItem('user_id', userId.toString());
           if (res.username) localStorage.setItem('username', res.username);
-          if (res.profile_photo_url) localStorage.setItem('profile_photo_url', res.profile_photo_url);
+          if (res.profile_photo_url) {
+            localStorage.setItem('profile_photo_url', res.profile_photo_url);
+            this.userPhotoSubject.next(res.profile_photo_url);
+          }
 
           // Store the isAdmin flag
           if (res.isAdmin !== undefined) {
@@ -43,6 +49,12 @@ export class AuthService {
     localStorage.removeItem('username');
     localStorage.removeItem('is_admin');
     localStorage.removeItem('profile_photo_url');
+    this.userPhotoSubject.next('');
+  }
+
+  updatePhoto(url: string) {
+    localStorage.setItem('profile_photo_url', url);
+    this.userPhotoSubject.next(url);
   }
 
   isLoggedIn(): boolean {
