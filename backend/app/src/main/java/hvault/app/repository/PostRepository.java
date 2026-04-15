@@ -76,7 +76,7 @@ public class PostRepository {
         String checkSql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
         int count = jdbcTemplate.queryForObject(checkSql, Integer.class, postId, userId);
         if (count == 0) {
-            String sql = "INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            String sql = "INSERT IGNORE INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
             jdbcTemplate.update(sql, postId, userId);
         }
     }
