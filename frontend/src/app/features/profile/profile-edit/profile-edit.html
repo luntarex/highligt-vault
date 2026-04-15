@@ -1,0 +1,52 @@
+<div class="edit-profile-container">
+  <div class="profile-edit-inner">
+    <header class="edit-header">
+      <app-back-link></app-back-link>
+      <h1>Edit Profile</h1>
+    </header>
+
+    <div class="edit-content" *ngIf="user">
+      <section class="avatar-section">
+        <label class="section-label">Profile Photo</label>
+      <div class="current-avatar-preview">
+        <img [src]="selectedPhotoUrl" alt="Current Avatar">
+      </div>
+      <div class="avatar-grid">
+        <div 
+          *ngFor="let avatar of avatarOptions" 
+          class="avatar-option" 
+          [class.selected]="selectedPhotoUrl === avatar"
+          (click)="selectAvatar(avatar)">
+          <img [src]="avatar" alt="Avatar option">
+        </div>
+      </div>
+    </section>
+
+    <section class="info-section">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" [(ngModel)]="username" placeholder="Choose a unique username">
+        <span class="input-hint">Your unique handle in the Vault.</span>
+      </div>
+
+      <div class="form-group">
+        <label>Bio / Description</label>
+        <textarea 
+          [(ngModel)]="description" 
+          placeholder="Tell the vault about yourself..."
+          rows="5"
+          maxlength="200"
+        ></textarea>
+        <div class="char-count">{{ description.length }}/200</div>
+      </div>
+    </section>
+
+    <footer class="edit-actions">
+      <button class="cancel-btn" routerLink="/profile">Cancel</button>
+      <button class="save-btn" [disabled]="saving" (click)="onSave()">
+        {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </footer>
+  </div>
+ </div>
+</div>

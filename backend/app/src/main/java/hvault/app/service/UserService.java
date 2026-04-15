@@ -22,8 +22,18 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public boolean updateProfile(Long id, String description, String profilePhotoUrl) {
-        return userRepository.updateProfile(id, description, profilePhotoUrl) > 0;
+    public boolean updateProfile(Long id, String username, String description, String profilePhotoUrl) {
+        if (username != null) {
+            Map<String, Object> existingUser = userRepository.findByUsername(username);
+            // If username exists and it's NOT the current user's current username
+            if (existingUser != null) {
+                Long foundId = Long.valueOf(existingUser.get("id").toString());
+                if (!foundId.equals(id)) {
+                    throw new RuntimeException("Username '" + username + "' is already taken.");
+                }
+            }
+        }
+        return userRepository.updateProfile(id, username, description, profilePhotoUrl) > 0;
     }
 
     public void followUser(Long followerId, Long followedId) {

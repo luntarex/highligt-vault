@@ -89,8 +89,8 @@ public class UserRepository {
     }
 
 
-    public int updateProfile(Long id, String description, String profilePhotoUrl) {
-        String sql = "UPDATE users SET description = ?, profile_photo_url = ? WHERE id = ?";
-        return jdbcTemplate.update(sql, description, profilePhotoUrl, id);
+    public int updateProfile(Long id, String username, String description, String profilePhotoUrl) {
+        String sql = "UPDATE users SET username = ?, description = ?, profile_photo_url = ? WHERE id = ?";
+        return jdbcTemplate.update(sql, username, description, profilePhotoUrl, id);
     }
 }

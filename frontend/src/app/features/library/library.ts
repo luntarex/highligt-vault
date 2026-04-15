@@ -1,5 +1,5 @@
 import { ClipCard } from './clip-card/clip-card';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClipService } from '../../core/services/clip.service';
 import { ProfileService } from '../../core/services/profile.service';
@@ -63,6 +63,18 @@ export class Library implements OnInit {
       });
     }
   }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const isProfileClick = target.closest('.profile-dropdown-wrapper');
+    
+    if (!isProfileClick && this.isProfileMenuOpen) {
+      this.isProfileMenuOpen = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   handleDelete(id: number) {
     const userId = this.authService.getCurrentUserId();
     this.clipService.deleteClip(id).subscribe(() => {
@@ -131,7 +143,10 @@ export class Library implements OnInit {
     this.cdr.detectChanges();
   }
 
-  toggleProfileMenu() {
+  toggleProfileMenu(event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
   }
 
