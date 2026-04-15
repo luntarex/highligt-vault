@@ -37,6 +37,7 @@ public class ClipRepository {
     public List<Map<String, Object>> findAllByUserId(Long uploaderId) {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
                    c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
                    c.created_at AS dateCreated
             FROM clips c
@@ -96,7 +97,8 @@ public class ClipRepository {
     public Map<String, Object> findById(Long id) {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game, c.uploader_id AS uploaderId
+                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+                   c.uploader_id AS uploaderId, c.is_public AS isPublic
             FROM clips c
             LEFT JOIN games g ON c.game_id = g.id
             WHERE c.id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
@@ -163,8 +165,8 @@ public class ClipRepository {
     }
 
     public Long insertClip(String title, String videoUrl, String thumbnailUrl, 
-                           Double duration, Double startTime, Double endTime, String notes, Long uploaderId, Long gameId) {
-        String sql = "INSERT INTO clips (title, video_url, thumbnail_url, duration, start_time, end_time, notes, uploader_id, game_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                           Double duration, Double startTime, Double endTime, String notes, Long uploaderId, Long gameId, Boolean isPublic) {
+        String sql = "INSERT INTO clips (title, video_url, thumbnail_url, duration, start_time, end_time, notes, uploader_id, game_id, is_public) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
@@ -178,15 +180,16 @@ public class ClipRepository {
             ps.setString(7, notes);
             ps.setObject(8, uploaderId);
             ps.setObject(9, gameId);
+            ps.setObject(10, isPublic != null ? isPublic : true);
             return ps;
         }, keyHolder);
         
         return keyHolder.getKey().longValue();
     }
     
-    public void updateClip(Long id, String title, String notes, Long gameId) {
-        String sql = "UPDATE clips SET title = ?, notes = ?, game_id = ? WHERE id = ?";
-        jdbcTemplate.update(sql, title, notes, gameId, id);
+    public void updateClip(Long id, String title, String notes, Long gameId, Boolean isPublic) {
+        String sql = "UPDATE clips SET title = ?, notes = ?, game_id = ?, is_public = ? WHERE id = ?";
+        jdbcTemplate.update(sql, title, notes, gameId, isPublic != null ? isPublic : true, id);
     }
     
     public void clearTagsForClip(Long clipId) {
