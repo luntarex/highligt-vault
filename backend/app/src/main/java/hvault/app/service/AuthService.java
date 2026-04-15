@@ -1,6 +1,7 @@
 package hvault.app.service;
 
 import hvault.app.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -15,10 +17,12 @@ public class AuthService {
 
     public Map<String, Object> login(String username, String password) {
         Map<String, Object> user = userRepository.findByUsername(username);
-        // Extremely simple auth for DB project purposes
-        if (user != null && "dummy_hash".equals(user.get("password_hash"))) {
-            user.remove("password_hash"); // don't send password back!
-            return user;
+        if (user != null) {
+            String storedHash = (String) user.get("password_hash");
+            if (passwordEncoder.matches(password, storedHash)) {
+                user.remove("password_hash");
+                return user;
+            }
         }
         return null;
     }
@@ -27,8 +31,8 @@ public class AuthService {
         if (userRepository.findByUsername(username) != null) {
             return false;
         }
-        // Save "dummy_hash" for everyone to avoid managing real bcrytp hashing for this class
-        userRepository.insertUser(username, email, "dummy_hash");
+        String hashedPassword = passwordEncoder.encode(password);
+        userRepository.insertUser(username, email, hashedPassword);
         return true;
     }
 }
