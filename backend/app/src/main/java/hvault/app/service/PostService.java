@@ -46,6 +46,9 @@ public class PostService {
             mapped.put("title", row.get("caption"));
             mapped.put("game", row.get("game_name"));
             mapped.put("videoUrl", row.get("video_url"));
+            mapped.put("duration", row.get("duration"));
+            mapped.put("startTime", row.get("start_time"));
+            mapped.put("endTime", row.get("end_time"));
             mapped.put("likes", row.get("likes"));
             mapped.put("comments", row.get("comments"));
             mapped.put("timeAgo", "Recently");

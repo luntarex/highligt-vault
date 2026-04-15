@@ -53,6 +53,7 @@ public class PostRepository {
         String sql = """
             SELECT p.id, p.caption, p.created_at, p.clip_id,
                    c.title AS clip_title, c.video_url, c.duration,
+                   c.start_time AS start_time, c.end_time AS end_time,
                    g.name AS game_name,
                    u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
                    (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS likes,
@@ -61,11 +62,9 @@ public class PostRepository {
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
             LEFT JOIN games g ON c.game_id = g.id
-<<<<<<< Updated upstream
-=======
             WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
               AND (c.is_public = true)
->>>>>>> Stashed changes
+            WHERE c.is_deleted = false OR c.is_deleted IS NULL
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
@@ -79,7 +78,7 @@ public class PostRepository {
         String checkSql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
         int count = jdbcTemplate.queryForObject(checkSql, Integer.class, postId, userId);
         if (count == 0) {
-            String sql = "INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            String sql = "INSERT IGNORE INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
             jdbcTemplate.update(sql, postId, userId);
         }
     }

@@ -8,5 +8,6 @@
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s;
+  cursor: pointer;
 }
 .back-link:hover { color: white; }

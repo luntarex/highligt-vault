@@ -11,7 +11,7 @@ import { Router } from "@angular/router";
 })
 export class ClipCard {
   @Input() clip!: Clip;
-  @Input() mode: 'library' | 'trash' = 'library';
+  @Input() mode: 'library' | 'trash' | 'favorites' = 'library';
   @Output() removeClip = new EventEmitter<number>();
   @Output() recoverClip = new EventEmitter<number>();
   @Output() hardDeleteClip = new EventEmitter<number>();
@@ -29,7 +29,7 @@ export class ClipCard {
   }
 
   handleCardClick(event: Event) {
-    if (this.mode === 'library') {
+    if (this.mode === 'library' || this.mode === 'favorites') {
       this.router.navigate(['/clip-editor', this.clip.id]);
     } else if (this.mode === 'trash') {
       this.recoverClip.emit(this.clip.id);

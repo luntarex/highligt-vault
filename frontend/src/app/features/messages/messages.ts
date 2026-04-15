@@ -17,11 +17,13 @@ import { BackLink } from '../../shared/back-link/back-link';
 })
 export class MessagesComponent implements OnInit {
   conversations: Conversation[] = [];
+  filteredConversations: Conversation[] = [];
   currentConversation: Message[] = [];
   selectedUserId: number | null = null;
   selectedUsername: string = '';
   selectedUserPhoto: string = '';
   newMessageContent: string = '';
+  searchQuery: string = '';
   currentUserId: number;
   isSending: boolean = false;
   loading: boolean = false;
@@ -48,30 +50,41 @@ export class MessagesComponent implements OnInit {
   loadConversations(): void {
     this.messageService.getConversations(this.currentUserId).subscribe(convs => {
       this.conversations = convs;
+      this.filteredConversations = convs;
       this.cdr.detectChanges();
     });
+  }
+
+  onSearch(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+    if (!query) {
+      this.filteredConversations = this.conversations;
+    } else {
+      this.filteredConversations = this.conversations.filter(c =>
+        c.username.toLowerCase().includes(query)
+      );
+    }
+    this.cdr.detectChanges();
   }
 
   selectUser(userId: number): void {
     this.selectedUserId = userId;
     const conversation = this.conversations.find(c => c.other_user_id === userId);
-    
+
     if (conversation) {
       this.selectedUsername = conversation.username || '';
       this.selectedUserPhoto = conversation.profile_photo_url || '';
     } else {
-      // If we jumped straight here without a past conversation, fetch user info separately
       this.selectedUsername = 'Loading...';
       this.userService.getUserById(userId).subscribe(user => {
         if (user) {
           this.selectedUsername = user.username;
-          this.selectedUserPhoto = user.profilePhotoUrl || 'https://i.pravatar.cc/150?img=1';
+          this.selectedUserPhoto = user.profilePhotoUrl || 'assets/icons/default-avatar.png';
           this.cdr.detectChanges();
         }
       });
     }
-    
-    // Mesajları yükle (eski mesajları koruyarak)
+
     this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
       this.currentConversation = msgs;
       this.loading = false;

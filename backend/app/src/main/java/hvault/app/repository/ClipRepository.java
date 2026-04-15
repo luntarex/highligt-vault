@@ -37,12 +37,9 @@ public class ClipRepository {
     public List<Map<String, Object>> findAllByUserId(Long uploaderId) {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-<<<<<<< Updated upstream
                    c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
-=======
                    c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-                   c.created_at AS dateCreated, c.is_public AS isPublic
->>>>>>> Stashed changes
+                   c.created_at AS dateCreated
             FROM clips c
             LEFT JOIN games g ON c.game_id = g.id
             WHERE c.uploader_id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
@@ -87,7 +84,8 @@ public class ClipRepository {
     public List<Map<String, Object>> findAllClips() {
         String sql = """
             SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
+                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+                   c.created_at AS dateCreated
             FROM clips c
             LEFT JOIN games g ON c.game_id = g.id
             WHERE c.is_deleted = false OR c.is_deleted IS NULL

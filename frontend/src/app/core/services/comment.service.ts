@@ -21,7 +21,6 @@ export class CommentService {
   }
 
   getPostIdsCommentedByUser(userId: number): Observable<string[]> {
-    // This could also be a backend endpoint, but we'll assume we map from getCommentsByUserId for now.
     return new Observable<string[]>(observer => {
       this.getCommentsByUserId(userId).subscribe(comments => {
         const postIds = comments.map(c => c.postId);
