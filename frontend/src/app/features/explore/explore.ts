@@ -24,6 +24,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   editingCommentText: string = '';
 
   feed: ExplorePost[] = [];
+  isLoading = true;
   playingPostId: string | null = null;
   private animationFrameId: number | null = null;
 
@@ -109,6 +110,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadServiceData(): void {
+    this.isLoading = true;
     const userId = this.authService.getCurrentUserId();
     this.exploreService.getFeed(userId).subscribe((feedData) => {
       this.feed = feedData.map(post => ({
@@ -116,6 +118,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         currentTime: 0,
         duration: 0
       }));
+      this.isLoading = false;
       this.cdr.detectChanges();
     });
   }
