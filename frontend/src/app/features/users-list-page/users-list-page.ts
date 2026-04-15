@@ -17,23 +17,39 @@ export class UsersListPage implements OnInit {
   users: User[] = [];
   newGameName: string = '';
   addGameMessage: string = '';
+  activeTab: 'users' | 'games' = 'users';
 
-  constructor(private userService: UserService, private router: Router, private gameService: GameService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private userService: UserService,
+    private router: Router,
+    private gameService: GameService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers() {
     this.userService.getAllUsers().subscribe(users => {
       this.users = users;
-     this.cdr.detectChanges();
+      this.cdr.detectChanges();
     });
   }
 
-  followUser(id: number) {
-    console.log('Followed user with id:', id);
-    // Logic for following a user could be linked to another service in the future.
+  switchTab(tab: 'users' | 'games') {
+    this.activeTab = tab;
+    this.cdr.detectChanges();
   }
+
+
 
   viewProfile(id: number) {
     this.router.navigate(['/profile', id]);
+  }
+
+  viewComments(id: number) {
+    this.router.navigate(['/user-comments', id]);
   }
 
   addGame() {
@@ -42,11 +58,19 @@ export class UsersListPage implements OnInit {
       next: (res) => {
         this.addGameMessage = "Game added successfully!";
         this.newGameName = '';
-        setTimeout(() => this.addGameMessage = '', 3000);
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.addGameMessage = '';
+          this.cdr.detectChanges();
+        }, 3000);
       },
       error: (err) => {
         this.addGameMessage = "Error: " + (err.error?.error || "Failed to add game");
-        setTimeout(() => this.addGameMessage = '', 3000);
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.addGameMessage = '';
+          this.cdr.detectChanges();
+        }, 3000);
       }
     });
   }

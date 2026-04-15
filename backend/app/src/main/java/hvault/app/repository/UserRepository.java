@@ -26,6 +26,7 @@ public class UserRepository {
             SELECT u.id, u.username, u.email, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
                    COUNT(p.id) AS postCount,
                    (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
+                   (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND c.is_public = 1 AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS publicClipCount,
                    (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
             FROM users u
             LEFT JOIN posts p ON u.id = p.user_id
