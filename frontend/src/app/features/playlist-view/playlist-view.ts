@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { PlaylistService } from '../../core/services/playlist.service';
@@ -9,6 +9,8 @@ import { Clip } from '../../core/models/clip';
 import { PlaylistDialog } from '../../shared/playlist-dialog/playlist-dialog';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
+import { Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-playlist-view',
   standalone: true,
@@ -16,10 +18,11 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
   templateUrl: './playlist-view.html',
   styleUrls: ['./playlist-view.css']
 })
-export class PlaylistView implements OnInit {
+export class PlaylistView implements OnInit, OnDestroy {
   playlist: Playlist | null = null;
   availableClips: Clip[] = [];
   showAddModal = false;
+  isAddingClip = false;
   isLoading = true;
   userId: number | null = null;
 
@@ -32,6 +35,8 @@ export class PlaylistView implements OnInit {
   // Remove clip confirm
   showRemoveClipConfirm = false;
   clipToRemove: number | null = null;
+
+  private routeSub!: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -47,7 +52,7 @@ export class PlaylistView implements OnInit {
       this.userId = this.authService.getCurrentUserId();
     }
 
-    this.route.paramMap.subscribe(params => {
+    this.routeSub = this.route.paramMap.subscribe(params => {
       const id = Number(params.get('id'));
       if (id) {
         this.loadPlaylist(id);
@@ -55,10 +60,22 @@ export class PlaylistView implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.routeSub?.unsubscribe();
+  }
+
   loadPlaylist(id: number) {
     this.isLoading = true;
     this.playlistService.getPlaylist(id).subscribe({
       next: (data) => {
+        if (data && data.clips) {
+          const seen = new Set<number>();
+          data.clips = data.clips.filter(c => {
+            if (seen.has(c.id)) return false;
+            seen.add(c.id);
+            return true;
+          });
+        }
         this.playlist = data;
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -121,17 +138,27 @@ export class PlaylistView implements OnInit {
   }
 
   addClipToPlaylist(clip: Clip) {
-    if (!this.playlist) return;
+    if (!this.playlist || this.isAddingClip) return;
+    this.isAddingClip = true;
+
+    this.availableClips = this.availableClips.filter(c => c.id !== clip.id);
+    this.closeAddModal();
+
     this.playlistService.addClipToPlaylist(this.playlist.id, clip.id).subscribe({
       next: () => {
         if (!this.playlist!.clips) {
           this.playlist!.clips = [];
         }
-        this.playlist!.clips.push(clip);
-        this.availableClips = this.availableClips.filter(c => c.id !== clip.id);
-        this.closeAddModal();
+        if (!this.playlist!.clips.some(c => c.id === clip.id)) {
+          this.playlist!.clips.push(clip);
+        }
+        this.isAddingClip = false;
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Failed to add clip', err)
+      error: (err) => {
+        this.isAddingClip = false;
+        console.error('Failed to add clip', err);
+      }
     });
   }
 
@@ -185,5 +212,9 @@ export class PlaylistView implements OnInit {
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  trackByClipId(index: number, clip: Clip): number {
+    return clip.id;
   }
 }

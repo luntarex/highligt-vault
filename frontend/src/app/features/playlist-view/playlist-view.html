@@ -29,7 +29,7 @@
   </div>
 
   <div class="clips-grid" *ngIf="playlist.clips && playlist.clips.length > 0; else noClips">
-    <div class="clip-card" *ngFor="let clip of playlist.clips" [routerLink]="['/clip-editor', clip.id]">
+    <div class="clip-card" *ngFor="let clip of playlist.clips; trackBy: trackByClipId" [routerLink]="['/clip-editor', clip.id]">
       <div class="thumbnail">
         <img [src]="clip.thumbnailUrl || 'assets/placeholder-thumb.jpg'" [alt]="clip.title">
         <span class="duration" *ngIf="clip.duration">{{ formatDuration(clip.duration) }}</span>
