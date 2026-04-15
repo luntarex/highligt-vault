@@ -64,7 +64,6 @@ public class PostRepository {
             LEFT JOIN games g ON c.game_id = g.id
             WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
               AND (c.is_public = true)
-            WHERE c.is_deleted = false OR c.is_deleted IS NULL
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.queryForList(sql);
