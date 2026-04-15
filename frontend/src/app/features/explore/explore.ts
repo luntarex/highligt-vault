@@ -16,6 +16,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
   newCommentText: string = '';
+  replyingToComment: any | null = null;
 
   comments: any[] = [];
 
@@ -62,11 +63,11 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
               if (end === undefined || end === null || end === 0) {
                 end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
               }
-              
+
               if (video.currentTime < start || ((end - start) > 0.1 && video.currentTime >= end)) {
                 video.currentTime = start;
               }
-              
+
               video.play().catch(() => {});
               this.startProgressLoop(post, video);
             }
@@ -140,13 +141,13 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     const rect = container.getBoundingClientRect();
     const x = data.event.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
-    
+
     const start = data.post.startTime || 0;
     const end = data.post.endTime || data.video.duration || 1;
     const durationRange = end - start;
-    
+
     const newTime = start + (percentage * durationRange);
-    
+
     data.video.currentTime = newTime;
     data.post.currentTime = newTime;
   }
@@ -162,11 +163,11 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
       if (end === undefined || end === null || end === 0) {
         end = data.video.duration && !isNaN(data.video.duration) ? data.video.duration : Number.MAX_VALUE;
       }
-      
+
       if (data.video.currentTime < start || ((end - start) > 0.1 && data.video.currentTime >= end)) {
         data.video.currentTime = start;
       }
-      
+
       data.video.play();
       this.playingPostId = data.post.id;
       this.startProgressLoop(data.post, data.video);
@@ -182,19 +183,19 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     this.stopProgressLoop();
     const update = () => {
       post.currentTime = video.currentTime;
-      
+
       const start = post.startTime || 0;
       let end = post.endTime;
       if (end === undefined || end === null || end === 0) {
         end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
       }
-      
+
       // Prevent infinite 0-length loop which freezes the browser
       if ((end - start) > 0.1 && video.currentTime >= end) {
         video.currentTime = start;
         video.play().catch(e => console.error("Replay error", e));
       }
-      
+
       this.animationFrameId = requestAnimationFrame(update);
     };
     this.animationFrameId = requestAnimationFrame(update);
@@ -237,14 +238,55 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
     this.comments = [];
+    this.cdr.detectChanges();
     this.commentService.getCommentsByPostId(post.id).subscribe(data => {
-      this.comments = data.map((c: any) => ({
+      const allComments = data.map((c: any) => ({
         id: c.id,
         userId: c.userId,
         username: c.username,
+        profilePhoto: c.profilePhoto,
         text: c.content,
-        timeAgo: this.formatTimeAgo(c.created_at)
+        timeAgo: this.formatTimeAgo(c.created_at),
+        parentCommentId: c.parentCommentId,
+        replies: []
       }));
+
+      const topLevel: any[] = [];
+      const parentMap = new Map();
+      allComments.forEach((c: any) => parentMap.set(c.id, c));
+
+      allComments.forEach((c: any) => {
+        c.cleanText = c.text;
+
+        if (c.parentCommentId) {
+          const directParent = parentMap.get(c.parentCommentId);
+          if (directParent) {
+            c.replyTargetUserId = directParent.userId;
+            c.replyTargetUsername = directParent.username;
+
+            const tag = `@${directParent.username} `;
+            if (c.text.startsWith(tag)) {
+              c.cleanText = c.text.substring(tag.length);
+            }
+          }
+
+          let root = directParent;
+          while (root && root.parentCommentId) {
+            root = parentMap.get(root.parentCommentId);
+          }
+          if (root) {
+            root.replies.push(c);
+          } else {
+            topLevel.push(c);
+          }
+        } else {
+          topLevel.push(c);
+        }
+      });
+
+      topLevel.forEach(c => c.replies.reverse());
+
+      this.comments = topLevel;
       this.cdr.detectChanges();
     });
   }
@@ -252,7 +294,25 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   closeComments() {
     this.activePostForComments = null;
     this.editingCommentId = null;
+    this.replyingToComment = null;
     this.comments = [];
+  }
+
+  setReplyTo(comment: any) {
+    this.replyingToComment = comment;
+    this.newCommentText = `@${comment.username} `;
+
+    setTimeout(() => {
+      const input = document.querySelector('.comment-input') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+
+  cancelReply() {
+    if (this.replyingToComment && this.newCommentText === `@${this.replyingToComment.username} `) {
+      this.newCommentText = '';
+    }
+    this.replyingToComment = null;
   }
 
   postComment() {
@@ -261,24 +321,60 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     const postId = this.activePostForComments.id;
     const userId = this.authService.getCurrentUserId();
     const content = this.newCommentText.trim();
+    const parentId = this.replyingToComment ? this.replyingToComment.id : undefined;
 
-    this.commentService.addComment(postId, userId, content).subscribe((res: any) => {
+    this.commentService.addComment(postId, userId, content, parentId).subscribe((res: any) => {
       const username = localStorage.getItem('username') || 'You';
-      this.comments.unshift({
+      const currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
+      let replyTargetUserId = undefined;
+      let replyTargetUsername = undefined;
+      let cleanText = content;
+
+      if (this.replyingToComment) {
+        replyTargetUserId = this.replyingToComment.userId;
+        replyTargetUsername = this.replyingToComment.username;
+        const tag = `@${replyTargetUsername} `;
+        if (content.startsWith(tag)) {
+          cleanText = content.substring(tag.length);
+        }
+      }
+
+      const newCmnt = {
         id: res.id,
         userId: userId,
         username: username,
+        profilePhoto: currentUserPhoto,
         text: content,
-        timeAgo: 'Just now'
-      });
+        cleanText: cleanText,
+        timeAgo: 'Just now',
+        parentCommentId: parentId,
+        replyTargetUserId: replyTargetUserId,
+        replyTargetUsername: replyTargetUsername,
+        replies: []
+      };
 
+      if (this.replyingToComment) {
+        let parentFound = false;
+        this.comments.forEach(rootCmnt => {
+          if (rootCmnt.id === parentId || rootCmnt.replies.some((r: any) => r.id === parentId)) {
+            rootCmnt.replies.push(newCmnt);
+            parentFound = true;
+          }
+        });
+        if (!parentFound) {
+            this.comments.unshift(newCmnt);
+        }
+      } else {
+        this.comments.unshift(newCmnt);
+      }
+
+      this.newCommentText = '';
+      this.replyingToComment = null;
       if (this.activePostForComments) {
         this.activePostForComments.comments++;
       }
       this.cdr.detectChanges();
     });
-
-    this.newCommentText = '';
   }
 
   canEditComment(comment: any): boolean {
@@ -308,6 +404,10 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
       }
       this.cdr.detectChanges();
     });
+  }
+
+  get currentUserPhoto(): string {
+    return localStorage.getItem('profile_photo_url') || '';
   }
 
   private formatTimeAgo(dateStr: string): string {
