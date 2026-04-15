@@ -47,4 +47,8 @@ public class UserService {
     public boolean isFollowing(Long followerId, Long followedId) {
         return userRepository.isFollowing(followerId, followedId);
     }
+
+    public boolean deleteUser(Long id) {
+        return userRepository.softDeleteUser(id) > 0;
+    }
 }

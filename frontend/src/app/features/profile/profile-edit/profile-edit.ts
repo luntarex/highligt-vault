@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ProfileService } from '../../../core/services/profile.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { BackLink } from '../../../shared/back-link/back-link';
 
 @Component({
@@ -21,6 +22,7 @@ export class ProfileEdit implements OnInit {
   selectedPhotoUrl: string = '';
   errorMessage: string = '';
   saving: boolean = false;
+  showDeleteModal: boolean = false;
 
   avatarOptions: string[] = [
     'https://i.pravatar.cc/150?img=1',
@@ -42,6 +44,7 @@ export class ProfileEdit implements OnInit {
 
   constructor(
     private profileService: ProfileService,
+    private userService: UserService,
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -88,6 +91,30 @@ export class ProfileEdit implements OnInit {
         }
         this.toast.error(msg);
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onDeleteAccount(): void {
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+  }
+
+  confirmDelete(): void {
+    this.showDeleteModal = false;
+    const userId = this.authService.getCurrentUserId();
+    this.userService.deleteAccount(userId).subscribe({
+      next: () => {
+        this.toast.success('Account deleted successfully.');
+        this.authService.logout();
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.toast.error('Failed to delete account. Please try again.');
+        console.error(err);
       }
     });
   }

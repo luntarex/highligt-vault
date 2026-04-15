@@ -30,6 +30,7 @@ public class UserRepository {
             LEFT JOIN posts p ON u.id = p.user_id
             LEFT JOIN clips c ON u.id = c.uploader_id
             LEFT JOIN user_favorites uf ON u.id = uf.user_id
+            WHERE u.isDeleted = FALSE OR u.isDeleted IS NULL
             GROUP BY u.id, u.username, u.email, u.description, u.profile_photo_url, u.created_at, u.isAdmin
             ORDER BY postCount DESC
             """;
@@ -63,7 +64,7 @@ public class UserRepository {
                 (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS following,
                 (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
                 (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
-            FROM users u WHERE u.id = ?
+            FROM users u WHERE u.id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
             """;
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, id);
         return results.isEmpty() ? null : results.get(0);
@@ -93,6 +94,11 @@ public class UserRepository {
     public int updateProfile(Long id, String username, String description, String profilePhotoUrl) {
         String sql = "UPDATE users SET username = ?, description = ?, profile_photo_url = ? WHERE id = ?";
         return jdbcTemplate.update(sql, username, description, profilePhotoUrl, id);
+    }
+
+    public int softDeleteUser(Long id) {
+        String sql = "UPDATE users SET isDeleted = TRUE WHERE id = ?";
+        return jdbcTemplate.update(sql, id);
     }
 }
 
