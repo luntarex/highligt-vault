@@ -1,12 +1,10 @@
 package hvault.app.repository;
 
-import hvault.app.entity.User;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserRepository {
@@ -23,14 +21,16 @@ public class UserRepository {
      */
     public List<Map<String, Object>> findAllUsersWithPostCount() {
         String sql = """
-            SELECT u.id, u.username, u.email, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
-                   COUNT(p.id) AS postCount,
-                   (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
-                   (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND c.is_public = 1 AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS publicClipCount,
-                   (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
+            SELECT u.id, u.username, u.email, u.description, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
+                   COUNT(DISTINCT p.id) AS postCount,
+                   COUNT(DISTINCT CASE WHEN c.is_deleted = false OR c.is_deleted IS NULL THEN c.id END) AS totalClips,
+                   COUNT(DISTINCT CASE WHEN (c.is_deleted = false OR c.is_deleted IS NULL) AND c.is_public = 1 THEN c.id END) AS publicClipCount,
+                   COUNT(DISTINCT uf.clip_id) AS totalFavorites
             FROM users u
             LEFT JOIN posts p ON u.id = p.user_id
-            GROUP BY u.id, u.username, u.email, u.profile_photo_url, u.created_at, u.isAdmin
+            LEFT JOIN clips c ON u.id = c.uploader_id
+            LEFT JOIN user_favorites uf ON u.id = uf.user_id
+            GROUP BY u.id, u.username, u.email, u.description, u.profile_photo_url, u.created_at, u.isAdmin
             ORDER BY postCount DESC
             """;
         
@@ -95,3 +95,4 @@ public class UserRepository {
         return jdbcTemplate.update(sql, username, description, profilePhotoUrl, id);
     }
 }
+
