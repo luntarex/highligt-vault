@@ -26,7 +26,7 @@ public class CommentRepository {
         String sql = """
             SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
                    c.post_comment_id AS parentCommentId,
-                   u.username
+                   u.username, u.profile_photo_url AS profilePhoto
             FROM comments c
             JOIN users u ON c.user_id = u.id
             WHERE c.post_id = ?
@@ -42,7 +42,7 @@ public class CommentRepository {
         String sql = """
             SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
                    c.post_comment_id AS parentCommentId,
-                   u.username
+                   u.username, u.profile_photo_url AS profilePhoto
             FROM comments c
             JOIN users u ON c.user_id = u.id
             WHERE c.user_id = ?
