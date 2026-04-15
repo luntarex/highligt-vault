@@ -19,6 +19,10 @@ export class UsersListPage implements OnInit {
   addGameMessage: string = '';
   activeTab: 'users' | 'games' = 'users';
 
+  // Modal State
+  showDeleteModal: boolean = false;
+  userToDelete: User | null = null;
+
   constructor(
     private userService: UserService,
     private router: Router,
@@ -50,6 +54,33 @@ export class UsersListPage implements OnInit {
 
   viewComments(id: number) {
     this.router.navigate(['/user-comments', id]);
+  }
+
+  onRequestDelete(user: User) {
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.userToDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  confirmDelete() {
+    if (!this.userToDelete) return;
+    
+    this.userService.deleteAccount(this.userToDelete.id).subscribe({
+      next: () => {
+        this.loadUsers();
+        this.closeDeleteModal();
+      },
+      error: (err) => {
+        console.error('Failed to delete user:', err);
+        alert('Failed to delete user.');
+      }
+    });
   }
 
   addGame() {

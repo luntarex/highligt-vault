@@ -12,9 +12,9 @@
         <img [src]="selectedPhotoUrl" alt="Current Avatar">
       </div>
       <div class="avatar-grid">
-        <div 
-          *ngFor="let avatar of avatarOptions" 
-          class="avatar-option" 
+        <div
+          *ngFor="let avatar of avatarOptions"
+          class="avatar-option"
           [class.selected]="selectedPhotoUrl === avatar"
           (click)="selectAvatar(avatar)">
           <img [src]="avatar" alt="Avatar option">
@@ -31,8 +31,8 @@
 
       <div class="form-group">
         <label>Bio / Description</label>
-        <textarea 
-          [(ngModel)]="description" 
+        <textarea
+          [(ngModel)]="description"
           placeholder="Tell the vault about yourself..."
           rows="5"
           maxlength="200"
@@ -42,11 +42,28 @@
     </section>
 
     <footer class="edit-actions">
+      <button class="delete-btn" (click)="onDeleteAccount()">Delete Account</button>
+      <div class="spacer" style="flex: 1;"></div>
       <button class="cancel-btn" routerLink="/profile">Cancel</button>
       <button class="save-btn" [disabled]="saving" (click)="onSave()">
         {{ saving ? 'Saving...' : 'Save Changes' }}
       </button>
     </footer>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+      </div>
+      <h2>Delete Account?</h2>
+      <p>This action is permanent and your profile will be deactivated. Are you absolutely sure?</p>
+
+      <div class="modal-actions">
+        <button class="modal-cancel-btn" (click)="closeDeleteModal()">No, Keep it</button>
+        <button class="modal-delete-btn" (click)="confirmDelete()">Yes, Delete account</button>
+      </div>
+    </div>
   </div>
  </div>
 </div>

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     description TEXT,
     profile_photo_url VARCHAR(255),
     is_admin BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

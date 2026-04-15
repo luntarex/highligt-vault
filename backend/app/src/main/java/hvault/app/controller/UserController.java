@@ -69,8 +69,12 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        // TODO: Wire to UserService
-        return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        boolean deleted = userService.deleteUser(id);
+        if (deleted) {
+            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @org.springframework.beans.factory.annotation.Autowired
