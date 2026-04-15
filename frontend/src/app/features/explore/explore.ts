@@ -7,12 +7,13 @@ import { FormsModule } from '@angular/forms';
 import { ExplorePostCard } from './explore-post-card/explore-post-card';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.html',
   styleUrls: ['./explore.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule]
 })
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -23,6 +24,10 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
   editingCommentId: number | null = null;
   editingCommentText: string = '';
+
+  showModerateModal: boolean = false;
+  commentToModerate: any | null = null;
+  tosViolationText: string = '[This comment is deleted by an admin because of a TOS violation]';
 
   feed: ExplorePost[] = [];
   isLoading = true;
@@ -259,55 +264,72 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.cdr.detectChanges();
-    this.commentService.getCommentsByPostId(post.id).subscribe(data => {
-      const allComments = data.map((c: any) => ({
-        id: c.id,
-        userId: c.userId,
-        username: c.username,
-        profilePhoto: c.profilePhoto,
-        text: c.content,
-        timeAgo: this.formatTimeAgo(c.created_at),
-        parentCommentId: c.parentCommentId,
-        replies: []
-      }));
+    this.commentService.getCommentsByPostId(post.id).subscribe({
+      next: (data: any[]) => {
+        if (!data || !Array.isArray(data)) {
+          this.comments = [];
+          this.cdr.detectChanges();
+          return;
+        }
 
-      const topLevel: any[] = [];
-      const parentMap = new Map();
-      allComments.forEach((c: any) => parentMap.set(c.id, c));
+        // Defensive mapping: Handle potential case differences from DB (e.g., content vs CONTENT)
+        const allComments = data.map((c: any) => {
+          const raw = (key: string) => c[key] || c[key.toUpperCase()] || c[key.toLowerCase()];
+          return {
+            id: raw('id'),
+            userId: raw('userId'),
+            username: raw('username'),
+            profilePhoto: raw('profilePhoto'),
+            text: raw('content') || '',
+            timeAgo: this.formatTimeAgo(raw('created_at')),
+            parentCommentId: raw('parentCommentId'),
+            replies: []
+          };
+        });
 
-      allComments.forEach((c: any) => {
-        c.cleanText = c.text;
+        const parentMap = new Map();
+        allComments.forEach(c => parentMap.set(c.id, c));
 
-        if (c.parentCommentId) {
-          const directParent = parentMap.get(c.parentCommentId);
-          if (directParent) {
-            c.replyTargetUserId = directParent.userId;
-            c.replyTargetUsername = directParent.username;
+        const topLevel: any[] = [];
+        allComments.forEach(c => {
+          c.cleanText = c.text;
 
-            const tag = `@${directParent.username} `;
-            if (c.text.startsWith(tag)) {
-              c.cleanText = c.text.substring(tag.length);
+          if (c.parentCommentId) {
+            const parent = parentMap.get(c.parentCommentId);
+            if (parent) {
+              // If it's a reply, tag it
+              const tag = `@${parent.username} `;
+              if (c.text.startsWith(tag)) {
+                c.cleanText = c.text.substring(tag.length);
+              }
+              c.replyTargetUserId = parent.userId;
+              c.replyTargetUsername = parent.username;
+
+              // Find the root ancestor to keep UI flat (only 1 level deep)
+              let root = parent;
+              while (root.parentCommentId && parentMap.has(root.parentCommentId)) {
+                root = parentMap.get(root.parentCommentId);
+              }
+              root.replies.push(c);
+            } else {
+              topLevel.push(c);
             }
-          }
-
-          let root = directParent;
-          while (root && root.parentCommentId) {
-            root = parentMap.get(root.parentCommentId);
-          }
-          if (root) {
-            root.replies.push(c);
           } else {
             topLevel.push(c);
           }
-        } else {
-          topLevel.push(c);
-        }
-      });
+        });
+        topLevel.forEach(c => {
+          if (c.replies) c.replies.reverse();
+        });
 
-      topLevel.forEach(c => c.replies.reverse());
-
-      this.comments = topLevel;
-      this.cdr.detectChanges();
+        this.comments = topLevel;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading comments:', err);
+        this.comments = [];
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -398,6 +420,9 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   canEditComment(comment: any): boolean {
+    if (this.isTosViolation(comment.text)) {
+      return false;
+    }
     return this.authService.isAdmin() || this.authService.getCurrentUserId() === comment.userId;
   }
 
@@ -417,13 +442,73 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   deleteComment(comment: any) {
+    const isCommentOwner = this.authService.getCurrentUserId() === comment.userId;
+    const isPostOwner = this.activePostForComments && this.authService.getCurrentUserId() === this.activePostForComments.author.id;
+
+    if (this.authService.isAdmin() && !isCommentOwner && !isPostOwner) {
+       this.commentToModerate = comment;
+       this.showModerateModal = true;
+       this.cdr.detectChanges();
+    } else {
+       this.executeDeleteComment(comment);
+    }
+  }
+
+  private executeDeleteComment(comment: any) {
     this.commentService.removeComment(comment.id).subscribe(() => {
       this.comments = this.comments.filter(c => c.id !== comment.id);
+      this.comments.forEach(c => {
+        if (c.replies) {
+           c.replies = c.replies.filter((r: any) => r.id !== comment.id);
+        }
+      });
       if (this.activePostForComments) {
         this.activePostForComments.comments--;
       }
       this.cdr.detectChanges();
     });
+  }
+
+  closeModerateModal(): void {
+    this.showModerateModal = false;
+    this.commentToModerate = null;
+    this.cdr.detectChanges();
+  }
+
+  moderateDelete(): void {
+    if (!this.commentToModerate) return;
+    this.executeDeleteComment(this.commentToModerate);
+    this.closeModerateModal();
+  }
+
+  moderateTosViolation(): void {
+    if (!this.commentToModerate) return;
+    this.commentService.updateComment(this.commentToModerate.id, this.tosViolationText).subscribe({
+      next: () => {
+        this.comments.forEach(c => {
+           if (c.id === this.commentToModerate.id) {
+               c.text = this.tosViolationText;
+               c.cleanText = this.tosViolationText;
+           }
+           if (c.replies) {
+               c.replies.forEach((r: any) => {
+                   if (r.id === this.commentToModerate.id) {
+                       r.text = this.tosViolationText;
+                       r.cleanText = this.tosViolationText;
+                   }
+               });
+           }
+        });
+        this.closeModerateModal();
+        this.cdr.detectChanges();
+      },
+      error: () => console.error('Failed to update comment.')
+    });
+  }
+
+  isTosViolation(content: string | undefined | null): boolean {
+    if (!content) return false;
+    return content === this.tosViolationText;
   }
 
   get currentUserPhoto(): string {
