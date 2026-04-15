@@ -27,7 +27,7 @@ export class ProfileService {
     return this.http.get<Clip[]>(`${this.apiClipsUrl}/favorites/${userId}`);
   }
 
-  updateUserProfile(userId: number, data: { description: string; profilePhotoUrl: string }): Observable<any> {
+  updateUserProfile(userId: number, data: { username: string; description: string; profilePhotoUrl: string }): Observable<any> {
     return this.http.put(`${this.apiUsersUrl}/${userId}`, data);
   }
 

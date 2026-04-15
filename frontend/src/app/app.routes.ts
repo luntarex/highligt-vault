@@ -4,6 +4,7 @@ import { ClipEditor } from './features/clip-editor/clip-editor';
 import { Register } from './features/auth/register/register';
 import { Login } from './features/auth/login/login';
 import { ProfilePage } from './features/profile/profile-page';
+import { ProfileEdit } from './features/profile/profile-edit/profile-edit';
 import { CompleteProfile } from './features/auth/complete-profile/complete-profile';
 import { Welcome } from './features/welcome/welcome';
 import { Explore } from './features/explore/explore';
@@ -28,6 +29,7 @@ export const routes: Routes = [
   { path: 'register', component: Register },
   { path: 'login', component: Login },
   { path: 'complete-profile', component: CompleteProfile },
+  { path : 'profile/edit', component : ProfileEdit, canActivate: [AuthGuard] },
   { path : 'profile/:id', component : ProfilePage, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfilePage, canActivate: [AuthGuard] },
   { path: 'explore', component: Explore, canActivate: [AuthGuard] },

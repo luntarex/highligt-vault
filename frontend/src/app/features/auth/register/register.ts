@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { RegisterRequest } from '../../../core/models/user';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -21,8 +22,9 @@ export class Register {
   };
   showPassword = false;
   showConfirmPassword = false;
+  errorMessage = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private toast: ToastService) {}
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -33,15 +35,28 @@ export class Register {
   }
 
   onSubmit() {
-    this.authService.register(this.registerRequest).subscribe(res => {
-      if(res) {
-        // Auto-login after successful registration
-        this.authService.login({
-          username: this.registerRequest.username,
-          password: this.registerRequest.password
-        }).subscribe(() => {
-          this.router.navigate(['/complete-profile']);
-        });
+    this.authService.register(this.registerRequest).subscribe({
+      next: (res) => {
+        if(res) {
+          this.toast.success('Registration successful!');
+          // Auto-login after successful registration
+          this.authService.login({
+            username: this.registerRequest.username,
+            password: this.registerRequest.password
+          }).subscribe(() => {
+            this.router.navigate(['/complete-profile']);
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Registration error details:', err);
+        let msg = 'Registration failed. Please try again.';
+        if (err.error && err.error.message) {
+          msg = err.error.message;
+        } else if (err.error && err.error.error) {
+          msg = err.error.error;
+        }
+        this.toast.error(msg);
       }
     });
   }

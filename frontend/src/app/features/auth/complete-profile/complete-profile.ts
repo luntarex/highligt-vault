@@ -66,6 +66,7 @@ export class CompleteProfile implements OnInit {
     this.saving = true;
     const userId = this.authService.getCurrentUserId();
     const payload = {
+      username: this.username,
       description: this.description,
       profilePhotoUrl: this.getSelectedAvatarUrl()
     };

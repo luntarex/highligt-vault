@@ -47,14 +47,19 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        String username = (String) request.get("username");
         String description = (String) request.get("description");
         String profilePhotoUrl = (String) request.get("profilePhotoUrl");
         
-        boolean updated = userService.updateProfile(id, description, profilePhotoUrl);
-        if (updated) {
-            return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
-        } else {
-            return ResponseEntity.notFound().build();
+        try {
+            boolean updated = userService.updateProfile(id, username, description, profilePhotoUrl);
+            if (updated) {
+                return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
