@@ -100,5 +100,25 @@ public class UserRepository {
         String sql = "UPDATE users SET isDeleted = TRUE WHERE id = ?";
         return jdbcTemplate.update(sql, id);
     }
+
+    public List<Map<String, Object>> findFollowers(Long userId) {
+        String sql = """
+            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
+            FROM users u
+            JOIN follows f ON u.id = f.follower_id
+            WHERE f.followed_id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+            """;
+        return jdbcTemplate.queryForList(sql, userId);
+    }
+
+    public List<Map<String, Object>> findFollowing(Long userId) {
+        String sql = """
+            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
+            FROM users u
+            JOIN follows f ON u.id = f.followed_id
+            WHERE f.follower_id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+            """;
+        return jdbcTemplate.queryForList(sql, userId);
+    }
 }
 

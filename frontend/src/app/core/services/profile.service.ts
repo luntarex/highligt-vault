@@ -45,5 +45,13 @@ export class ProfileService {
     const currentUserId = this.authService.getCurrentUserId();
     return this.http.get<{isFollowing: boolean}>(`${this.apiFollowsUrl}/${targetUserId}/is-following?followerId=${currentUserId}`);
   }
+
+  getFollowers(userId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiFollowsUrl}/${userId}/followers`);
+  }
+
+  getFollowing(userId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiFollowsUrl}/${userId}/following`);
+  }
 }
 

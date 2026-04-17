@@ -10,11 +10,12 @@ import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dro
 import { RouterLink, RouterLinkActive, Router } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 
 @Component({
   selector: 'app-library',
-  imports: [CommonModule, ClipCard, CustomDropdownComponent, RouterLink, RouterLinkActive, FormsModule],
+  imports: [CommonModule, ClipCard, CustomDropdownComponent, RouterLink, RouterLinkActive, FormsModule, ConfirmDialog],
   templateUrl: './library.html',
   styleUrl: './library.css',
 })
@@ -32,6 +33,11 @@ export class Library implements OnInit {
   selectedGame: string = 'All Games';
   selectedTag: string = 'All Tags';
   selectedSort: string = 'Date';
+  isTrashView: boolean = false;
+  deletedClips: Clip[] = [];
+
+  showDeleteModal: boolean = false;
+  clipToDelete: number | null = null;
 
   constructor(
     private clipService: ClipService,
@@ -80,10 +86,70 @@ export class Library implements OnInit {
     this.clipService.deleteClip(id).subscribe(() => {
       this.clipService.getClips(userId).subscribe(clips => {
         this.allClips = clips;
-        this.applyFilters();
+        if (!this.isTrashView) {
+          this.applyFilters();
+        }
         this.cdr.detectChanges();
       });
     });
+  }
+
+  toggleTrashView() {
+    this.isTrashView = !this.isTrashView;
+    if (this.isTrashView) {
+      this.loadDeletedClips();
+    } else {
+      this.applyFilters();
+    }
+  }
+
+  loadDeletedClips() {
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      this.clipService.getDeletedClips(userId).subscribe(clips => {
+        this.deletedClips = clips;
+        this.applyFilters();
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  handleRecover(id: number) {
+    this.clipService.recoverClip(id).subscribe(() => {
+      this.loadDeletedClips();
+      // Also refresh regular clips in case they switch back
+      const userId = this.authService.getCurrentUserId();
+      this.clipService.getClips(userId).subscribe(clips => {
+        this.allClips = clips;
+      });
+    });
+  }
+
+  handleHardDelete(id: number) {
+    this.clipToDelete = id;
+    this.showDeleteModal = true;
+  }
+
+  onConfirmDelete(): void {
+    if (this.clipToDelete) {
+      this.clipService.hardDeleteClip(this.clipToDelete).subscribe({
+        next: () => {
+          this.loadDeletedClips();
+          this.showDeleteModal = false;
+          this.clipToDelete = null;
+        },
+        error: (err) => {
+          console.error('Failed to delete clip permanently:', err);
+          this.showDeleteModal = false;
+          this.clipToDelete = null;
+        }
+      });
+    }
+  }
+
+  onCancelDelete(): void {
+    this.showDeleteModal = false;
+    this.clipToDelete = null;
   }
 
   searchQuery: string = '';
@@ -108,7 +174,7 @@ export class Library implements OnInit {
   }
 
   applyFilters() {
-    let filtered = [...this.allClips];
+    let filtered = this.isTrashView ? [...this.deletedClips] : [...this.allClips];
 
     // Search filter
     if (this.searchQuery.trim()) {
@@ -153,5 +219,14 @@ export class Library implements OnInit {
   signOut() {
     this.authService.logout();
     this.router.navigate(['/welcome']);
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      this.router.navigate(['/clip-editor/new'], { state: { videoUrl: url, file: file } });
+    }
+    event.target.value = '';
   }
 }

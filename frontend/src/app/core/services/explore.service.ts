@@ -36,6 +36,14 @@ export class ExploreService {
     return this.http.get<ExplorePost>(`${this.apiUrl}/${id}`);
   }
 
+  getPostByClipId(clipId: number, userId?: number): Observable<ExplorePost> {
+    let url = `${this.apiUrl}/clip/${clipId}`;
+    if (userId) {
+      url += `?userId=${userId}`;
+    }
+    return this.http.get<ExplorePost>(url);
+  }
+
   likePost(postId: string, userId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${postId}/like?userId=${userId}`, {});
   }

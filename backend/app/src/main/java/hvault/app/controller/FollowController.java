@@ -52,10 +52,7 @@ public class FollowController {
      */
     @GetMapping("/{userId}/followers")
     public ResponseEntity<?> getFollowers(@PathVariable Long userId) {
-        // TODO: Wire to FollowService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 2, "username", "stub_follower")
-        ));
+        return ResponseEntity.ok(userService.getFollowers(userId));
     }
 
     /**
@@ -64,9 +61,6 @@ public class FollowController {
      */
     @GetMapping("/{userId}/following")
     public ResponseEntity<?> getFollowing(@PathVariable Long userId) {
-        // TODO: Wire to FollowService
-        return ResponseEntity.ok(List.of(
-            Map.of("id", 3, "username", "stub_following")
-        ));
+        return ResponseEntity.ok(userService.getFollowing(userId));
     }
 }

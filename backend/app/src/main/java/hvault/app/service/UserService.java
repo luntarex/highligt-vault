@@ -51,4 +51,12 @@ public class UserService {
     public boolean deleteUser(Long id) {
         return userRepository.softDeleteUser(id) > 0;
     }
+
+    public List<Map<String, Object>> getFollowers(Long userId) {
+        return userRepository.findFollowers(userId);
+    }
+
+    public List<Map<String, Object>> getFollowing(Long userId) {
+        return userRepository.findFollowing(userId);
+    }
 }

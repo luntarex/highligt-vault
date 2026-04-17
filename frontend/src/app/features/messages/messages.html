@@ -39,6 +39,13 @@
           </p>
         </div>
         <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
+        
+        <button class="delete-conv-btn" (click)="onDeleteConversation($event, conv.other_user_id)" title="Delete Conversation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
       </div>
       <div *ngIf="filteredConversations.length === 0 && conversations.length > 0" class="no-results">
         <p>No conversations found.</p>
@@ -63,6 +70,23 @@
             <h3>{{ selectedUsername }}</h3>
           </div>
         </div>
+
+        <!-- Selection Controls (Header Right) -->
+        <div class="header-selection-controls" *ngIf="selectedMessageIds.size > 0">
+          <span class="selection-count">{{ selectedMessageIds.size }} selected</span>
+          <button class="delete-selected-btn-header" (click)="confirmMessageDeletion()" title="Delete Selected">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+          <button class="cancel-selection-btn-header" (click)="clearSelection()" title="Cancel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </header>
 
       <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
@@ -76,7 +100,9 @@
              class="message-wrapper"
              [class.sent]="msg.senderId === currentUserId"
              [class.received]="msg.senderId !== currentUserId">
-          <div class="message-bubble">
+          <div class="message-bubble" 
+               (click)="toggleMessageSelection(msg.id)"
+               [class.selected]="selectedMessageIds.has(msg.id)">
             <p>{{ msg.content }}</p>
             <span class="msg-time">{{ msg.createdAt | date:'shortTime' }}</span>
           </div>
@@ -84,7 +110,7 @@
       </div>
 
       <footer class="chat-input">
-        <form (ngSubmit)="sendMessage()">
+        <div class="chat-input-row">
           <div class="input-wrapper">
             <input type="text"
                    name="message"
@@ -93,13 +119,16 @@
                    autocomplete="off"
                    (keydown.enter)="$event.preventDefault(); sendMessage()">
           </div>
-          <button type="submit" [disabled]="!newMessageContent.trim() || isSending" class="send-btn">
+          <button type="button" 
+                  [disabled]="!newMessageContent.trim() || isSending" 
+                  (click)="sendMessage()"
+                  class="send-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
           </button>
-        </form>
+        </div>
       </footer>
     </div>
 
@@ -126,4 +155,15 @@
       </div>
     </ng-template>
   </main>
+
+  <app-confirm-dialog
+    *ngIf="showDeleteModal"
+    [title]="'Delete Conversation'"
+    message="Are you sure you want to permanently delete this conversation? This action cannot be undone."
+    confirmText="Delete"
+    cancelText="Cancel"
+    type="danger"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()">
+  </app-confirm-dialog>
 </div>

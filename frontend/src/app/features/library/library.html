@@ -34,6 +34,20 @@
         [options]="sortOptions"
         (selectedOptionChange)="onSortChange($event)">
       </app-custom-dropdown>
+
+      <button class="last-deleted-btn" (click)="toggleTrashView()" [class.active]="isTrashView">
+        <svg *ngIf="isTrashView" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <svg *ngIf="!isTrashView" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+        {{ isTrashView ? 'Library' : 'Last Deleted' }}
+      </button>
     </div>
 
     <div class="profile-dropdown-wrapper" style="position: relative;">
@@ -67,10 +81,42 @@
     </div>
   </header>
 
+  <div *ngIf="clips.length === 0 && !isTrashView" class="empty-library-state">
+    <p>Upload your first clip</p>
+  </div>
+
   <main class="clips-grid">
+    <!-- Clips -->
     <app-clip-card *ngFor="let clip of clips"
       [clip]="clip"
-      (removeClip)="handleDelete($event)">
+      [mode]="isTrashView ? 'trash' : 'library'"
+      (removeClip)="handleDelete($event)"
+      (recoverClip)="handleRecover($event)"
+      (hardDeleteClip)="handleHardDelete($event)">
     </app-clip-card>
+
+    <!-- Upload Card -->
+    <div *ngIf="!isTrashView" class="upload-card" (click)="fileInput.click()">
+      <div class="plus-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </div>
+    </div>
   </main>
+
+
+  <input type="file" #fileInput (change)="onFileSelected($event)" accept="video/*" style="display: none;">
+
+  <app-confirm-dialog
+    *ngIf="showDeleteModal"
+    [title]="'Delete Permanently'"
+    message="Are you sure you want to delete this clip from your library?"
+    confirmText="Delete"
+    cancelText="Cancel"
+    type="danger"
+    (confirmed)="onConfirmDelete()"
+    (cancelled)="onCancelDelete()">
+  </app-confirm-dialog>
 </div>

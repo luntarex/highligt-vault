@@ -60,4 +60,36 @@ public class MessageController {
         messageService.markAsRead(id);
         return ResponseEntity.ok(Map.of("message", "Message marked as read"));
     }
+
+    /**
+     * DELETE /api/messages/conversation?userId1=...&userId2=...
+     * Delete entire conversation between two users.
+     */
+    @DeleteMapping("/conversation")
+    public ResponseEntity<?> deleteConversation(
+            @RequestParam Long userId1,
+            @RequestParam Long userId2) {
+        messageService.deleteConversation(userId1, userId2);
+        return ResponseEntity.ok(Map.of("message", "Conversation deleted successfully"));
+    }
+
+    /**
+     * DELETE /api/messages/{id}
+     * Delete a single message by ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
+        messageService.deleteMessage(id);
+        return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
+    }
+
+    /**
+     * DELETE /api/messages/batch?ids=...
+     * Delete multiple messages by their IDs.
+     */
+    @DeleteMapping("/batch")
+    public ResponseEntity<?> deleteMessages(@RequestParam List<Long> ids) {
+        messageService.deleteMessages(ids);
+        return ResponseEntity.ok(Map.of("message", "Messages deleted successfully"));
+    }
 }

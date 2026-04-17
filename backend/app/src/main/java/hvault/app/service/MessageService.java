@@ -31,4 +31,16 @@ public class MessageService {
     public void markAsRead(Long messageId) {
         messageRepository.markAsRead(messageId);
     }
+
+    public void deleteConversation(Long userId1, Long userId2) {
+        messageRepository.deleteConversation(userId1, userId2);
+    }
+
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
+    }
+
+    public void deleteMessages(List<Long> ids) {
+        messageRepository.deleteByIds(ids);
+    }
 }

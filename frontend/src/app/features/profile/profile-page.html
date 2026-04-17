@@ -1,77 +1,238 @@
 <div class="profile-page-container">
-<div class="back-link">
-  <app-back-link></app-back-link>
-</div>
-<ng-container *ngIf="user">
-<section class="profile-page-header">
-<div class="avatar-container">
-  <div class="avatar">
-    <img src="{{user.profilePhotoUrl}}">
-  </div>
-
-  <h1 class="username">{{user.username}}</h1>
-  <p class="bio">{{user.description}}</p>
-  <div class="stats-row">
-    <div class="stat-item">
-      <span class="stat-value">{{user.totalClips || 0}}</span>
-      <span class="stat-label">Clips</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">{{user.totalFavorites || 0}}</span>
-      <span class="stat-label">Favorites</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">{{user.followers || 0}}</span>
-      <span class="stat-label">Followers</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">{{user.following || 0}}</span>
-      <span class="stat-label">Following</span>
-    </div>
+  <div class="back-link">
+    <app-back-link></app-back-link>
   </div>
   
-  <div class="profile-actions" *ngIf="currentProfileId">
-    <button class="message-btn" [routerLink]="['/messages', currentProfileId]">
-      Send Message
-    </button>
-    <button class="message-btn" style="margin-left: 12px;" (click)="toggleFollow()">
-      {{ isFollowing ? 'Unfollow' : 'Follow' }}
-    </button>
-  </div>
-</div>
-</section>
-</ng-container>
-<section class="favorites-section">
-  <div class="section-header">
-    <h2>Favorite Clips</h2>
-  </div>
-  <div class="favorites-list">
-    @for (clip of favoriteClips; track clip.id) {
-    <div class="favorites-card">
-       <div class="thumbnail-preview">
-        <img src="{{clip.thumbnailUrl}}" alt="{{clip.title}}">
-        <span class="play-icon">▶</span>
-        <span class="timestamp">{{formatDuration(clip.duration)}}</span>
-       </div>
-       <div class="clip-details">
-        <h3>{{clip.title}}</h3>
-        <p class="metadata">{{clip.game}} &middot; {{formatTimeAgo(clip.dateCreated)}}</p>
-       </div>
-        <div class="tags-row">
-          @for (tag of clip.tags; track tag) {
-          <span class="tag" [ngClass]="tag.toLowerCase()">{{tag}}</span>
-          }
-        </div>
-    </div>
-    }
-  </div>
-</section>
+  <ng-container *ngIf="user">
+    <div class="profile-content-layout">
+      
+      <!-- LEFT SIDEBAR: User Info & Stats -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="avatar-box">
+            <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar">
+          </div>
+          
+          <div class="user-meta">
+            <h1 class="username-display">{{user.username}}</h1>
+            <p class="bio-text">{{user.description || 'No bio available yet.'}}</p>
+          </div>
 
-@if (showUploadModal) {
-<div class="modal-overlay" (click)="closeUploadModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <app-custom-upload (close)="closeUploadModal()" [dropdownTitle]="'Add Favorites'" [dropdownDescription]="'Choose clips to add to your favorites.'"></app-custom-upload>
+          <div class="profile-stats-grid">
+            <div class="stat-box">
+              <span class="val">{{user.totalClips || 0}}</span>
+              <span class="lbl">Clips</span>
+            </div>
+            <div class="stat-box">
+              <span class="val">{{user.totalFavorites || 0}}</span>
+              <span class="lbl">Favorites</span>
+            </div>
+            <div class="stat-box interactive" (click)="openFollowersModal()">
+              <span class="val">{{user.followers || 0}}</span>
+              <span class="lbl">Followers</span>
+            </div>
+            <div class="stat-box interactive" (click)="openFollowingModal()">
+              <span class="val">{{user.following || 0}}</span>
+              <span class="lbl">Following</span>
+            </div>
+          </div>
+
+          <div class="action-buttons" *ngIf="!isOwnProfile">
+            <button class="follow-action-btn" [ngClass]="{'is-following': isFollowing}" (click)="toggleFollow()">
+              <svg *ngIf="!isFollowing" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              <svg *ngIf="isFollowing" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="22" y2="12"></line><line x1="22" y1="8" x2="18" y2="12"></line></svg>
+              {{ isFollowing ? 'Unfollow' : 'Follow' }}
+            </button>
+            <button class="message-action-btn" *ngIf="currentProfileId" [routerLink]="['/messages', { userId: currentProfileId }]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Message
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT CONTENT: Media / Favorite Clips -->
+      <main class="profile-main-content">
+        <section class="clips-section">
+          <div class="clips-header">
+            <h2>Favorite Clips</h2>
+            <div class="header-line"></div>
+          </div>
+
+          <div class="clips-grid">
+            @for (clip of favoriteClips; track clip.id) {
+            <div class="clip-premium-card" (click)="openClipDetailModal(clip.id)">
+              <div class="clip-thumb-wrapper">
+                <img [src]="clip.thumbnailUrl" alt="{{clip.title}}">
+                <div class="clip-overlay">
+                  <div class="play-ring">▶</div>
+                </div>
+                <span class="dur-badge">{{formatDuration(clip.duration)}}</span>
+              </div>
+              <div class="clip-info">
+                <h3 class="clip-title">{{clip.title}}</h3>
+                <div class="clip-meta-row">
+                  <span class="game-name">{{clip.game}}</span>
+                  <span class="dot"></span>
+                  <span class="time-ago">{{formatTimeAgo(clip.dateCreated)}}</span>
+                </div>
+                <div class="clip-tags">
+                  @for (tag of clip.tags; track tag) {
+                  <span class="tag-pill" [ngClass]="tag.toLowerCase()">{{tag}}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <div *ngIf="favoriteClips.length === 0" class="empty-favorites">
+            <div class="empty-icon-box">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <p>No favorite clips yet.</p>
+          </div>
+        </section>
+      </main>
+
+    </div>
+  </ng-container>
+</div>
+
+<!-- CLIP DETAIL MODAL (Tik-Tok Style Detailed View) -->
+<div class="clip-detail-modal" *ngIf="showClipModal">
+  <div class="modal-backdrop" (click)="closeClipModal()"></div>
+  
+  <div class="modal-content-wrapper animate-in">
+    <!-- Close Button -->
+    <button class="clip-modal-close" (click)="closeClipModal()">✕</button>
+
+    <div class="clip-modal-layout" *ngIf="!clipModalLoading && activePost">
+      
+      <!-- Video Side -->
+      <div class="video-side">
+        <video #videoPlayer 
+               [src]="activePost.videoUrl" 
+               controls 
+               autoplay
+               class="detailed-video"></video>
+      </div>
+
+      <!-- Social Side -->
+      <div class="social-side">
+        <!-- Author Info -->
+        <div class="social-header">
+           <div class="author-info" [routerLink]="['/profile', activePost.author.id]" (click)="closeClipModal()">
+              <img [src]="activePost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+              <div class="name-box">
+                <span class="author-name">{{activePost.author.username}}</span>
+                <span class="post-time">{{activePost.timeAgo}}</span>
+              </div>
+           </div>
+        </div>
+
+        <!-- Clip Details -->
+        <div class="clip-description">
+          <h3>{{activePost.title}}</h3>
+          <p class="game-tag">#{{activePost.game}}</p>
+        </div>
+
+        <!-- Social Action Bar -->
+        <div class="social-action-bar">
+          <button class="social-act-btn" [class.active]="activePost.isLiked" (click)="togglePostLike()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" [attr.fill]="activePost.isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span>{{activePost.likes}}</span>
+          </button>
+          <button class="social-act-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>{{activePost.comments}}</span>
+          </button>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+          <div class="comments-scroll">
+            @for (comment of comments; track comment.id) {
+              <div class="comment-item">
+                <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
+                <div class="comment-content">
+                  <div class="comment-header">
+                    <span class="comment-user">{{comment.username}}</span>
+                    <span class="comment-time">{{comment.timeAgo}}</span>
+                  </div>
+                  <p class="comment-text">
+                    <span *ngIf="comment.replyTargetUsername" class="reply-target">@{{comment.replyTargetUsername}} </span>
+                    {{comment.content}}
+                  </p>
+                  <div class="comment-actions">
+                    <button class="reply-btn" (click)="setReplyTo(comment)">Reply</button>
+                    <button *ngIf="canEditComment(comment)" class="delete-btn" (click)="deleteComment(comment)">Delete</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- New Comment Input -->
+          <div class="comment-input-box" [class.is-replying]="replyingToComment">
+             <div class="reply-target-indicator" *ngIf="replyingToComment">
+               Replying to @{{replyingToComment.username}}
+               <button (click)="cancelReply()">✕</button>
+             </div>
+             <div class="input-row">
+               <img [src]="currentUserPhoto || 'assets/icons/default-avatar.png'" alt="">
+               <input type="text" 
+                      [(ngModel)]="newCommentText" 
+                      [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
+                      (keyup.enter)="postComment()">
+               <button (click)="postComment()" [disabled]="!newCommentText.trim()">Post</button>
+             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="modal-loading-state" *ngIf="clipModalLoading">
+      <div class="spinner"></div>
+      <p>Loading clip details...</p>
+    </div>
   </div>
 </div>
-}
+
+<!-- COMMON USER LIST MODAL (Followers / Following) -->
+<div class="user-list-modal" *ngIf="showUserListModal">
+  <div class="modal-backdrop" (click)="closeUserListModal()"></div>
+  <div class="modal-surface animate-in">
+    <div class="modal-header">
+      <h3>{{modalTitle}}</h3>
+      <button class="modal-close-btn" (click)="closeUserListModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div *ngIf="modalLoading" class="modal-skeleton">
+        <div class="skeleton-item" *ngFor="let i of [1,2,3]"></div>
+      </div>
+      
+      <div class="user-list-container" *ngIf="!modalLoading">
+        <div class="user-entry" *ngFor="let u of userList">
+          <div class="user-core" [routerLink]="['/profile', u.id]" (click)="closeUserListModal()">
+            <img [src]="u.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+            <span class="user-name">{{u.username}}</span>
+          </div>
+          <button class="list-message-btn" (click)="sendMessage(u.id); $event.stopPropagation()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Message
+          </button>
+        </div>
+        
+        <div *ngIf="userList.length === 0" class="modal-empty-state">
+          No users found.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
