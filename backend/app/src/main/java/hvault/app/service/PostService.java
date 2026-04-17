@@ -86,4 +86,40 @@ public class PostService {
     public boolean hasPostForClip(Long clipId) {
         return postRepository.existsByClipId(clipId);
     }
+
+    public Map<String, Object> getPostByClipId(Long clipId, Long currentUserId) {
+        Map<String, Object> row = postRepository.findByClipIdWithDetails(clipId);
+        if (row == null) return null;
+
+        Map<String, Object> mapped = new HashMap<>();
+        Long postId = ((Number) row.get("id")).longValue();
+        
+        mapped.put("id", postId.toString());
+        mapped.put("clipId", clipId.toString());
+        mapped.put("title", row.get("caption"));
+        mapped.put("game", row.get("game_name"));
+        mapped.put("videoUrl", row.get("video_url"));
+        mapped.put("duration", row.get("duration"));
+        mapped.put("startTime", row.get("start_time"));
+        mapped.put("endTime", row.get("end_time"));
+        mapped.put("likes", row.get("likes"));
+        mapped.put("comments", row.get("comments"));
+        mapped.put("timeAgo", "Recently");
+
+        if (currentUserId != null) {
+            mapped.put("isLiked", postRepository.isLikedByUser(postId, currentUserId));
+            mapped.put("isFavorited", clipRepository.isFavorited(currentUserId, clipId));
+        } else {
+            mapped.put("isLiked", false);
+            mapped.put("isFavorited", false);
+        }
+
+        Map<String, Object> author = new HashMap<>();
+        author.put("id", row.get("author_id"));
+        author.put("username", row.get("author_name"));
+        author.put("profilePhotoUrl", row.get("author_photo"));
+        mapped.put("author", author);
+
+        return mapped;
+    }
 }

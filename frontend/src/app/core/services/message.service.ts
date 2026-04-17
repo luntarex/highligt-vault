@@ -26,4 +26,16 @@ export class MessageService {
   markAsRead(messageId: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${messageId}/read`, {});
   }
+
+  deleteConversation(userId1: number, userId2: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/conversation?userId1=${userId1}&userId2=${userId2}`);
+  }
+
+  deleteMessage(messageId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${messageId}`);
+  }
+
+  deleteMessages(ids: number[]): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/batch?ids=${ids.join(',')}`);
+  }
 }

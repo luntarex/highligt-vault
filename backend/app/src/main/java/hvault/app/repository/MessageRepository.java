@@ -5,8 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class MessageRepository {
@@ -71,5 +73,22 @@ public class MessageRepository {
     public void markAsRead(Long messageId) {
         String sql = "UPDATE messages SET is_read = TRUE WHERE id = ?";
         jdbcTemplate.update(sql, messageId);
+    }
+
+    public void deleteConversation(Long userId1, Long userId2) {
+        String sql = "DELETE FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)";
+        jdbcTemplate.update(sql, userId1, userId2, userId2, userId1);
+    }
+
+    public void deleteById(Long id) {
+        String sql = "DELETE FROM messages WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
+    public void deleteByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        String placeholders = Collections.nCopies(ids.size(), "?").stream().collect(Collectors.joining(","));
+        String sql = String.format("DELETE FROM messages WHERE id IN (%s)", placeholders);
+        jdbcTemplate.update(sql, ids.toArray());
     }
 }

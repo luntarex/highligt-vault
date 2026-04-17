@@ -97,4 +97,17 @@ public class PostController {
         postService.unlikePost(id, userId);
         return ResponseEntity.ok(Map.of("message", "Post unliked"));
     }
+
+    /**
+     * GET /api/posts/clip/{clipId}
+     * Get post details by clip ID.
+     */
+    @GetMapping("/clip/{clipId}")
+    public ResponseEntity<?> getPostByClipId(@PathVariable Long clipId, @RequestParam(required = false) Long userId) {
+        Map<String, Object> post = postService.getPostByClipId(clipId, userId);
+        if (post == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(post);
+    }
 }

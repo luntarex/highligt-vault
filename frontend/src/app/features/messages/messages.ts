@@ -7,11 +7,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { Message, Conversation } from '../../core/models/message.model';
 import { BackLink } from '../../shared/back-link/back-link';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, ConfirmDialog],
   templateUrl: './messages.html',
   styleUrls: ['./messages.css']
 })
@@ -27,6 +28,10 @@ export class MessagesComponent implements OnInit {
   currentUserId: number;
   isSending: boolean = false;
   loading: boolean = false;
+  
+  showDeleteModal: boolean = false;
+  selectedConversationToDelete: number | null = null;
+  selectedMessageIds: Set<number> = new Set<number>();
 
   constructor(
     private messageService: MessageService,
@@ -99,24 +104,83 @@ export class MessagesComponent implements OnInit {
   }
 
   sendMessage(): void {
-    if (!this.newMessageContent.trim() || !this.selectedUserId || this.isSending) return;
+    const content = this.newMessageContent.trim();
+    if (!content || !this.selectedUserId || this.isSending) return;
 
+    // İyimser Temizlik: Mesaj gitmeden kutuyu boşaltıyoruz ki kullanıcı "gitti" hissetsin
+    this.newMessageContent = '';
     this.isSending = true;
-    this.messageService.sendMessage(this.currentUserId, this.selectedUserId, this.newMessageContent)
+    this.cdr.detectChanges();
+
+    this.messageService.sendMessage(this.currentUserId, this.selectedUserId, content)
       .subscribe(
         () => {
-          this.newMessageContent = '';
           this.isSending = false;
           this.selectUser(this.selectedUserId!);
           this.loadConversations();
+          this.cdr.detectChanges();
         },
         () => {
           this.isSending = false;
+          // Hata durumunda mesajı kutuya geri koyabiliriz (opsiyonel)
+          this.newMessageContent = content;
+          this.cdr.detectChanges();
         }
       );
   }
 
   getOtherParty(conv: Conversation): string {
     return conv.username;
+  }
+
+  onDeleteConversation(event: Event, userId: number): void {
+    event.stopPropagation();
+    this.selectedConversationToDelete = userId;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (this.selectedConversationToDelete) {
+      this.messageService.deleteConversation(this.currentUserId, this.selectedConversationToDelete).subscribe(() => {
+        if (this.selectedUserId === this.selectedConversationToDelete) {
+          this.selectedUserId = null;
+          this.currentConversation = [];
+        }
+        this.loadConversations();
+        this.cancelDelete();
+      });
+    }
+  }
+
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+    this.selectedConversationToDelete = null;
+  }
+
+  toggleMessageSelection(messageId: number): void {
+    if (this.selectedMessageIds.has(messageId)) {
+      this.selectedMessageIds.delete(messageId);
+    } else {
+      this.selectedMessageIds.add(messageId);
+    }
+    this.selectedMessageIds = new Set(this.selectedMessageIds);
+    this.cdr.detectChanges();
+  }
+
+  confirmMessageDeletion(): void {
+    if (this.selectedMessageIds.size > 0) {
+      const idsToDelete = Array.from(this.selectedMessageIds);
+      this.messageService.deleteMessages(idsToDelete).subscribe(() => {
+        this.currentConversation = this.currentConversation.filter(m => !this.selectedMessageIds.has(m.id));
+        this.clearSelection();
+        this.loadConversations();
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  clearSelection(): void {
+    this.selectedMessageIds = new Set<number>();
+    this.cdr.detectChanges();
   }
 }

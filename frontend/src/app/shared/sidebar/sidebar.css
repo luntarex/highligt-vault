@@ -24,12 +24,30 @@
     height: 30px;
 }
 
+.sidebar-logo-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    border: 2px solid hsl(0, 0%, 28%);
+    border-radius: 8px;
+    padding: 2px 0px;
+    margin-left: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-logo-link:hover {
+    border-color: hsl(265, 40%, 68%);
+    background-color: hsla(265, 40%, 68%, 0.08);
+    box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.1);
+}
+
 .sidebar-title {
     color: hsl(0, 0%, 95%);
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     margin: 0;
-    padding-left: 12px;
+    padding: 0 12px;
     white-space: nowrap;
     overflow: hidden;
 }

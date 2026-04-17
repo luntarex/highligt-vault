@@ -1,7 +1,9 @@
 <nav class="sidebar-container" [class.collapsed]="isCollapsed">
 
   <div class="sidebar-header">
-    <h2 class="sidebar-title" *ngIf="!isCollapsed">Vibe Vault</h2>
+    <a routerLink="/explore" class="sidebar-logo-link" *ngIf="!isCollapsed">
+      <h2 class="sidebar-title">Vibe Vault</h2>
+    </a>
 
     <button class="toggle-btn" (click)="toggleSidebar()">
       <img src="assets/icons/chevron-left.svg" alt="Toggle Sidebar" class="toggle-icon">
@@ -33,13 +35,6 @@
       <a routerLink="/messages" routerLinkActive="active">
         <img src="assets/icons/message-square.svg" alt="Messages" class="nav-icon">
         <span class="link-text">Messages</span>
-      </a>
-    </li>
-
-    <li>
-      <a routerLink="/trash" routerLinkActive="active">
-        <img src="assets/icons/trash-2.svg" alt="Trash" class="nav-icon">
-        <span class="link-text">Trash</span>
       </a>
     </li>
 
