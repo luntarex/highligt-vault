@@ -37,10 +37,10 @@
   <div class="post-body">
     @if(isEditingTitle) {
       <div class="edit-title-container">
-        <input type="text" class="edit-title-input" [(ngModel)]="editedTitle" 
-               (blur)="saveTitle()" 
-               (keyup.enter)="saveTitle()" 
-               (keyup.escape)="cancelEditingTitle()" 
+        <input type="text" class="edit-title-input" [(ngModel)]="editedTitle"
+               (blur)="saveTitle()"
+               (keyup.enter)="saveTitle()"
+               (keyup.escape)="cancelEditingTitle()"
                autofocus>
         <button class="save-title-btn" (mousedown)="saveTitle()">Save</button>
       </div>
@@ -67,6 +67,12 @@
       </video>
 
       <div class="play-button" [class.hidden]="playingPostId === post.id">▶</div>
+
+      <button class="fullscreen-button" (click)="toggleFullscreen($event); $event.stopPropagation()" title="Fullscreen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
 
       <div class="controls-bar" (click)="$event.stopPropagation()">
         <div class="progress-container" (click)="onSeekTo($event, videoPlayer)">
@@ -142,4 +148,71 @@
       </svg>
     </button>
   </div>
+
+  <!-- Fullscreen Overlay -->
+  @if (isFullscreen) {
+    <div class="fullscreen-overlay" (click)="toggleFullscreen()">
+    <div class="fullscreen-backdrop"></div>
+
+    <div class="fullscreen-content" (click)="$event.stopPropagation()">
+      <div class="fullscreen-video-wrapper">
+        <video #fullscreenVideo
+               [src]="post.videoUrl"
+               class="fullscreen-video"
+               (timeupdate)="onTimeUpdate(fullscreenVideo)"
+               (click)="onTogglePlay(fullscreenVideo)">
+        </video>
+
+        <!-- Fullscreen HUD -->
+        <div class="fullscreen-hud">
+          <div class="hud-top">
+            <div class="post-info">
+              <span class="fs-username">{{post.author.username}}</span>
+              <span class="fs-title">{{post.title}}</span>
+            </div>
+            <button class="close-fullscreen" (click)="toggleFullscreen()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="hud-bottom">
+            <div class="hud-progress-container" (click)="onSeekTo($event, fullscreenVideo)">
+              <div class="hud-progress-bar" [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100"></div>
+            </div>
+
+            <div class="hud-controls">
+              <button class="hud-play-btn" (click)="onTogglePlay(fullscreenVideo)">
+                @if(fullscreenVideo.paused){
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                }
+              </button>
+
+              <div class="hud-time">
+                {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} / {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
+              </div>
+
+              <div class="hud-volume-control">
+                <button class="hud-mute-btn" (click)="onToggleMute($event, fullscreenVideo)">
+                  @if(fullscreenVideo.muted || fullscreenVideo.volume === 0){
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  }
+                </button>
+                <input type="range" class="hud-volume-slider" min="0" max="1" step="0.01" 
+                       [value]="fullscreenVideo.volume" 
+                       (input)="onVolumeChange($event, fullscreenVideo)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  }
 </article>

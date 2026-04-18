@@ -53,5 +53,9 @@ export class ProfileService {
   getFollowing(userId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiFollowsUrl}/${userId}/following`);
   }
+
+  getSuggestedUsers(userId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiFollowsUrl}/${userId}/suggestions`);
+  }
 }
 

@@ -16,10 +16,12 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { PlaylistView } from './features/playlist-view/playlist-view';
 import { MessagesComponent } from './features/messages/messages';
 import { AboutUs } from './features/about-us/about-us';
+import { Feed } from './features/feed/feed';
 
 
 export const routes: Routes = [
-  { path: '', component: Library, canActivate: [AuthGuard] },
+  { path: '', component: Feed, canActivate: [AuthGuard] },
+  { path: 'library', component: Library, canActivate: [AuthGuard] },
   { path: 'playlist/:id', component: PlaylistView, canActivate: [AuthGuard] },
   { path: 'welcome', component: Welcome },
   { path: 'favorites', component: Favorites, canActivate: [AuthGuard] },

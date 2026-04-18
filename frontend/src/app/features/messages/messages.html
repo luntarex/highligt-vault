@@ -27,7 +27,6 @@
            (click)="selectUser(conv.other_user_id)">
         <div class="avatar-wrapper">
           <img [src]="conv.profile_photo_url || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar">
-          <span class="online-dot" *ngIf="conv.other_user_id === selectedUserId"></span>
         </div>
         <div class="conversation-info">
           <div class="conv-header">
@@ -39,7 +38,7 @@
           </p>
         </div>
         <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
-        
+
         <button class="delete-conv-btn" (click)="onDeleteConversation($event, conv.other_user_id)" title="Delete Conversation">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -100,7 +99,7 @@
              class="message-wrapper"
              [class.sent]="msg.senderId === currentUserId"
              [class.received]="msg.senderId !== currentUserId">
-          <div class="message-bubble" 
+          <div class="message-bubble"
                (click)="toggleMessageSelection(msg.id)"
                [class.selected]="selectedMessageIds.has(msg.id)">
             <p>{{ msg.content }}</p>
@@ -119,8 +118,8 @@
                    autocomplete="off"
                    (keydown.enter)="$event.preventDefault(); sendMessage()">
           </div>
-          <button type="button" 
-                  [disabled]="!newMessageContent.trim() || isSending" 
+          <button type="button"
+                  [disabled]="!newMessageContent.trim() || isSending"
                   (click)="sendMessage()"
                   class="send-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

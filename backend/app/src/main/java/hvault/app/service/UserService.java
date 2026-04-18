@@ -59,4 +59,8 @@ public class UserService {
     public List<Map<String, Object>> getFollowing(Long userId) {
         return userRepository.findFollowing(userId);
     }
+
+    public List<Map<String, Object>> getSuggestedUsers(Long userId) {
+        return userRepository.findSuggestedUsers(userId);
+    }
 }
