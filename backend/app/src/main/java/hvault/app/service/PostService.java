@@ -51,7 +51,9 @@ public class PostService {
             mapped.put("endTime", row.get("end_time"));
             mapped.put("likes", row.get("likes"));
             mapped.put("comments", row.get("comments"));
-            mapped.put("timeAgo", "Recently");
+            if (row.get("created_at") != null) {
+                mapped.put("createdAt", row.get("created_at").toString());
+            }
 
             if (currentUserId != null) {
                 mapped.put("isLiked", postRepository.isLikedByUser(postId, currentUserId));
@@ -87,7 +89,9 @@ public class PostService {
             mapped.put("endTime", row.get("end_time"));
             mapped.put("likes", row.get("likes"));
             mapped.put("comments", row.get("comments"));
-            mapped.put("timeAgo", "Recently");
+            if (row.get("created_at") != null) {
+                mapped.put("createdAt", row.get("created_at").toString());
+            }
 
             mapped.put("isLiked", postRepository.isLikedByUser(postId, userId));
             mapped.put("isFavorited", clipRepository.isFavorited(userId, clipId));
@@ -135,7 +139,9 @@ public class PostService {
         mapped.put("endTime", row.get("end_time"));
         mapped.put("likes", row.get("likes"));
         mapped.put("comments", row.get("comments"));
-        mapped.put("timeAgo", "Recently");
+        if (row.get("created_at") != null) {
+            mapped.put("createdAt", row.get("created_at").toString());
+        }
 
         if (currentUserId != null) {
             mapped.put("isLiked", postRepository.isLikedByUser(postId, currentUserId));

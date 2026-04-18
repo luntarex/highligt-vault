@@ -8,7 +8,8 @@ export interface ExplorePost {
   likes: number;
   comments: number;
   isLiked: boolean;
-  timeAgo: string;
+  timeAgo?: string;
+  createdAt?: string;
   tags: string[];
   currentTime?: number;
   duration?: number;
