@@ -60,7 +60,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     const options = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.5
+      threshold: [0.1, 0.3, 0.5, 0.7, 0.9]
     };
 
     this.observer = new IntersectionObserver((entries) => {
@@ -81,33 +81,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       });
-
-      // 2. Find the topmost among the visible ones
-      let topmostPostId: string | null = null;
-      let minTop = Infinity;
-
-      this.intersectingEntries.forEach((entry, postId) => {
-        const top = entry.boundingClientRect.top;
-        if (top < minTop) {
-          minTop = top;
-          topmostPostId = postId;
-        }
-      });
-
-      // 3. Play the topmost and pause others
-      if (topmostPostId && topmostPostId !== this.playingPostId) {
-        // Pause current if playing another
-        if (this.playingPostId && this.playingPostId !== topmostPostId) {
-          const prevPlayingCard = this.postCards.find(c => c.post.id === this.playingPostId);
-          prevPlayingCard?.videoElement?.pause();
-        }
-
-        const winnerEntry = this.intersectingEntries.get(topmostPostId)!;
-        const winnerVideo = winnerEntry.target as HTMLVideoElement;
-        const post = this.feed.find(p => p.id === topmostPostId);
-
-        if (post) {
-          this.playingPostId = topmostPostId;
           const start = post.startTime || 0;
           let end = post.endTime;
           if (end === undefined || end === null || end === 0) {
@@ -123,13 +96,12 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         }
       }
 
-      // 4. Ensure non-winners that are in the map are paused (just in case they were newly added)
+      // 4. Ensure non-winners that are in the map are paused
       this.intersectingEntries.forEach((entry, postId) => {
-        if (postId !== topmostPostId) {
+        if (postId !== bestPostId) {
           (entry.target as HTMLVideoElement).pause();
         }
       });
-
     }, options);
 
     this.postCards.changes.subscribe(() => {

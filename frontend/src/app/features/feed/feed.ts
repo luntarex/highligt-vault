@@ -99,7 +99,7 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
     const options = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.5
+      threshold: [0.1, 0.3, 0.5, 0.7, 0.9]
     };
 
     this.observer = new IntersectionObserver((entries) => {
@@ -121,32 +121,31 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
         }
       });
 
-      // 2. Find the topmost among the visible ones
-      let topmostPostId: string | null = null;
-      let minTop = Infinity;
+      // 2. Find the most visible video among the intersecting ones
+      let bestPostId: string | null = null;
+      let maxRatio = -1;
 
       this.intersectingEntries.forEach((entry, postId) => {
-        const top = entry.boundingClientRect.top;
-        if (top < minTop) {
-          minTop = top;
-          topmostPostId = postId;
+        if (entry.intersectionRatio > maxRatio) {
+          maxRatio = entry.intersectionRatio;
+          bestPostId = postId;
         }
       });
 
-      // 3. Play the topmost and pause others
-      if (topmostPostId && topmostPostId !== this.playingPostId) {
-        // Pause current if playing another
-        if (this.playingPostId && this.playingPostId !== topmostPostId) {
-          const prevPlayingCard = this.postCards.find(c => c.post.id === this.playingPostId);
-          prevPlayingCard?.videoElement?.pause();
-        }
-
-        const winnerEntry = this.intersectingEntries.get(topmostPostId)!;
+      // 3. Play the most visible and pause others
+      if (bestPostId && (bestPostId !== this.playingPostId || maxRatio > 0.8)) {
+        const winnerEntry = this.intersectingEntries.get(bestPostId)!;
         const winnerVideo = winnerEntry.target as HTMLVideoElement;
-        const post = this.feed.find(p => p.id === topmostPostId);
+        const post = this.feed.find(p => p.id === bestPostId);
 
-        if (post) {
-          this.playingPostId = topmostPostId;
+        if (post && (this.playingPostId !== bestPostId)) {
+          // Pause current if playing another
+          if (this.playingPostId && this.playingPostId !== bestPostId) {
+            const prevPlayingCard = this.postCards.find(c => c.post.id === this.playingPostId);
+            prevPlayingCard?.videoElement?.pause();
+          }
+
+          this.playingPostId = bestPostId;
           const start = post.startTime || 0;
           let end = post.endTime;
           if (end === undefined || end === null || end === 0) {
@@ -164,7 +163,7 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
       // 4. Ensure non-winners that are in the map are paused
       this.intersectingEntries.forEach((entry, postId) => {
-        if (postId !== topmostPostId) {
+        if (postId !== bestPostId) {
           (entry.target as HTMLVideoElement).pause();
         }
       });
