@@ -2,6 +2,7 @@
   <app-toast></app-toast>
   <app-sidebar *ngIf="!isAuthPage"></app-sidebar>
   <div class="main-content">
+    <app-profile-dropdown *ngIf="!isAuthPage"></app-profile-dropdown>
     <router-outlet></router-outlet>
   </div>
 </div>

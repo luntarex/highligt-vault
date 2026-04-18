@@ -42,8 +42,6 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   currentUserPhotoUrl: string = '';
 
-  user: User | null = null;
-  isProfileMenuOpen: boolean = false;
 
   suggestedUsers: any[] = [];
   loadingSuggestions = true;
@@ -65,34 +63,6 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       this.currentUserPhotoUrl = url;
       this.cdr.detectChanges();
     });
-
-    const currentUserId = this.authService.getCurrentUserId();
-    if (currentUserId) {
-      this.profileService.getUserProfile(currentUserId.toString()).subscribe(profile => {
-        this.user = profile;
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    const isProfileClick = target.closest('.profile-dropdown-wrapper');
-    if (!isProfileClick && this.isProfileMenuOpen) {
-      this.isProfileMenuOpen = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  toggleProfileMenu(event?: MouseEvent) {
-    if (event) event.stopPropagation();
-    this.isProfileMenuOpen = !this.isProfileMenuOpen;
-  }
-
-  signOut() {
-    this.authService.logout();
-    this.router.navigate(['/welcome']);
   }
 
   ngAfterViewInit(): void {
