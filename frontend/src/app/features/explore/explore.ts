@@ -81,6 +81,31 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       });
+      // 2. Find the most visible video among the intersecting ones
+      let bestPostId: string | null = null;
+      let maxRatio = -1;
+
+      this.intersectingEntries.forEach((entry, postId) => {
+        if (entry.intersectionRatio > maxRatio) {
+          maxRatio = entry.intersectionRatio;
+          bestPostId = postId;
+        }
+      });
+
+      // 3. Play the most visible and pause others
+      if (bestPostId && (bestPostId !== this.playingPostId || maxRatio > 0.8)) {
+        const winnerEntry = this.intersectingEntries.get(bestPostId)!;
+        const winnerVideo = winnerEntry.target as HTMLVideoElement;
+        const post = this.feed.find(p => p.id === bestPostId);
+
+        if (post && (this.playingPostId !== bestPostId)) {
+          // Pause current if playing another
+          if (this.playingPostId && this.playingPostId !== bestPostId) {
+            const prevPlayingCard = this.postCards.find(c => c.post.id === this.playingPostId);
+            prevPlayingCard?.videoElement?.pause();
+          }
+
+          this.playingPostId = bestPostId;
           const start = post.startTime || 0;
           let end = post.endTime;
           if (end === undefined || end === null || end === 0) {
