@@ -1,5 +1,6 @@
 .favorites-container {
   padding: 32px;
+  padding-right: 80px;
   background-color: hsl(var(--background));
   min-height: 100%;
   color: hsl(var(--foreground));
@@ -11,6 +12,11 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 40px;
+}
+
+app-back-link {
+  margin-top: 14px;
+  margin-right: 15px;
 }
 
 .favorites-title {

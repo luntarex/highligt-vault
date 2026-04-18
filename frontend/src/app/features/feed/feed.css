@@ -23,14 +23,6 @@
 .feed-page::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 .feed-page::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-/* === PROFILE: TOP RIGHT === */
-.profile-dropdown-wrapper {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
-}
-
 /* === TWO-COLUMN LAYOUT === */
 .feed-layout {
   display: grid;
@@ -64,96 +56,6 @@
   color: var(--text-secondary);
   margin: 0;
   font-weight: 400;
-}
-
-/* Profile Nav */
-.profile-nav {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.profile-nav:hover {
-  transform: scale(1.05);
-}
-
-.profile-nav img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* Profile Popup */
-.profile-popup {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  min-width: 200px;
-  padding: 8px 0;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  z-index: 1000;
-  animation: popupFadeIn 0.2s ease-out forwards;
-  transform-origin: top right;
-}
-
-@keyframes popupFadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.popup-header {
-  padding: 8px 16px;
-}
-
-.popup-username {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.popup-divider {
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 8px 0;
-}
-
-.popup-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 16px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.popup-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
-}
-
-.popup-icon {
-  color: currentColor;
-  opacity: 0.8;
-}
-
-.signout-btn:hover {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* === RIGHT COLUMN: SIDEBAR === */
