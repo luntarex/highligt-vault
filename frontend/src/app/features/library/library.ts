@@ -1,21 +1,20 @@
 import { ClipCard } from './clip-card/clip-card';
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClipService } from '../../core/services/clip.service';
-import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { Clip } from '../../core/models/clip'
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 import { RouterLink, RouterLinkActive, Router } from "@angular/router";
 import { FormsModule } from '@angular/forms';
-import { User } from '../../core/models/user';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 
 
 @Component({
   selector: 'app-library',
-  imports: [CommonModule, ClipCard, CustomDropdownComponent, RouterLink, RouterLinkActive, FormsModule, ConfirmDialog],
+  imports: [CommonModule, ClipCard, CustomDropdownComponent, RouterLink, RouterLinkActive, FormsModule, ConfirmDialog, ProfileDropdown],
   templateUrl: './library.html',
   styleUrl: './library.css',
 })
@@ -27,8 +26,7 @@ export class Library implements OnInit {
 
   allClips: Clip[] = [];
   clips: Clip[] = [];
-  user: User | null = null;
-  isProfileMenuOpen: boolean = false;
+
 
   selectedGame: string = 'All Games';
   selectedTag: string = 'All Tags';
@@ -41,7 +39,6 @@ export class Library implements OnInit {
 
   constructor(
     private clipService: ClipService,
-    private profileService: ProfileService,
     private authService: AuthService,
     private gameService: GameService,
     private cdr: ChangeDetectorRef,
@@ -60,26 +57,9 @@ export class Library implements OnInit {
       this.games = ['All Games', ...names];
       this.cdr.detectChanges();
     });
-
-    const currentUserId = this.authService.getCurrentUserId();
-    if (currentUserId) {
-      this.profileService.getUserProfile(currentUserId.toString()).subscribe(profile => {
-        this.user = profile;
-        this.cdr.detectChanges();
-      });
-    }
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    const isProfileClick = target.closest('.profile-dropdown-wrapper');
-    
-    if (!isProfileClick && this.isProfileMenuOpen) {
-      this.isProfileMenuOpen = false;
-      this.cdr.detectChanges();
-    }
-  }
+
 
   handleDelete(id: number) {
     const userId = this.authService.getCurrentUserId();
@@ -209,17 +189,8 @@ export class Library implements OnInit {
     this.cdr.detectChanges();
   }
 
-  toggleProfileMenu(event?: MouseEvent) {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.isProfileMenuOpen = !this.isProfileMenuOpen;
-  }
 
-  signOut() {
-    this.authService.logout();
-    this.router.navigate(['/welcome']);
-  }
+
 
   onFileSelected(event: any) {
     const file = event.target.files[0];

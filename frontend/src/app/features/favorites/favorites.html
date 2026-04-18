@@ -25,9 +25,9 @@
     </div>
 
     <div *ngIf="!isLoading && favoriteClips.length > 0" class="clips-grid">
-      <app-clip-card 
-        *ngFor="let clip of favoriteClips" 
-        [clip]="clip" 
+      <app-clip-card
+        *ngFor="let clip of favoriteClips"
+        [clip]="clip"
         mode="favorites"
         (removeClip)="handleRemoveFavorite($event)">
       </app-clip-card>

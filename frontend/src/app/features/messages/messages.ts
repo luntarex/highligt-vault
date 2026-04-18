@@ -28,7 +28,7 @@ export class MessagesComponent implements OnInit {
   currentUserId: number;
   isSending: boolean = false;
   loading: boolean = false;
-  
+
   showDeleteModal: boolean = false;
   selectedConversationToDelete: number | null = null;
   selectedMessageIds: Set<number> = new Set<number>();
@@ -54,8 +54,11 @@ export class MessagesComponent implements OnInit {
 
   loadConversations(): void {
     this.messageService.getConversations(this.currentUserId).subscribe(convs => {
-      this.conversations = convs;
-      this.filteredConversations = convs;
+      this.conversations = convs.map(c => ({
+        ...c,
+        created_at: this.fixDate(c.created_at).toISOString()
+      }));
+      this.filteredConversations = this.conversations;
       this.cdr.detectChanges();
     });
   }
@@ -91,7 +94,10 @@ export class MessagesComponent implements OnInit {
     }
 
     this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
-      this.currentConversation = msgs;
+      this.currentConversation = msgs.map(m => ({
+        ...m,
+        createdAt: this.fixDate(m.createdAt).toISOString()
+      }));
       this.loading = false;
       this.cdr.detectChanges();
       // Mark as read
@@ -182,5 +188,30 @@ export class MessagesComponent implements OnInit {
   clearSelection(): void {
     this.selectedMessageIds = new Set<number>();
     this.cdr.detectChanges();
+  }
+
+  private fixDate(val: any): Date {
+    if (!val) return new Date();
+    
+    // Adjust for JVM timezone shift in Spring Boot JDBC
+    const jvmOffsetMs = 3 * 60 * 60 * 1000;
+    
+    if (typeof val === 'number') {
+       return new Date(val + jvmOffsetMs);
+    }
+    
+    let s = String(val);
+    
+    if (/^\d+$/.test(s)) {
+       return new Date(Number(s) + jvmOffsetMs);
+    }
+    
+    s = s.replace(' ', 'T');
+    
+    if (s.endsWith('Z') || s.match(/[+\-]\d{2}:\d{2}$/)) {
+       return new Date(new Date(s).getTime() + jvmOffsetMs);
+    }
+    
+    return new Date(s + 'Z');
   }
 }

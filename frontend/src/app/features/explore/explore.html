@@ -6,6 +6,10 @@
    </button>
   </div>
 
+  <div style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+    <app-profile-dropdown />
+  </div>
+
   <div class="feed-container">
     @if (isLoading) {
       @for (i of [1, 2, 3]; track i) {
