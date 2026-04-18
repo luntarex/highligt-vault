@@ -295,9 +295,9 @@
   height: 100%;
 }
 
+/* Chat Header */
 .chat-header {
   padding: 16px 24px;
-  padding-right: 80px;
   border-bottom: 1px solid hsl(var(--border));
   background: hsl(0, 0%, 11%);
   display: flex;

@@ -3,11 +3,10 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Sidebar } from "./shared/sidebar/sidebar";
 import { Toast } from "./shared/toast/toast";
-import { ProfileDropdown } from "./shared/profile-dropdown/profile-dropdown";
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, Sidebar, Toast, ProfileDropdown],
+  imports: [CommonModule, RouterOutlet, Sidebar, Toast],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
