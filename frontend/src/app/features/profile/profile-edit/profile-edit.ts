@@ -20,27 +20,10 @@ export class ProfileEdit implements OnInit {
   username: string = '';
   description: string = '';
   selectedPhotoUrl: string = '';
+  fileToUpload: File | null = null;
   errorMessage: string = '';
   saving: boolean = false;
   showDeleteModal: boolean = false;
-
-  avatarOptions: string[] = [
-    'https://i.pravatar.cc/150?img=1',
-    'https://i.pravatar.cc/150?img=2',
-    'https://i.pravatar.cc/150?img=3',
-    'https://i.pravatar.cc/150?img=4',
-    'https://i.pravatar.cc/150?img=5',
-    'https://i.pravatar.cc/150?img=6',
-    'https://i.pravatar.cc/150?img=7',
-    'https://i.pravatar.cc/150?img=8',
-    'https://i.pravatar.cc/150?img=9',
-    'https://i.pravatar.cc/150?img=10',
-    'https://i.pravatar.cc/150?img=11',
-    'https://i.pravatar.cc/150?img=12',
-    'https://i.pravatar.cc/150?img=13',
-    'https://i.pravatar.cc/150?img=14',
-    'https://i.pravatar.cc/150?img=15',
-  ];
 
   constructor(
     private profileService: ProfileService,
@@ -57,18 +40,56 @@ export class ProfileEdit implements OnInit {
       this.user = user;
       this.username = user.username || '';
       this.description = user.description || '';
-      this.selectedPhotoUrl = user.profilePhotoUrl || this.avatarOptions[0];
+      this.selectedPhotoUrl = user.profilePhotoUrl || 'assets/icons/default-avatar.png';
       this.cdr.detectChanges();
     });
   }
 
-  selectAvatar(url: string): void {
-    this.selectedPhotoUrl = url;
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.fileToUpload = file;
+      this.selectedPhotoUrl = URL.createObjectURL(file);
+    }
+    event.target.value = '';
   }
 
   onSave(): void {
     this.saving = true;
     const userId = this.authService.getCurrentUserId();
+    
+    if (this.fileToUpload) {
+      const formData = new FormData();
+      formData.append('file', this.fileToUpload);
+      formData.append('upload_preset', 'hvault_unsigned');
+      
+      fetch('https://api.cloudinary.com/v1_1/dticc1u7k/image/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.secure_url) {
+          this.selectedPhotoUrl = data.secure_url;
+          this.submitProfileUpdate(userId);
+        } else {
+          this.saving = false;
+          this.cdr.detectChanges();
+          this.toast.error('Upload failed: ' + (data.error?.message || 'Unknown error'));
+        }
+      })
+      .catch(err => {
+        this.saving = false;
+        this.cdr.detectChanges();
+        console.error(err);
+        this.toast.error('Image upload error: ' + err.message);
+      });
+    } else {
+      this.submitProfileUpdate(userId);
+    }
+  }
+
+  private submitProfileUpdate(userId: number): void {
     const payload = {
       username: this.username,
       description: this.description,
