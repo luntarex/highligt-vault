@@ -14,22 +14,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class CompleteProfile implements OnInit {
 
   description: string = '';
-  selectedAvatarIndex: number = 0;
-
-  avatarOptions: string[] = [
-    'https://i.pravatar.cc/150?img=1',
-    'https://i.pravatar.cc/150?img=2',
-    'https://i.pravatar.cc/150?img=3',
-    'https://i.pravatar.cc/150?img=4',
-    'https://i.pravatar.cc/150?img=5',
-    'https://i.pravatar.cc/150?img=6',
-    'https://i.pravatar.cc/150?img=7',
-    'https://i.pravatar.cc/150?img=8',
-    'https://i.pravatar.cc/150?img=9',
-    'https://i.pravatar.cc/150?img=10',
-    'https://i.pravatar.cc/150?img=11',
-    'https://i.pravatar.cc/150?img=12',
-  ];
+  fileToUpload: File | null = null;
+  customAvatarUrl: string = 'assets/icons/default-avatar.png';
 
   username: string = '';
   saving: boolean = false;
@@ -47,28 +33,67 @@ export class CompleteProfile implements OnInit {
     this.profileService.getUserProfile(userId.toString()).subscribe(user => {
       if (user) {
         this.description = user.description || '';
-        const idx = this.avatarOptions.indexOf(user.profilePhotoUrl);
-        if (idx !== -1) this.selectedAvatarIndex = idx;
+        if (user.profilePhotoUrl) {
+          this.customAvatarUrl = user.profilePhotoUrl;
+        }
       }
       this.cdr.detectChanges();
     });
   }
 
-  selectAvatar(index: number): void {
-    this.selectedAvatarIndex = index;
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.fileToUpload = file;
+      this.customAvatarUrl = URL.createObjectURL(file);
+    }
+    event.target.value = '';
   }
 
   getSelectedAvatarUrl(): string {
-    return this.avatarOptions[this.selectedAvatarIndex];
+    return this.customAvatarUrl;
   }
 
   onSave(): void {
     this.saving = true;
     const userId = this.authService.getCurrentUserId();
+
+    if (this.fileToUpload) {
+      const formData = new FormData();
+      formData.append('file', this.fileToUpload);
+      formData.append('upload_preset', 'hvault_unsigned');
+      
+      fetch('https://api.cloudinary.com/v1_1/dticc1u7k/image/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.secure_url) {
+          this.customAvatarUrl = data.secure_url;
+          this.submitProfile(userId);
+        } else {
+          this.saving = false;
+          this.cdr.detectChanges();
+          alert('Upload failed: ' + (data.error?.message || JSON.stringify(data)));
+        }
+      })
+      .catch(err => {
+        this.saving = false;
+        this.cdr.detectChanges();
+        console.error(err);
+        alert('Upload error: ' + err.message);
+      });
+    } else {
+      this.submitProfile(userId);
+    }
+  }
+
+  private submitProfile(userId: number): void {
     const payload = {
       username: this.username,
       description: this.description,
-      profilePhotoUrl: this.getSelectedAvatarUrl()
+      profilePhotoUrl: this.customAvatarUrl
     };
 
     this.profileService.updateUserProfile(userId, payload).subscribe({
@@ -78,6 +103,7 @@ export class CompleteProfile implements OnInit {
       },
       error: () => {
         this.saving = false;
+        this.cdr.detectChanges();
         alert('Failed to save profile. Please try again.');
       }
     });
