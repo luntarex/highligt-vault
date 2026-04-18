@@ -1,21 +1,23 @@
-import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ExploreService } from '../../core/services/explore.service';
 import { CommentService } from '../../core/services/comment.service';
-import { RouterLink } from "@angular/router";
+import { RouterLink, Router } from "@angular/router";
 import { FormsModule } from '@angular/forms';
-import { ExplorePostCard } from './explore-post-card/explore-post-card';
+import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { CommonModule } from '@angular/common';
+import { User } from '../../core/models/user';
 
 @Component({
-  selector: 'app-explore',
-  templateUrl: './explore.html',
-  styleUrls: ['./explore.css'],
+  selector: 'app-feed',
+  templateUrl: './feed.html',
+  styleUrls: ['./feed.css'],
   imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule]
 })
-export class Explore implements OnInit, OnDestroy, AfterViewInit {
+export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
   newCommentText: string = '';
   replyingToComment: any | null = null;
@@ -33,26 +35,64 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   isLoading = true;
   playingPostId: string | null = null;
   private animationFrameId: number | null = null;
+  private intersectingEntries = new Map<string, IntersectionObserverEntry>();
 
   @ViewChildren(ExplorePostCard) postCards!: QueryList<ExplorePostCard>;
   private observer: IntersectionObserver | null = null;
 
   currentUserPhotoUrl: string = '';
 
+  user: User | null = null;
+  isProfileMenuOpen: boolean = false;
+
+  suggestedUsers: any[] = [];
+  loadingSuggestions = true;
+
   constructor(
     private exploreService: ExploreService,
     private commentService: CommentService,
     public authService: AuthService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
+    private profileService: ProfileService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
-    this.loadServiceData();
+    this.loadFeed();
+    this.loadSuggestions();
     this.authService.userPhoto$.subscribe(url => {
       this.currentUserPhotoUrl = url;
       this.cdr.detectChanges();
     });
+
+    const currentUserId = this.authService.getCurrentUserId();
+    if (currentUserId) {
+      this.profileService.getUserProfile(currentUserId.toString()).subscribe(profile => {
+        this.user = profile;
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const isProfileClick = target.closest('.profile-dropdown-wrapper');
+    if (!isProfileClick && this.isProfileMenuOpen) {
+      this.isProfileMenuOpen = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  toggleProfileMenu(event?: MouseEvent) {
+    if (event) event.stopPropagation();
+    this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  signOut() {
+    this.authService.logout();
+    this.router.navigate(['/welcome']);
   }
 
   ngAfterViewInit(): void {
@@ -63,35 +103,16 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     };
 
     this.observer = new IntersectionObserver((entries) => {
+      // 1. Update our map of currently intersecting elements
       entries.forEach(entry => {
         const video = entry.target as HTMLVideoElement;
         const postId = video.getAttribute('data-post-id');
-
-        if (entry.isIntersecting) {
-          if (postId) {
-            this.playingPostId = postId;
-            const post = this.feed.find(p => p.id === postId);
-            if (post) {
-              const start = post.startTime || 0;
-              let end = post.endTime;
-              if (end === undefined || end === null || end === 0) {
-                end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
-              }
-
-              if (video.currentTime < start || ((end - start) > 0.1 && video.currentTime >= end)) {
-                video.currentTime = start;
-              }
-
-              video.play().catch(() => {});
-              this.startProgressLoop(post, video);
-            }
+        if (postId) {
+          if (entry.isIntersecting) {
+            this.intersectingEntries.set(postId, entry);
           } else {
-            video.play().catch(() => {});
-          }
-        } else {
-          video.pause();
-
-          if (postId) {
+            this.intersectingEntries.delete(postId);
+            video.pause();
             if (this.playingPostId === postId) {
               this.playingPostId = null;
               this.stopProgressLoop();
@@ -99,8 +120,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       });
-<<<<<<< Updated upstream
-=======
 
       // 2. Find the most visible video among the intersecting ones
       let bestPostId: string | null = null;
@@ -149,7 +168,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
         }
       });
 
->>>>>>> Stashed changes
     }, options);
 
     this.postCards.changes.subscribe(() => {
@@ -173,10 +191,10 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     this.stopProgressLoop();
   }
 
-  loadServiceData(): void {
+  loadFeed(): void {
     this.isLoading = true;
     const userId = this.authService.getCurrentUserId();
-    this.exploreService.getFeed(userId).subscribe((feedData) => {
+    this.exploreService.getFollowingFeed(userId).subscribe((feedData) => {
       this.feed = feedData.map(post => ({
         ...post,
         currentTime: 0,
@@ -277,12 +295,10 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   toggleLike(post: ExplorePost) {
     const userId = this.authService.getCurrentUserId();
     if (post.isLiked) {
-      // Unlike
       post.isLiked = false;
       post.likes--;
       this.exploreService.unlikePost(post.id, userId).subscribe();
     } else {
-      // Like
       post.isLiked = true;
       post.likes++;
       this.exploreService.likePost(post.id, userId).subscribe();
@@ -506,7 +522,6 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   private executeDeleteComment(comment: any) {
     const targetId = Number(comment.id);
     this.commentService.removeComment(targetId).subscribe(() => {
-      // Create a fresh array copy to trigger change detection
       const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
       
       updatedComments.forEach(c => {
@@ -568,6 +583,39 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
   get currentUserPhoto(): string {
     return this.currentUserPhotoUrl;
+  }
+
+  loadSuggestions(): void {
+    this.loadingSuggestions = true;
+    const userId = this.authService.getCurrentUserId().toString();
+    this.profileService.getSuggestedUsers(userId).subscribe({
+      next: (users) => {
+        this.suggestedUsers = users;
+        this.loadingSuggestions = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.suggestedUsers = [];
+        this.loadingSuggestions = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  followSuggested(user: any): void {
+    const targetId = user.id.toString();
+    this.profileService.followUser(targetId).subscribe({
+      next: () => {
+        this.suggestedUsers = this.suggestedUsers.filter(u => u.id !== user.id);
+        this.loadFeed();
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  dismissSuggestion(user: any): void {
+    this.suggestedUsers = this.suggestedUsers.filter(u => u.id !== user.id);
+    this.cdr.detectChanges();
   }
 
   private formatTimeAgo(dateStr: string): string {
