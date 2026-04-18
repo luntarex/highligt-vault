@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { User } from '../../core/models/user';
 import { Clip } from '../../core/models/clip';
 import { BackLink } from '../../shared/back-link/back-link';
@@ -43,6 +43,8 @@ export class ProfilePage implements OnInit {
   clipModalLoading: boolean = false;
   currentUserPhoto: string = '';
 
+  @ViewChild('videoPlayer') videoRef?: ElementRef<HTMLVideoElement>;
+
   constructor(
     private profileService: ProfileService,
     private route: ActivatedRoute,
@@ -70,7 +72,7 @@ export class ProfilePage implements OnInit {
 
   loadProfileData(id: string | null): void {
     const currentUserId = this.authService.getCurrentUserId();
-    
+
     // Check if viewing own profile
     if (!id || id === currentUserId.toString()) {
       this.isOwnProfile = true;
@@ -159,19 +161,19 @@ export class ProfilePage implements OnInit {
     const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
 
     if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
-    
+
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 30) return `${diffInDays}d ago`;
-    
+
     const diffInMonths = Math.floor(diffInDays / 30);
     if (diffInMonths < 12) return `${diffInMonths}mo ago`;
-    
+
     const diffInYears = Math.floor(diffInDays / 365);
     return `${diffInYears}y ago`;
   }
@@ -183,7 +185,7 @@ export class ProfilePage implements OnInit {
     this.showUserListModal = true;
     this.modalLoading = true;
     this.userList = [];
-    
+
     this.profileService.getFollowers(this.user.id.toString()).subscribe({
       next: (list) => {
         this.userList = list;
@@ -265,7 +267,7 @@ export class ProfilePage implements OnInit {
   togglePostLike(): void {
     if (!this.activePost) return;
     const currentUserId = this.authService.getCurrentUserId();
-    
+
     if (this.activePost.isLiked) {
       this.exploreService.unlikePost(this.activePost.id, currentUserId).subscribe(() => {
         this.activePost!.isLiked = false;
@@ -286,9 +288,9 @@ export class ProfilePage implements OnInit {
     const currentUserId = this.authService.getCurrentUserId();
 
     this.commentService.addComment(
-      this.activePost.id, 
-      currentUserId, 
-      this.newCommentText, 
+      this.activePost.id,
+      currentUserId,
+      this.newCommentText,
       this.replyingToComment?.id
     ).subscribe(() => {
       this.newCommentText = '';
@@ -318,5 +320,88 @@ export class ProfilePage implements OnInit {
   canEditComment(comment: Comment): boolean {
     const currentUserId = this.authService.getCurrentUserId();
     return comment.userId === currentUserId || this.authService.isAdmin();
+  }
+
+  // HUD and Time Logic
+  onTogglePlay(): void {
+    if(!this.videoRef) return;
+    const video = this.videoRef.nativeElement;
+    if(video.paused) { video.play(); } else { video.pause(); }
+  }
+
+  onToggleMute(event: Event): void {
+     event.stopPropagation();
+     if(!this.videoRef) return;
+     this.videoRef.nativeElement.muted = !this.videoRef.nativeElement.muted;
+  }
+
+  onVolumeChange(event: Event): void {
+     event.stopPropagation();
+     if(!this.videoRef) return;
+     const input = event.target as HTMLInputElement;
+     const val = parseFloat(input.value);
+     this.videoRef.nativeElement.volume = val;
+     
+     if (val > 0) {
+        this.videoRef.nativeElement.muted = false;
+     } else {
+        this.videoRef.nativeElement.muted = true;
+     }
+  }
+
+  onSeekTo(event: MouseEvent): void {
+     event.stopPropagation();
+     if(!this.videoRef || !this.activePost) return;
+     const progressContainer = (event.currentTarget as HTMLElement);
+     const rect = progressContainer.getBoundingClientRect();
+     const offsetX = event.clientX - rect.left;
+     const clickRatio = Math.max(0, Math.min(1, offsetX / rect.width));
+
+     const totalDuration = (this.activePost.endTime || this.activePost.duration || 1) - (this.activePost.startTime || 0);
+     const newTime = (this.activePost.startTime || 0) + (clickRatio * totalDuration);
+     this.activePost.currentTime = newTime;
+     this.videoRef.nativeElement.currentTime = newTime;
+  }
+
+  onMetadataLoaded(): void {
+    if(!this.videoRef || !this.activePost) return;
+    const video = this.videoRef.nativeElement;
+    // Jump to the start of the cut clip
+    video.currentTime = this.activePost.startTime || 0;
+    // Mute is often needed for reliable autoplay in modern browsers
+    video.muted = false;
+    video.play().catch(err => console.error("Autoplay blocked:", err));
+  }
+
+  onTimeUpdate(): void {
+      if(!this.videoRef || !this.activePost) return;
+      const video = this.videoRef.nativeElement;
+      this.activePost.currentTime = video.currentTime;
+
+      const endTime = this.activePost.endTime || this.activePost.duration || 0;
+      if (endTime > 0 && video.currentTime >= endTime) {
+         video.currentTime = this.activePost.startTime || 0;
+         video.play();
+      }
+  }
+
+  formatTime(seconds: number): string {
+    if (isNaN(seconds) || seconds < 0) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  fixDate(val: any): Date {
+    if (!val) return new Date();
+    const jvmOffsetMs = 3 * 60 * 60 * 1000;
+    if (typeof val === 'number') return new Date(val + jvmOffsetMs);
+    let s = String(val);
+    if (/^\d+$/.test(s)) return new Date(Number(s) + jvmOffsetMs);
+    s = s.replace(' ', 'T');
+    if (s.endsWith('Z') || s.match(/[+\-]\d{2}:\d{2}$/)) {
+       return new Date(new Date(s).getTime() + jvmOffsetMs);
+    }
+    return new Date(s + 'Z');
   }
 }

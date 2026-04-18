@@ -110,12 +110,51 @@
     <div class="clip-modal-layout" *ngIf="!clipModalLoading && activePost">
       
       <!-- Video Side -->
-      <div class="video-side">
+      <div class="video-side" (click)="onTogglePlay()">
         <video #videoPlayer 
                [src]="activePost.videoUrl" 
-               controls 
                autoplay
-               class="detailed-video"></video>
+               muted
+               class="detailed-video"
+               (timeupdate)="onTimeUpdate()"
+               (loadedmetadata)="onMetadataLoaded()">
+        </video>
+
+        <!-- Fullscreen HUD Overlay -->
+        <div class="fullscreen-hud" (click)="$event.stopPropagation()">
+          <div class="hud-bottom">
+            <div class="hud-progress-container" (click)="onSeekTo($event)">
+              <div class="hud-progress-bar" [style.width.%]="((activePost.currentTime || 0) - (activePost.startTime || 0)) / ((activePost.endTime || activePost.duration || 1) - (activePost.startTime || 0)) * 100"></div>
+            </div>
+
+            <div class="hud-controls">
+              <button class="hud-play-btn" (click)="onTogglePlay()">
+                @if(videoPlayer?.paused){
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                }
+              </button>
+
+              <div class="hud-time">
+                {{ formatTime((activePost.currentTime || 0) - (activePost.startTime || 0)) }} / {{ formatTime((activePost.endTime || activePost.duration || 0) - (activePost.startTime || 0)) }}
+              </div>
+
+              <div class="hud-volume-control">
+                <button class="hud-mute-btn" (click)="onToggleMute($event)">
+                  @if(videoPlayer?.muted || videoPlayer?.volume === 0){
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  }
+                </button>
+                <input type="range" class="hud-volume-slider" min="0" max="1" step="0.01"
+                       [value]="videoPlayer?.muted ? 0 : (videoPlayer?.volume ?? 1)"
+                       (input)="onVolumeChange($event)">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Social Side -->
@@ -126,7 +165,7 @@
               <img [src]="activePost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
               <div class="name-box">
                 <span class="author-name">{{activePost.author.username}}</span>
-                <span class="post-time">{{activePost.timeAgo}}</span>
+                <span class="post-time">{{ formatTimeAgo(fixDate(activePost.createdAt || activePost.timeAgo)) }}</span>
               </div>
            </div>
         </div>
