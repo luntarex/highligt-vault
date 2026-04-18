@@ -119,6 +119,34 @@ public class PostRepository {
         return count > 0;
     }
 
+    /**
+     * Get posts only from users that the given userId is following.
+     */
+    public List<Map<String, Object>> findFollowingFeedPosts(Long userId) {
+        String sql = """
+            SELECT p.id, p.caption, p.created_at, p.clip_id,
+                   c.title AS clip_title, c.video_url, c.duration,
+                   c.start_time AS start_time, c.end_time AS end_time,
+                   g.name AS game_name,
+                   u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+                   COUNT(DISTINCT pl.user_id) AS likes,
+                   COUNT(DISTINCT cm.id) AS comments
+            FROM posts p
+            JOIN clips c ON p.clip_id = c.id
+            JOIN users u ON p.user_id = u.id
+            JOIN follows f ON f.followed_id = p.user_id AND f.follower_id = ?
+            LEFT JOIN games g ON c.game_id = g.id
+            LEFT JOIN post_likes pl ON pl.post_id = p.id
+            LEFT JOIN comments cm ON cm.post_id = p.id
+            WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+              AND (c.is_public = true)
+            GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+                     c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+            ORDER BY p.created_at DESC
+            """;
+        return jdbcTemplate.queryForList(sql, userId);
+    }
+
     public Map<String, Object> findByClipIdWithDetails(Long clipId) {
         String sql = """
             SELECT p.id, p.caption, p.created_at, p.clip_id,

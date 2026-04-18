@@ -120,5 +120,48 @@ public class UserRepository {
             """;
         return jdbcTemplate.queryForList(sql, userId);
     }
+    /**
+     * Suggest users to follow based on "friends of friends" logic.
+     * Falls back to popular users if no mutual connections found.
+     * Excludes self and already-followed users.
+     */
+    public List<Map<String, Object>> findSuggestedUsers(Long userId) {
+        // First try friends-of-friends
+        String fofSql = """
+            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
+                   u.description,
+                   COUNT(DISTINCT f2.follower_id) AS mutualCount,
+                   (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
+            FROM follows f1
+            JOIN follows f2 ON f2.follower_id = f1.followed_id AND f2.followed_id != ?
+            JOIN users u ON u.id = f2.followed_id
+            WHERE f1.follower_id = ?
+              AND f2.followed_id NOT IN (SELECT followed_id FROM follows WHERE follower_id = ?)
+              AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+            GROUP BY u.id, u.username, u.profile_photo_url, u.description
+            ORDER BY mutualCount DESC, followers DESC
+            LIMIT 6
+            """;
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(fofSql, userId, userId, userId);
+
+        if (!results.isEmpty()) {
+            return results;
+        }
+
+        // Fallback: popular users not yet followed
+        String popularSql = """
+            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
+                   u.description,
+                   0 AS mutualCount,
+                   (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
+            FROM users u
+            WHERE u.id != ?
+              AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id = ?)
+              AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+            ORDER BY followers DESC
+            LIMIT 6
+            """;
+        return jdbcTemplate.queryForList(popularSql, userId, userId);
+    }
 }
 

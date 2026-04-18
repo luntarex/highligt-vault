@@ -63,4 +63,13 @@ public class FollowController {
     public ResponseEntity<?> getFollowing(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getFollowing(userId));
     }
+
+    /**
+     * GET /api/follows/{userId}/suggestions
+     * Get suggested users to follow based on who your friends follow.
+     */
+    @GetMapping("/{userId}/suggestions")
+    public ResponseEntity<?> getSuggestedUsers(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getSuggestedUsers(userId));
+    }
 }

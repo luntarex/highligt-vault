@@ -1,7 +1,7 @@
 <nav class="sidebar-container" [class.collapsed]="isCollapsed">
 
   <div class="sidebar-header">
-    <a routerLink="/explore" class="sidebar-logo-link" *ngIf="!isCollapsed">
+    <a routerLink="/" class="sidebar-logo-link" *ngIf="!isCollapsed">
       <h2 class="sidebar-title">Vibe Vault</h2>
     </a>
 
@@ -12,13 +12,19 @@
 
   <ul class="nav-links">
     <li>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <img src="assets/icons/home.svg" alt="Feed" class="nav-icon">
+        <span class="link-text">Feed</span>
+      </a>
+    </li>
+    <li>
       <a routerLink="/explore" routerLinkActive="active">
         <img src="assets/icons/compass.svg" alt="Explore" class="nav-icon">
         <span class="link-text">Explore</span>
       </a>
     </li>
     <li>
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a routerLink="/library" routerLinkActive="active">
         <img src="assets/icons/notebook.svg" alt="Library" class="nav-icon">
         <span class="link-text">Library</span>
       </a>
@@ -96,15 +102,7 @@
   </div>
 
   <div class="separator"></div>
-
-  <div class="upload-btn">
-    <input type="file" #fileInput (change)="onFileSelected($event)" accept="video/*" style="display: none;">
-    <button (click)="fileInput.click()">
-      <img src="assets/icons/upload.svg" alt="Upload" class="upload-icon">
-      <span class="upload-text">Upload Clip</span>
-    </button>
-  </div>
-
+  
   <div class="sidebar-footer">
     <a routerLink="/about-us" routerLinkActive="active" class="about-link">
       <img src="assets/icons/search.svg" alt="About Us" class="nav-icon">
