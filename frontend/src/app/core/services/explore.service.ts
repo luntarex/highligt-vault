@@ -19,6 +19,10 @@ export class ExploreService {
     }
     return this.http.get<ExplorePost[]>(url);
   }
+
+  getFollowingFeed(userId: number): Observable<ExplorePost[]> {
+    return this.http.get<ExplorePost[]>(`${this.apiUrl}/following?userId=${userId}`);
+  }
   
   addPost(post: any): Observable<any> {
     return this.http.post(this.apiUrl, post);

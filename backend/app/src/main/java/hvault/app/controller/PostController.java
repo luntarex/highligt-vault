@@ -30,6 +30,15 @@ public class PostController {
     }
 
     /**
+     * GET /api/posts/following
+     * Get feed of posts from users the current user follows.
+     */
+    @GetMapping("/following")
+    public ResponseEntity<?> getFollowingFeed(@RequestParam Long userId) {
+        return ResponseEntity.ok(postService.getFollowingFeed(userId));
+    }
+
+    /**
      * GET /api/posts/{id}
      * Get a single post by ID.
      */
