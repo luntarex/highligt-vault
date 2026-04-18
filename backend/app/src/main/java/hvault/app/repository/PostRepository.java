@@ -134,17 +134,17 @@ public class PostRepository {
             FROM posts p
             JOIN clips c ON p.clip_id = c.id
             JOIN users u ON p.user_id = u.id
-            JOIN follows f ON f.followed_id = p.user_id AND f.follower_id = ?
             LEFT JOIN games g ON c.game_id = g.id
             LEFT JOIN post_likes pl ON pl.post_id = p.id
             LEFT JOIN comments cm ON cm.post_id = p.id
             WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
               AND (c.is_public = true)
+              AND (p.user_id = ? OR p.user_id IN (SELECT followed_id FROM follows WHERE follower_id = ?))
             GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
                      c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
             ORDER BY p.created_at DESC
             """;
-        return jdbcTemplate.queryForList(sql, userId);
+        return jdbcTemplate.queryForList(sql, userId, userId);
     }
 
     public Map<String, Object> findByClipIdWithDetails(Long clipId) {
