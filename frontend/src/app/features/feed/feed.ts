@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ExploreService } from '../../core/services/explore.service';
 import { CommentService } from '../../core/services/comment.service';
@@ -9,13 +9,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { CommonModule } from '@angular/common';
-import { User } from '../../core/models/user';
+import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -42,9 +42,6 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   currentUserPhotoUrl: string = '';
 
-  user: User | null = null;
-  isProfileMenuOpen: boolean = false;
-
   suggestedUsers: any[] = [];
   loadingSuggestions = true;
 
@@ -65,34 +62,6 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       this.currentUserPhotoUrl = url;
       this.cdr.detectChanges();
     });
-
-    const currentUserId = this.authService.getCurrentUserId();
-    if (currentUserId) {
-      this.profileService.getUserProfile(currentUserId.toString()).subscribe(profile => {
-        this.user = profile;
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    const isProfileClick = target.closest('.profile-dropdown-wrapper');
-    if (!isProfileClick && this.isProfileMenuOpen) {
-      this.isProfileMenuOpen = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  toggleProfileMenu(event?: MouseEvent) {
-    if (event) event.stopPropagation();
-    this.isProfileMenuOpen = !this.isProfileMenuOpen;
-  }
-
-  signOut() {
-    this.authService.logout();
-    this.router.navigate(['/welcome']);
   }
 
   ngAfterViewInit(): void {
@@ -146,15 +115,17 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
           }
 
           this.playingPostId = bestPostId;
-          
+
           if (winnerVideo.paused) {
             const start = post.startTime || 0;
             let end = post.endTime;
-            if (end === undefined || end === null || end === 0) {
+            if (!end) {
               end = winnerVideo.duration && !isNaN(winnerVideo.duration) ? winnerVideo.duration : Number.MAX_VALUE;
+            } else if (winnerVideo.duration && !isNaN(winnerVideo.duration) && end > winnerVideo.duration) {
+              end = winnerVideo.duration;
             }
 
-            if (winnerVideo.currentTime < start || ((end - start) > 0.1 && winnerVideo.currentTime >= end)) {
+            if (winnerVideo.currentTime < start || ((end - start) > 0.1 && winnerVideo.currentTime >= end) || winnerVideo.ended) {
               winnerVideo.currentTime = start;
             }
 
@@ -246,14 +217,9 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       this.stopProgressLoop();
     } else {
       const start = data.post.startTime || 0;
-      let end = data.post.endTime;
-      if (end === undefined || end === null || end === 0) {
-        end = data.video.duration && !isNaN(data.video.duration) ? data.video.duration : Number.MAX_VALUE;
-      }
 
-      if (data.video.currentTime < start || ((end - start) > 0.1 && data.video.currentTime >= end)) {
-        data.video.currentTime = start;
-      }
+      // Always reset to clip start when replaying
+      data.video.currentTime = start;
 
       data.video.play();
       this.playingPostId = data.post.id;
@@ -276,8 +242,12 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       if (end === undefined || end === null || end === 0) {
         end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
       }
+      // Clamp end to actual video duration to prevent missing the boundary
+      if (video.duration && !isNaN(video.duration) && end > video.duration) {
+        end = video.duration;
+      }
 
-      if ((end - start) > 0.1 && video.currentTime >= end) {
+      if (((end - start) > 0.1 && video.currentTime >= end) || video.ended) {
         video.currentTime = start;
         video.play().catch(e => console.error("Replay error", e));
       }
@@ -525,7 +495,7 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
     const targetId = Number(comment.id);
     this.commentService.removeComment(targetId).subscribe(() => {
       const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
-      
+
       updatedComments.forEach(c => {
         if (c.replies) {
            c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
@@ -533,7 +503,7 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       });
 
       this.comments = updatedComments;
-      
+
       if (this.activePostForComments) {
         this.activePostForComments.comments--;
       }
@@ -622,7 +592,17 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   private formatTimeAgo(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    
+    // Ensure UTC interpretation: replace space with T and append Z if missing
+    let isoStr = dateStr;
+    if (isoStr && !isoStr.includes('T') && isoStr.includes(' ')) {
+      isoStr = isoStr.replace(' ', 'T');
+    }
+    if (isoStr && !isoStr.endsWith('Z')) {
+      isoStr += 'Z';
+    }
+
+    const date = new Date(isoStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

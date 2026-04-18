@@ -31,7 +31,7 @@
         <div class="conversation-info">
           <div class="conv-header">
             <span class="username">{{ conv.username }}</span>
-            <span class="time">{{ conv.created_at | date:'shortTime' }}</span>
+            <span class="time">{{ conv.created_at | date:'HH:mm' }}</span>
           </div>
           <p class="last-message" [class.unread-text]="!conv.is_read && conv.sender_id !== currentUserId">
             <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">You: </span>{{ conv.content }}
@@ -103,7 +103,7 @@
                (click)="toggleMessageSelection(msg.id)"
                [class.selected]="selectedMessageIds.has(msg.id)">
             <p>{{ msg.content }}</p>
-            <span class="msg-time">{{ msg.createdAt | date:'shortTime' }}</span>
+            <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
           </div>
         </div>
       </div>

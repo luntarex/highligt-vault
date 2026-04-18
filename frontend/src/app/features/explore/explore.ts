@@ -8,12 +8,13 @@ import { ExplorePostCard } from './explore-post-card/explore-post-card';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { CommonModule } from '@angular/common';
+import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.html',
   styleUrls: ['./explore.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown]
 })
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -107,7 +108,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
           }
 
           this.playingPostId = bestPostId;
-          
+
           if (winnerVideo.paused) {
             const start = post.startTime || 0;
             let end = post.endTime;
@@ -489,7 +490,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
     this.commentService.removeComment(targetId).subscribe(() => {
       // Create a fresh array copy to trigger change detection
       const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
-      
+
       updatedComments.forEach(c => {
         if (c.replies) {
            c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
@@ -497,7 +498,7 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
       });
 
       this.comments = updatedComments;
-      
+
       if (this.activePostForComments) {
         this.activePostForComments.comments--;
       }
@@ -553,7 +554,17 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
 
   private formatTimeAgo(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    
+    // Ensure UTC interpretation: replace space with T and append Z if missing
+    let isoStr = dateStr;
+    if (isoStr && !isoStr.includes('T') && isoStr.includes(' ')) {
+      isoStr = isoStr.replace(' ', 'T');
+    }
+    if (isoStr && !isoStr.endsWith('Z')) {
+      isoStr += 'Z';
+    }
+
+    const date = new Date(isoStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

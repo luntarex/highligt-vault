@@ -9,6 +9,7 @@
 }
 
 .explore-page {
+  position: relative;
   background-color: var(--bg-main);
   color: var(--text-primary);
   height: 100vh;
