@@ -192,6 +192,11 @@ public class ClipRepository {
         jdbcTemplate.update(sql, title, notes, gameId, isPublic != null ? isPublic : true, id);
     }
     
+    public void updateIsPublic(Long clipId, boolean isPublic) {
+        String sql = "UPDATE clips SET is_public = ? WHERE id = ?";
+        jdbcTemplate.update(sql, isPublic, clipId);
+    }
+    
     public void clearTagsForClip(Long clipId) {
         String sql = "DELETE FROM clip_tags WHERE clip_id = ?";
         jdbcTemplate.update(sql, clipId);

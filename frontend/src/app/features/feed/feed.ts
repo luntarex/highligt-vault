@@ -8,14 +8,17 @@ import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card'
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { ClipService } from '../../core/services/clip.service';
 import { CommonModule } from '@angular/common';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
+import { ClipPickerModal } from '../../shared/clip-picker-modal/clip-picker-modal';
+import { Clip } from '../../core/models/clip';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -45,15 +48,38 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   suggestedUsers: any[] = [];
   loadingSuggestions = true;
 
+  showClipPickerModal = false;
+  unpostedClips: Clip[] = [];
+
   constructor(
     private exploreService: ExploreService,
     private commentService: CommentService,
     public authService: AuthService,
     private userService: UserService,
     private profileService: ProfileService,
+    private clipService: ClipService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) { }
+
+  openAddPostModal(): void {
+    const userId = this.authService.getCurrentUserId();
+    this.clipService.getClips(userId).subscribe((clips: Clip[]) => {
+      // Filter out clips that are public (already posted)
+      this.unpostedClips = clips.filter((c: Clip) => !c.isPublic && !c.isDeleted);
+      this.showClipPickerModal = true;
+      this.cdr.detectChanges();
+    });
+  }
+
+  onClipPickerCancel(): void {
+    this.showClipPickerModal = false;
+  }
+
+  onClipPickerConfirm(clip: Clip): void {
+    this.showClipPickerModal = false;
+    this.router.navigate(['/add-post', clip.id]);
+  }
 
   ngOnInit(): void {
     this.loadFeed();
@@ -179,8 +205,15 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   }
 
   deletePost(post: ExplorePost) {
-    this.exploreService.deletePost(post.id);
-    this.feed = this.feed.filter(p => p.id !== post.id);
+    this.exploreService.deletePost(post.id).subscribe({
+      next: () => {
+        this.feed = this.feed.filter(p => p.id !== post.id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to delete post:', err);
+      }
+    });
   }
 
   onTimeUpdate(data: { post: ExplorePost; video: HTMLVideoElement }) {

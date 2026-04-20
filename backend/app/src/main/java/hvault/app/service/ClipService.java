@@ -73,7 +73,7 @@ public class ClipService {
         Long uploaderId = clipData.get("uploaderId") != null ? Long.valueOf(clipData.get("uploaderId").toString()) : 1L;
         String gameName = (String) clipData.get("game");
         Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
-        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
+        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : false;
 
         Long clipId = clipRepository.insertClip(title, videoUrl, thumbnailUrl, duration, startTime, endTime, notes, uploaderId, gameId, isPublic);
 
@@ -84,9 +84,7 @@ public class ClipService {
             }
         }
         
-        if (Boolean.TRUE.equals(isPublic)) {
-            postService.createPost(uploaderId, clipId, title);
-        }
+        // Auto-posting is suppressed here; explicit Add Post page handles it.
     }
 
     @SuppressWarnings("unchecked")
@@ -95,18 +93,11 @@ public class ClipService {
         String notes = (String) clipData.get("notes");
         String gameName = (String) clipData.get("game");
         Long gameId = clipRepository.getGameIdByNameOrCreate(gameName);
-        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : true;
+        Boolean isPublic = clipData.get("isPublic") != null ? (Boolean) clipData.get("isPublic") : false;
         
         clipRepository.updateClip(id, title, notes, gameId, isPublic);
         
-        // Handle explore post visibility: create or remove post based on isPublic
-        if (Boolean.TRUE.equals(isPublic)) {
-            // If making public and no post exists, create one
-            if (!postService.hasPostForClip(id)) {
-                Long uploaderId = clipData.get("uploaderId") != null ? Long.valueOf(clipData.get("uploaderId").toString()) : 1L;
-                postService.createPost(uploaderId, id, title);
-            }
-        } else {
+        if (!Boolean.TRUE.equals(isPublic)) {
             // If making private, remove from explore
             postService.deletePostsByClipId(id);
         }

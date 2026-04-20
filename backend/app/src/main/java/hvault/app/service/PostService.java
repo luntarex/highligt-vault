@@ -118,6 +118,14 @@ public class PostService {
         postRepository.deleteByClipId(clipId);
     }
 
+    public void deletePost(Long postId) {
+        Long clipId = postRepository.getClipIdByPostId(postId);
+        if (clipId != null) {
+            postRepository.deletePost(postId);
+            clipRepository.updateIsPublic(clipId, false);
+        }
+    }
+
     public boolean hasPostForClip(Long clipId) {
         return postRepository.existsByClipId(clipId);
     }
