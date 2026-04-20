@@ -113,6 +113,18 @@ public class PostRepository {
         jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", clipId);
     }
 
+    public Long getClipIdByPostId(Long postId) {
+        String sql = "SELECT clip_id FROM posts WHERE id = ?";
+        List<Long> results = jdbcTemplate.queryForList(sql, Long.class, postId);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+    public void deletePost(Long postId) {
+        jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
+        jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
+        jdbcTemplate.update("DELETE FROM posts WHERE id = ?", postId);
+    }
+
     public boolean existsByClipId(Long clipId) {
         String sql = "SELECT COUNT(*) FROM posts WHERE clip_id = ?";
         int count = jdbcTemplate.queryForObject(sql, Integer.class, clipId);

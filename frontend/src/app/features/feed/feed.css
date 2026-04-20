@@ -736,3 +736,33 @@
   padding: 12px;
   cursor: pointer;
 }
+
+/* === ADD POST FAB === */
+.add-post-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-purple), #8B5CF6);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.add-post-fab:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+}
+
+.add-post-fab svg {
+  width: 28px;
+  height: 28px;
+}

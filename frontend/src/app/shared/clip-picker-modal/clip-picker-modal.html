@@ -1,0 +1,68 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h2>Select a Clip to Post</h2>
+        <p class="subtitle">Choose an unposted clip from your vault to share on the feed.</p>
+      </div>
+      <button class="close-icon" (click)="onCancel()">&times;</button>
+    </div>
+
+    <div class="search-bar-container">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search unposted clips..."
+        [(ngModel)]="searchQuery"
+      >
+    </div>
+
+    <div class="clip-list">
+      <div *ngIf="filteredClips.length === 0" style="padding: 20px; text-align: center; color: #888;">
+        No unposted clips available.
+      </div>
+      <div
+        class="clip-item"
+        *ngFor="let clip of filteredClips"
+        [class.selected]="isSelected(clip.id)"
+        (click)="selectClip(clip.id)"
+      >
+        <div class="checkbox-container">
+            <div class="custom-checkbox" [class.checked]="isSelected(clip.id)">
+                <svg *ngIf="isSelected(clip.id)" viewBox="0 0 24 24" fill="none" class="check-svg" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <div class="thumbnail-container">
+             <img class="thumbnail-img" [src]="clip.thumbnailUrl" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <div class="clip-info">
+            <div class="clip-title">{{ clip.title }}</div>
+            <div class="clip-meta">
+                <span class="game-name">{{ clip.game || 'Unknown Game' }}</span>
+                <span class="meta-separator">·</span>
+                <span class="duration">{{ formatDuration(clip.duration) }}</span>
+            </div>
+        </div>
+
+        <div class="clip-tags" *ngIf="clip.tags?.length">
+            <span class="tag-badge" *ngFor="let tag of clip.tags" [attr.data-tag]="tag.toLowerCase()">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="selection-status">
+        <span *ngIf="selectedClipId === null">Select a clip to continue</span>
+        <span *ngIf="selectedClipId !== null" style="color: var(--accent-purple);">1 clip selected</span>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-cancel" (click)="onCancel()">Cancel</button>
+        <button class="btn-confirm" [disabled]="selectedClipId === null" (click)="onConfirm()" [style.opacity]="selectedClipId === null ? 0.5 : 1">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>

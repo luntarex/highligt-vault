@@ -65,18 +65,6 @@ class = "video-player"
         <textarea [(ngModel)]="clip.notes" rows="4"></textarea>
       </div>
 
-      <div class="form-group">
-        <label>Visibility</label>
-        <div class="toggle-container" style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
-          <label class="toggle-switch">
-            <input type="checkbox" [(ngModel)]="clip.isPublic">
-            <span class="slider"></span>
-          </label>
-          <span style="font-size: 0.9rem; color: hsl(var(--muted-foreground));">
-            {{ clip.isPublic ? 'Public (Visible in Explore)' : 'Private (Only in your Vault)' }}
-          </span>
-        </div>
-      </div>
 
       <div class="form-group">
         <label>Tags</label>
