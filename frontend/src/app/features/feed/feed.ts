@@ -552,32 +552,42 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   moderateDelete(): void {
     if (!this.commentToModerate) return;
-    this.executeDeleteComment(this.commentToModerate);
-    this.closeModerateModal();
+    const targetId = Number(this.commentToModerate.id);
+    this.commentService.removeCommentViolation(targetId).subscribe(() => {
+        const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
+        updatedComments.forEach(c => {
+          if (c.replies) {
+             c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
+          }
+        });
+        this.comments = updatedComments;
+        if (this.activePostForComments) {
+          this.activePostForComments.comments--;
+        }
+        this.closeModerateModal();
+        this.cdr.detectChanges();
+    });
   }
 
   moderateTosViolation(): void {
     if (!this.commentToModerate) return;
-    this.commentService.updateComment(this.commentToModerate.id, this.tosViolationText).subscribe({
+    const targetId = Number(this.commentToModerate.id);
+    this.commentService.removeCommentViolation(targetId).subscribe({
       next: () => {
-        this.comments.forEach(c => {
-           if (c.id === this.commentToModerate.id) {
-               c.text = this.tosViolationText;
-               c.cleanText = this.tosViolationText;
-           }
-           if (c.replies) {
-               c.replies.forEach((r: any) => {
-                   if (r.id === this.commentToModerate.id) {
-                       r.text = this.tosViolationText;
-                       r.cleanText = this.tosViolationText;
-                   }
-               });
-           }
+        const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
+        updatedComments.forEach(c => {
+          if (c.replies) {
+             c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
+          }
         });
+        this.comments = updatedComments;
+        if (this.activePostForComments) {
+          this.activePostForComments.comments--;
+        }
         this.closeModerateModal();
         this.cdr.detectChanges();
       },
-      error: () => console.error('Failed to update comment.')
+      error: () => console.error('Failed to moderate comment.')
     });
   }
 

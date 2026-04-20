@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class CommentRepository {
@@ -85,10 +86,31 @@ public class CommentRepository {
 
     /**
      * REQUIREMENT #5: Remove a comment from the system for violating terms of service.
-     * Uses DELETE.
+    /**
+     * Normal delete for a comment (e.g., self-deletion by owner).
      */
     public int deleteComment(Long id) {
         String sql = "DELETE FROM comments WHERE id = ?";
         return jdbcTemplate.update(sql, id);
+    }
+
+    /**
+     * REQUIREMENT #5: Remove a comment from the system for violating terms of service.
+     * Archives the comment in violated_comments before hard-deleting from comments.
+     */
+    @Transactional
+    public int deleteForViolation(Long id) {
+        // 1. Copy the comment to violated_comments
+        String archiveSql = """
+            INSERT INTO violated_comments (original_comment_id, user_id, post_id, content, original_created_at)
+            SELECT id, user_id, post_id, content, created_at
+            FROM comments
+            WHERE id = ?
+            """;
+        jdbcTemplate.update(archiveSql, id);
+
+        // 2. Delete the comment from the comments table
+        String deleteSql = "DELETE FROM comments WHERE id = ?";
+        return jdbcTemplate.update(deleteSql, id);
     }
 }

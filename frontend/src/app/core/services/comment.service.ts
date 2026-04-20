@@ -50,4 +50,8 @@ export class CommentService {
   removeComment(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+  removeCommentViolation(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/violation`);
+  }
 }
