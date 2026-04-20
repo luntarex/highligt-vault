@@ -64,14 +64,20 @@ public class CommentController {
         return ResponseEntity.ok(Map.of("message", "Comment updated successfully"));
     }
 
-    /**
-     * DELETE /api/comments/{id}
-     * Remove a comment from the system for violating terms of service.
-     * REQUIREMENT #5: DELETE query — remove a row of data
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable Long id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.ok(Map.of("message", "Comment deleted successfully"));
+    }
+
+    /**
+     * DELETE /api/comments/{id}/violation
+     * Remove a comment from the system for violating terms of service.
+     * REQUIREMENT #5: Hard removal via DELETE query
+     */
+    @DeleteMapping("/{id}/violation")
+    public ResponseEntity<?> deleteCommentViolation(@PathVariable Long id) {
         commentService.deleteCommentViolation(id);
-        return ResponseEntity.ok(Map.of("message", "Comment removed for TOS violation"));
+        return ResponseEntity.ok(Map.of("message", "Comment removed and archived for TOS violation"));
     }
 }

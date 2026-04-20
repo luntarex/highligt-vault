@@ -127,3 +127,13 @@ CREATE TABLE IF NOT EXISTS user_favorites (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS violated_comments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    original_comment_id BIGINT,
+    user_id BIGINT NOT NULL,
+    post_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    violation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    original_created_at TIMESTAMP
+);

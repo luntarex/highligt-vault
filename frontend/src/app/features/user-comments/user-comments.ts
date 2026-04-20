@@ -25,9 +25,9 @@ export class UserComments implements OnInit {
   tosViolationText: string = '[This comment is deleted by an admin because of a TOS violation]';
 
   constructor(
-    private commentService: CommentService, 
-    private route: ActivatedRoute, 
-    private userService: UserService, 
+    private commentService: CommentService,
+    private route: ActivatedRoute,
+    private userService: UserService,
     private authService: AuthService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
@@ -68,10 +68,10 @@ export class UserComments implements OnInit {
 
   moderateDelete(): void {
     if (!this.commentToModerate) return;
-    this.commentService.removeComment(this.commentToModerate.id).subscribe({
+    this.commentService.removeCommentViolation(this.commentToModerate.id).subscribe({
       next: () => {
         this.comments = this.comments.filter(c => c.id !== this.commentToModerate?.id);
-        this.toast.success('Comment deleted successfully.');
+        this.toast.success('Comment removed and archived (Hard Delete).');
         this.closeModerateModal();
       },
       error: () => this.toast.error('Failed to delete comment.')
@@ -80,14 +80,13 @@ export class UserComments implements OnInit {
 
   moderateTosViolation(): void {
     if (!this.commentToModerate) return;
-    this.commentService.updateComment(this.commentToModerate.id, this.tosViolationText).subscribe({
+    this.commentService.removeCommentViolation(this.commentToModerate.id).subscribe({
       next: () => {
-        const comment = this.comments.find(c => c.id === this.commentToModerate?.id);
-        if (comment) comment.content = this.tosViolationText;
-        this.toast.success('Comment marked as TOS violation.');
+        this.comments = this.comments.filter(c => c.id !== this.commentToModerate?.id);
+        this.toast.success('Comment removed and archived for TOS violation.');
         this.closeModerateModal();
       },
-      error: () => this.toast.error('Failed to update comment.')
+      error: () => this.toast.error('Failed to moderate comment.')
     });
   }
 }

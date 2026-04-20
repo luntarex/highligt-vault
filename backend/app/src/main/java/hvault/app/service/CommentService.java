@@ -30,7 +30,11 @@ public class CommentService {
         commentRepository.updateContent(id, newContent);
     }
 
-    public void deleteCommentViolation(Long id) {
+    public void deleteComment(Long id) {
         commentRepository.deleteComment(id);
+    }
+
+    public void deleteCommentViolation(Long id) {
+        commentRepository.deleteForViolation(id);
     }
 }
