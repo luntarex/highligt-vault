@@ -8,8 +8,6 @@ import { UserService } from '../../core/services/user.service';
 import { Message, Conversation } from '../../core/models/message.model';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
-import { ProfileService } from '../../core/services/profile.service';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-messages',
@@ -40,8 +38,7 @@ export class MessagesComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private userService: UserService,
-    private profileService: ProfileService
+    private userService: UserService
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
@@ -56,38 +53,13 @@ export class MessagesComponent implements OnInit {
   }
 
   loadConversations(): void {
-    forkJoin({
-      convs: this.messageService.getConversations(this.currentUserId),
-      following: this.profileService.getFollowing(this.currentUserId.toString())
-    }).subscribe(({ convs, following }) => {
-      let combined: Conversation[] = convs.map(c => ({
+    this.messageService.getConversations(this.currentUserId).subscribe(convs => {
+      this.conversations = convs.map(c => ({
         ...c,
         created_at: this.fixDate(c.created_at).toISOString()
       }));
-
-      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-      const convUserIds = new Set(combined.map(c => c.other_user_id));
-
-      const followedConversations: Conversation[] = following
-        .filter(u => !convUserIds.has(u.id))
-        .map(u => ({
-          other_user_id: u.id,
-          username: u.username,
-          profile_photo_url: u.profilePhotoUrl,
-          content: 'No messages yet',
-          created_at: '',
-          is_read: true,
-          sender_id: this.currentUserId
-        } as Conversation));
-
-      followedConversations.sort((a, b) => a.username.localeCompare(b.username));
-
-      this.conversations = [...combined, ...followedConversations];
       this.filteredConversations = this.conversations;
       this.cdr.detectChanges();
-    }, error => {
-      console.error('Error loading conversations or following list:', error);
     });
   }
 
