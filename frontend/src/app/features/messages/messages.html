@@ -20,6 +20,7 @@
       </div>
     </div>
     <div class="conversation-list">
+      <div *ngIf="filteredConversations.length > 0" class="section-title">Recent</div>
       <div *ngFor="let conv of filteredConversations"
            class="conversation-item"
            [class.active]="conv.other_user_id === selectedUserId"
@@ -46,10 +47,27 @@
           </svg>
         </button>
       </div>
-      <div *ngIf="filteredConversations.length === 0 && conversations.length > 0" class="no-results">
-        <p>No conversations found.</p>
+
+      <div *ngIf="filteredFollowing.length > 0" class="section-title">Following</div>
+      <div *ngFor="let fUser of filteredFollowing"
+           class="conversation-item"
+           [class.active]="fUser.id === selectedUserId"
+           (click)="selectUser(fUser.id)">
+        <div class="avatar-wrapper">
+          <img [src]="fUser.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar">
+        </div>
+        <div class="conversation-info">
+          <div class="conv-header">
+            <span class="username">{{ fUser.username }}</span>
+          </div>
+          <p class="last-message">Start a conversation</p>
+        </div>
       </div>
-      <div *ngIf="conversations.length === 0" class="no-messages">
+
+      <div *ngIf="filteredConversations.length === 0 && filteredFollowing.length === 0 && (conversations.length > 0 || followingUsers.length > 0)" class="no-results">
+        <p>No matches found.</p>
+      </div>
+      <div *ngIf="conversations.length === 0 && followingUsers.length === 0" class="no-messages">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>

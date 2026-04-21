@@ -85,6 +85,16 @@
 .conversation-list {
   flex: 1;
   overflow-y: auto;
+  padding: 10px;
+}
+
+.section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: hsl(var(--muted-foreground));
+  padding: 16px 12px 8px;
+  font-weight: 600;
 }
 
 .conversation-item {
