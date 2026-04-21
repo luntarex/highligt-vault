@@ -31,10 +31,10 @@
         <div class="conversation-info">
           <div class="conv-header">
             <span class="username">{{ conv.username }}</span>
-            <span class="time">{{ conv.created_at | date:'HH:mm' }}</span>
+            <span class="time" *ngIf="conv.created_at">{{ conv.created_at | date:'HH:mm' }}</span>
           </div>
           <p class="last-message" [class.unread-text]="!conv.is_read && conv.sender_id !== currentUserId">
-            <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">You: </span>{{ conv.content }}
+            <span *ngIf="conv.sender_id === currentUserId && conv.created_at" class="you-prefix">You: </span>{{ conv.content }}
           </p>
         </div>
         <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
