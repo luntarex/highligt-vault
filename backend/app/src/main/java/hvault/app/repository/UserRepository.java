@@ -40,7 +40,7 @@ public class UserRepository {
 
     // New Auth Methods
     public Map<String, Object> findByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        String sql = "SELECT * FROM users WHERE username = ? AND (isDeleted = FALSE OR isDeleted IS NULL)";
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, username);
         return results.isEmpty() ? null : results.get(0);
     }
