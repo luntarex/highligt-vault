@@ -15,6 +15,7 @@ export class ClipCard {
   @Output() removeClip = new EventEmitter<number>();
   @Output() recoverClip = new EventEmitter<number>();
   @Output() hardDeleteClip = new EventEmitter<number>();
+  @Output() playClip = new EventEmitter<Clip>();
 
   constructor(private router: Router) {}
 
@@ -29,8 +30,10 @@ export class ClipCard {
   }
 
   handleCardClick(event: Event) {
-    if (this.mode === 'library' || this.mode === 'favorites') {
+    if (this.mode === 'library') {
       this.router.navigate(['/clip-editor', this.clip.id]);
+    } else if (this.mode === 'favorites') {
+      this.playClip.emit(this.clip);
     } else if (this.mode === 'trash') {
       this.recoverClip.emit(this.clip.id);
     }
