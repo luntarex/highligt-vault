@@ -8,6 +8,6 @@
 .main-content {
   flex-grow: 1;
   height: 100%;
-  overflow: hidden; 
+  overflow: hidden;
   position: relative;
 }
