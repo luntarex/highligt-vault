@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MessageService } from '../../core/services/message.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { Message, Conversation } from '../../core/models/message.model';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
@@ -19,6 +20,8 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 export class MessagesComponent implements OnInit {
   conversations: Conversation[] = [];
   filteredConversations: Conversation[] = [];
+  followingUsers: any[] = [];
+  filteredFollowing: any[] = [];
   currentConversation: Message[] = [];
   selectedUserId: number | null = null;
   selectedUsername: string = '';
@@ -38,7 +41,8 @@ export class MessagesComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private userService: UserService
+    private userService: UserService,
+    private profileService: ProfileService
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
@@ -59,6 +63,16 @@ export class MessagesComponent implements OnInit {
         created_at: this.fixDate(c.created_at).toISOString()
       }));
       this.filteredConversations = this.conversations;
+      this.loadFollowing();
+      this.cdr.detectChanges();
+    });
+  }
+
+  loadFollowing(): void {
+    this.profileService.getFollowing(this.currentUserId.toString()).subscribe(users => {
+      const convUserIds = new Set(this.conversations.map(c => c.other_user_id));
+      this.followingUsers = users.filter((u: any) => !convUserIds.has(u.id));
+      this.filteredFollowing = this.followingUsers;
       this.cdr.detectChanges();
     });
   }
@@ -67,9 +81,13 @@ export class MessagesComponent implements OnInit {
     const query = this.searchQuery.trim().toLowerCase();
     if (!query) {
       this.filteredConversations = this.conversations;
+      this.filteredFollowing = this.followingUsers;
     } else {
       this.filteredConversations = this.conversations.filter(c =>
         c.username.toLowerCase().includes(query)
+      );
+      this.filteredFollowing = this.followingUsers.filter((u: any) =>
+        u.username.toLowerCase().includes(query)
       );
     }
     this.cdr.detectChanges();
