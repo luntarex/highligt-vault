@@ -1,5 +1,6 @@
 <article class="post-card">
 
+  @if(showHeader){
   <div class="post-header">
     <div class="avatar-wrapper" [routerLink]="['/profile', post.author.id]">
       @if(post.author.profilePhotoUrl){
@@ -33,6 +34,7 @@
       </div>
     }
   </div>
+  }
 
   <div class="post-body">
     @if(isEditingTitle) {
@@ -61,6 +63,8 @@
              class="post-video"
              muted
              playsinline
+             disablePictureInPicture
+             controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
              [attr.data-post-id]="post.id"
              (timeupdate)="onTimeUpdate(videoPlayer)"
              (loadedmetadata)="onMetadataLoaded(videoPlayer)">
@@ -68,11 +72,13 @@
 
       <div class="play-button" [class.hidden]="playingPostId === post.id">▶</div>
 
+      @if(showFullscreen){
       <button class="fullscreen-button" (click)="toggleFullscreen($event); $event.stopPropagation()" title="Fullscreen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
         </svg>
       </button>
+      }
 
       <div class="controls-bar" (click)="$event.stopPropagation()">
         <div class="progress-container" (click)="onSeekTo($event, videoPlayer)">
@@ -99,7 +105,7 @@
       </div>
     </div>
   </div>
-
+  @if(showActions){
   <div class="post-actions">
     <button class="action-btn" [class.liked]="post.isLiked" (click)="onToggleLike()">
       @if (post.isLiked) {
@@ -148,9 +154,11 @@
       </svg>
     </button>
   </div>
+  }
+
 
   <!-- Fullscreen Overlay -->
-  @if (isFullscreen) {
+  @if (showFullscreen && isFullscreen) {
     <div class="fullscreen-overlay" (click)="toggleFullscreen()">
     <div class="fullscreen-backdrop"></div>
 
@@ -159,6 +167,8 @@
         <video #fullscreenVideo
                [src]="post.videoUrl"
                class="fullscreen-video"
+               disablePictureInPicture
+               controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                (timeupdate)="onTimeUpdate(fullscreenVideo)"
                (click)="onTogglePlay(fullscreenVideo)">
         </video>

@@ -8,10 +8,12 @@ import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../core/services/toast.service';
+import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card';
+import { ExplorePost } from '../../core/models/explore-post';
 
 @Component({
   selector: 'app-user-comments',
-  imports: [BackLink, CommonModule],
+  imports: [BackLink, CommonModule, ExplorePostCard],
   templateUrl: './user-comments.html',
   styleUrl: './user-comments.css',
 })
@@ -23,6 +25,9 @@ export class UserComments implements OnInit {
   showModerateModal: boolean = false;
   commentToModerate: Comment | null = null;
   tosViolationText: string = '[This comment is deleted by an admin because of a TOS violation]';
+
+  playingPostId: string | null = null;
+  private animationFrameId: number | null = null;
 
   constructor(
     private commentService: CommentService,
@@ -38,7 +43,11 @@ export class UserComments implements OnInit {
     this.userId = idParam ? Number(idParam) : 0;
 
     this.commentService.getCommentsByUserId(this.userId).subscribe((comments) => {
-      this.comments = comments;
+      this.comments = comments.map(c => ({
+        ...c,
+        currentTime: 0,
+        duration: 0
+      }));
       this.cdr.detectChanges();
     });
 
@@ -48,6 +57,133 @@ export class UserComments implements OnInit {
     });
 
     this.isAdmin = this.authService.isAdmin();
+  }
+
+  ngOnDestroy(): void {
+    this.stopProgressLoop();
+  }
+
+  convertToExplorePost(comment: Comment): ExplorePost {
+    return {
+      id: comment.postId,
+      author: {
+        id: comment.postAuthorId || 0,
+        username: comment.postAuthorName || 'Unknown',
+        profilePhotoUrl: comment.postAuthorPhoto || ''
+      },
+      title: comment.postTitle || 'Untitled Post',
+      videoUrl: comment.postVideoUrl || '',
+      game: comment.postGameName || 'Unknown',
+      likes: 0,
+      comments: 0,
+      isLiked: false,
+      tags: [],
+      duration: comment.postDuration || (comment as any).duration,
+      startTime: comment.postStartTime,
+      endTime: comment.postEndTime,
+      clipId: comment.postId,
+      currentTime: (comment as any).currentTime
+    };
+  }
+
+  handleTogglePlay(data: { post: ExplorePost; video: HTMLVideoElement }) {
+    if (this.playingPostId === data.post.id) {
+      data.video.pause();
+      this.playingPostId = null;
+      this.stopProgressLoop();
+    } else {
+      // Find the comment object to update its local state
+      const comment = this.comments.find(c => c.postId === data.post.id);
+      
+      // Pause all other videos
+      const videos = document.querySelectorAll('video');
+      videos.forEach((v) => v.pause());
+      
+      const start = data.post.startTime || 0;
+      let end = data.post.endTime;
+      if (end === undefined || end === null || end === 0) {
+        end = data.video.duration && !isNaN(data.video.duration) ? data.video.duration : Number.MAX_VALUE;
+      }
+
+      if (data.video.currentTime < start || ((end - start) > 0.1 && data.video.currentTime >= end)) {
+        data.video.currentTime = start;
+      }
+
+      data.video.play();
+      this.playingPostId = data.post.id;
+      if (comment) {
+        this.startProgressLoop(comment, data.video);
+      }
+    }
+  }
+
+  onTimeUpdate(data: { post: ExplorePost; video: HTMLVideoElement }) {
+    if (this.playingPostId !== data.post.id) {
+      const comment = this.comments.find(c => c.postId === data.post.id);
+      if (comment) {
+        (comment as any).currentTime = data.video.currentTime;
+      }
+    }
+  }
+
+  onMetadataLoaded(data: { post: ExplorePost; video: HTMLVideoElement }) {
+    const comment = this.comments.find(c => c.postId === data.post.id);
+    if (comment) {
+      (comment as any).duration = data.video.duration;
+    }
+  }
+
+  onSeekTo(data: { event: MouseEvent; post: ExplorePost; video: HTMLVideoElement }) {
+    data.event.stopPropagation();
+    const container = data.event.currentTarget as HTMLElement;
+    const rect = container.getBoundingClientRect();
+    const x = data.event.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+
+    const start = data.post.startTime || 0;
+    const end = data.post.endTime || data.video.duration || 1;
+    const durationRange = end - start;
+
+    const newTime = start + (percentage * durationRange);
+
+    data.video.currentTime = newTime;
+    const comment = this.comments.find(c => c.postId === data.post.id);
+    if (comment) {
+      (comment as any).currentTime = newTime;
+    }
+  }
+
+  handleToggleMute(data: { event: MouseEvent; video: HTMLVideoElement }) {
+    data.event.stopPropagation();
+    data.video.muted = !data.video.muted;
+  }
+
+  private startProgressLoop(comment: any, video: HTMLVideoElement) {
+    this.stopProgressLoop();
+    const update = () => {
+      comment.currentTime = video.currentTime;
+
+      const start = comment.postStartTime || 0;
+      let end = comment.postEndTime;
+      if (end === undefined || end === null || end === 0) {
+        end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
+      }
+
+      if ((end - start) > 0.1 && video.currentTime >= end) {
+        video.currentTime = start;
+        video.play().catch(e => console.error("Replay error", e));
+      }
+
+      this.animationFrameId = requestAnimationFrame(update);
+    };
+    this.animationFrameId = requestAnimationFrame(update);
+  }
+
+  private stopProgressLoop() {
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
   }
 
   isTosViolation(content: string): boolean {

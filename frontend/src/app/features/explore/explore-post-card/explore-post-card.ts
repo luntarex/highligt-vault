@@ -15,6 +15,9 @@ import { ExploreService } from '../../../core/services/explore.service';
 export class ExplorePostCard {
   @Input() post!: ExplorePost;
   @Input() playingPostId: string | null = null;
+  @Input() showActions = true;
+  @Input() showHeader = true;
+  @Input() showFullscreen = true;
 
   isEditingTitle = false;
   editedTitle = '';
@@ -22,7 +25,7 @@ export class ExplorePostCard {
   private fsAnimationFrameId: number | null = null;
 
   constructor(
-    public authService: AuthService, 
+    public authService: AuthService,
     private exploreService: ExploreService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -78,7 +81,7 @@ export class ExplorePostCard {
     this.stopFsProgressLoop();
     const update = () => {
       this.post.currentTime = video.currentTime;
-      
+
       const start = this.post.startTime || 0;
       let end = this.post.endTime;
       if (end === undefined || end === null || end === 0) {
@@ -106,17 +109,17 @@ export class ExplorePostCard {
     if (event) {
       event.stopPropagation();
     }
-    
+
     if (!this.isFullscreen) {
       // Entering fullscreen
       const currentTime = this.videoElement?.currentTime || 0;
       const isPlaying = !this.videoElement?.paused;
-      
+
       // Pause original video to prevent double sound
       this.videoElement?.pause();
-      
+
       this.isFullscreen = true;
-      
+
       // We need to wait for the next tick for ViewChild to be available
       setTimeout(() => {
         if (this.fullscreenVideoRef) {
@@ -137,10 +140,10 @@ export class ExplorePostCard {
       this.stopFsProgressLoop();
       if (this.fullscreenVideoRef && this.videoElement) {
         const fsVideo = this.fullscreenVideoRef.nativeElement;
-        
+
         // Transfer state back
         this.videoElement.currentTime = fsVideo.currentTime;
-        
+
         if (!fsVideo.paused) {
           // Pause fullscreen video before it's destroyed
           fsVideo.pause();
@@ -169,7 +172,7 @@ export class ExplorePostCard {
 
   onTogglePlay(video: HTMLVideoElement) {
     this.togglePlayEvent.emit({ post: this.post, video });
-    
+
     // Manage local progress loop for fullscreen video
     if (this.isFullscreen) {
       // We use a small delay to allow the video.paused state to update

@@ -10,4 +10,14 @@ export interface Comment {
   isRemoved?: boolean;
   cleanText?: string;
   replyTargetUsername?: string;
+  postTitle?: string;
+  postThumbnail?: string;
+  postVideoUrl?: string;
+  postDuration?: number;
+  postStartTime?: number;
+  postEndTime?: number;
+  postGameName?: string;
+  postAuthorName?: string;
+  postAuthorPhoto?: string;
+  postAuthorId?: number;
 }

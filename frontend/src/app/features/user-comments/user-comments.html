@@ -5,21 +5,36 @@
     </div>
     <div class="comments-list">
         @for(comment of comments; track comment.id){
-            <div class="comment" [class.tos-violation]="isTosViolation(comment.content)" style="position: relative;">
-                <div class="admin-actions" *ngIf="isAdmin && !user?.isAdmin && !isTosViolation(comment.content)" style="position: absolute; top: 16px; right: 16px; z-index: 5;">
-                  <button (click)="openModerateModal(comment)" class="moderate-btn">
-                    Moderate
-                  </button>
-                </div>
-                <div class="comment-author">
-                    <img [src]="user?.profilePhotoUrl" alt="">
-                    <div class="comment-author-info">
-                        <span class="comment-author-name">{{user?.username}}</span>
-                        <span class="comment-author-time">{{comment.timeAgo}}</span>
+            <div class="comment-group">
+                <app-explore-post-card 
+                    [post]="convertToExplorePost(comment)"
+                    [playingPostId]="playingPostId"
+                    [showActions]="false"
+                    [showHeader]="false"
+                    [showFullscreen]="false"
+                    (togglePlayEvent)="handleTogglePlay($event)"
+                    (toggleMuteEvent)="handleToggleMute($event)"
+                    (seekToEvent)="onSeekTo($event)"
+                    (timeUpdateEvent)="onTimeUpdate($event)"
+                    (metadataLoadedEvent)="onMetadataLoaded($event)">
+                </app-explore-post-card>
+
+                <div class="comment-bubble" [class.tos-violation]="isTosViolation(comment.content)">
+                    <div class="comment-author">
+                        <img [src]="user?.profilePhotoUrl" alt="">
+                        <div class="comment-author-info">
+                            <span class="comment-author-name">{{user?.username}}</span>
+                            <span class="comment-author-time">{{comment.timeAgo}}</span>
+                        </div>
+                        <div class="admin-actions" *ngIf="isAdmin && !user?.isAdmin && !isTosViolation(comment.content)">
+                            <button (click)="openModerateModal(comment)" class="moderate-btn">
+                                Moderate
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="comment-content">
-                    <p>{{comment.content}}</p>
+                    <div class="comment-content">
+                        <p>{{comment.content}}</p>
+                    </div>
                 </div>
             </div>
         }
