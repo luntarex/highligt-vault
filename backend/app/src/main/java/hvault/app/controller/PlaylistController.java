@@ -1,7 +1,10 @@
 package hvault.app.controller;
 
-import hvault.app.service.PlaylistService;
+import hvault.app.dto.CreatePlaylistRequest;
 import hvault.app.dto.PlaylistResponse;
+import hvault.app.dto.UpdatePlaylistRequest;
+import hvault.app.service.PlaylistService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +21,6 @@ public class PlaylistController {
         this.playlistService = playlistService;
     }
 
-    /**
-     * GET /api/playlists/user/{userId}
-     * Get all playlists belonging to a user.
-     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getPlaylistsByUserId(@PathVariable Long userId) {
         try {
@@ -32,10 +31,6 @@ public class PlaylistController {
         }
     }
 
-    /**
-     * GET /api/playlists/{id}
-     * Get a playlist with its items.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlaylistById(@PathVariable Long id) {
         try {
@@ -48,45 +43,26 @@ public class PlaylistController {
         }
     }
 
-    /**
-     * POST /api/playlists
-     * Create a new playlist.
-     */
     @PostMapping
-    public ResponseEntity<?> createPlaylist(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> createPlaylist(@Valid @RequestBody CreatePlaylistRequest request) {
         try {
-            Long userId = Long.valueOf(request.get("userId").toString());
-            String name = (String) request.get("name");
-            String description = (String) request.get("description");
-            
-            Long id = playlistService.createPlaylist(userId, name, description);
+            Long id = playlistService.createPlaylist(request.getUserId(), request.getName(), request.getDescription());
             return ResponseEntity.ok(Map.of("message", "Playlist created successfully", "id", id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * PUT /api/playlists/{id}
-     * Update playlist info (name, description).
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePlaylist(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> updatePlaylist(@PathVariable Long id, @RequestBody UpdatePlaylistRequest request) {
         try {
-            String name = (String) request.get("name");
-            String description = (String) request.get("description");
-            
-            playlistService.updatePlaylist(id, name, description);
+            playlistService.updatePlaylist(id, request.getName(), request.getDescription());
             return ResponseEntity.ok(Map.of("message", "Playlist updated successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * DELETE /api/playlists/{id}
-     * Delete a playlist.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePlaylist(@PathVariable Long id) {
         try {
@@ -97,10 +73,6 @@ public class PlaylistController {
         }
     }
 
-    /**
-     * POST /api/playlists/{id}/clips/{clipId}
-     * Add a clip to a playlist.
-     */
     @PostMapping("/{id}/clips/{clipId}")
     public ResponseEntity<?> addClipToPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
         try {
@@ -111,10 +83,6 @@ public class PlaylistController {
         }
     }
 
-    /**
-     * DELETE /api/playlists/{id}/clips/{clipId}
-     * Remove a clip from a playlist.
-     */
     @DeleteMapping("/{id}/clips/{clipId}")
     public ResponseEntity<?> removeClipFromPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
         try {

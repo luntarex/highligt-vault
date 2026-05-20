@@ -1,10 +1,13 @@
 package hvault.app.controller;
 
+import hvault.app.dto.LoginRequest;
+import hvault.app.dto.LoginResponse;
+import hvault.app.dto.RegisterRequest;
 import hvault.app.exception.AuthRegistrationException;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import hvault.app.dto.LoginResponse;
 import java.util.Map;
 
 @RestController
@@ -22,13 +25,9 @@ public class AuthController {
      * Expects: { username, email, password, confirmPassword }
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String email = request.get("email");
-        String password = request.get("password");
-        
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            authService.register(username, email, password);
+            authService.register(request.getUsername(), request.getEmail(), request.getPassword());
             return ResponseEntity.ok(Map.of("message", "User registered successfully", "success", true));
         } catch (AuthRegistrationException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
@@ -46,11 +45,8 @@ public class AuthController {
      * Expects: { username, password }
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String password = request.get("password");
-        
-        LoginResponse user = authService.login(username, password);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse user = authService.login(request.getUsername(), request.getPassword());
         if (user != null) {
             return ResponseEntity.ok(user);
         } else {
@@ -58,4 +54,3 @@ public class AuthController {
         }
     }
 }
-

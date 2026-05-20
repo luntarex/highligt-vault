@@ -1,11 +1,13 @@
 package hvault.app.controller;
 
+import hvault.app.dto.CreatePostRequest;
+import hvault.app.dto.PostFeedResponse;
+import hvault.app.dto.UpdatePostRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
-import hvault.app.dto.PostFeedResponse;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -17,11 +19,6 @@ public class PostController {
         this.postService = postService;
     }
 
-    /**
-     * GET /api/posts
-     * Get explore feed — all public posts.
-     * Optionally pass ?userId= to include isLiked per post.
-     */
     @GetMapping
     public ResponseEntity<?> getAllPosts(@RequestParam(required = false) Long userId) {
         if (userId != null) {
@@ -30,19 +27,11 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
-    /**
-     * GET /api/posts/following
-     * Get feed of posts from users the current user follows.
-     */
     @GetMapping("/following")
     public ResponseEntity<?> getFollowingFeed(@RequestParam Long userId) {
         return ResponseEntity.ok(postService.getFollowingFeed(userId));
     }
 
-    /**
-     * GET /api/posts/{id}
-     * Get a single post by ID.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable Long id) {
         return ResponseEntity.ok(Map.of(
@@ -52,67 +41,36 @@ public class PostController {
                 "clipId", 1));
     }
 
-    /**
-     * POST /api/posts
-     * Add a new post.
-     * REQUIREMENT #4: INSERT query — add a row of data
-     */
     @PostMapping
-    public ResponseEntity<?> createPost(@RequestBody Map<String, Object> request) {
-        Long userId = Long.valueOf(request.get("userId").toString());
-        Long clipId = Long.valueOf(request.get("clipId").toString());
-        String caption = (String) request.get("caption");
-
-        Long id = postService.createPost(userId, clipId, caption);
+    public ResponseEntity<?> createPost(@Valid @RequestBody CreatePostRequest request) {
+        Long id = postService.createPost(request.getUserId(), request.getClipId(), request.getCaption());
         return ResponseEntity.ok(Map.of("message", "Post created successfully", "id", id));
     }
 
-    /**
-     * PUT /api/posts/{id}
-     * Edit the caption of a post.
-     * REQUIREMENT #3: UPDATE query — change an existing value
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        String caption = (String) request.get("caption");
-        postService.updatePostCaption(id, caption);
+    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody UpdatePostRequest request) {
+        postService.updatePostCaption(id, request.getCaption());
         return ResponseEntity.ok(Map.of("message", "Post updated successfully"));
     }
 
-    /**
-     * DELETE /api/posts/{id}
-     * Delete a post.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
     }
 
-    /**
-     * POST /api/posts/{id}/like
-     * Like a post.
-     */
     @PostMapping("/{id}/like")
     public ResponseEntity<?> likePost(@PathVariable Long id, @RequestParam Long userId) {
         postService.likePost(id, userId);
         return ResponseEntity.ok(Map.of("message", "Post liked"));
     }
 
-    /**
-     * DELETE /api/posts/{id}/like
-     * Unlike a post.
-     */
     @DeleteMapping("/{id}/like")
     public ResponseEntity<?> unlikePost(@PathVariable Long id, @RequestParam Long userId) {
         postService.unlikePost(id, userId);
         return ResponseEntity.ok(Map.of("message", "Post unliked"));
     }
 
-    /**
-     * GET /api/posts/clip/{clipId}
-     * Get post details by clip ID.
-     */
     @GetMapping("/clip/{clipId}")
     public ResponseEntity<?> getPostByClipId(@PathVariable Long clipId, @RequestParam(required = false) Long userId) {
         PostFeedResponse post = postService.getPostByClipId(clipId, userId);

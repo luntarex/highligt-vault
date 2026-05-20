@@ -1,14 +1,13 @@
 package hvault.app.controller;
 
+import hvault.app.dto.UpdateUserProfileRequest;
+import hvault.app.dto.UserListResponse;
+import hvault.app.dto.UserProfileResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
-import hvault.app.dto.UserListResponse;
-import hvault.app.dto.UserProfileResponse;
-
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,65 +19,40 @@ public class UserController {
         this.userService = userService;
     }
 
-    /**
-     * GET /api/users
-     * List all users with their post count.
-     * REQUIREMENT #2: Aggregate query — COUNT + GROUP BY
-     */
     @GetMapping
     public ResponseEntity<?> getAllUsersWithPostCount() {
         List<UserListResponse> users = userService.getAllUsersWithPostCount();
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * GET /api/users/{id}
-     * Get a single user by ID.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         UserProfileResponse user = userService.getUserById(id);
         if (user != null) {
             return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
     }
 
-    /**
-     * PUT /api/users/{id}
-     * Update user profile.
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        String description = (String) request.get("description");
-        String profilePhotoUrl = (String) request.get("profilePhotoUrl");
-        
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserProfileRequest request) {
         try {
-            boolean updated = userService.updateProfile(id, username, description, profilePhotoUrl);
+            boolean updated = userService.updateProfile(id, request.getUsername(), request.getDescription(), request.getProfilePhotoUrl());
             if (updated) {
                 return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
-            } else {
-                return ResponseEntity.notFound().build();
             }
+            return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * GET /api/users/{id}
-     * Delete a user (admin only).
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.deleteUser(id);
         if (deleted) {
             return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
     }
-
 }
