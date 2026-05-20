@@ -1,6 +1,7 @@
 package hvault.app.controller;
 
 import hvault.app.service.PlaylistService;
+import hvault.app.dto.PlaylistResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class PlaylistController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getPlaylistsByUserId(@PathVariable Long userId) {
         try {
-            List<Map<String, Object>> playlists = playlistService.getPlaylistsByUserId(userId);
+            List<PlaylistResponse> playlists = playlistService.getPlaylistsByUserId(userId);
             return ResponseEntity.ok(playlists);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -38,7 +39,7 @@ public class PlaylistController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlaylistById(@PathVariable Long id) {
         try {
-            Map<String, Object> playlist = playlistService.getPlaylistById(id);
+            PlaylistResponse playlist = playlistService.getPlaylistById(id);
             return ResponseEntity.ok(playlist);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

@@ -2,8 +2,10 @@ package hvault.app.repository;
 
 import hvault.app.entity.Clip;
 import hvault.app.enums.VisibilityStatus;
+import hvault.app.repository.projection.ClipView;
+import hvault.app.repository.projection.CommentedClipView;
+import hvault.app.repository.projection.ModerationQueueItemView;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +18,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
 
     @Query(value = """
         SELECT DISTINCT c.id, c.title, c.video_url, c.thumbnail_url, c.duration,
-               c.start_time, c.end_time, g.name AS game_name
+               c.start_time AS startTime, c.end_time AS endTime, g.name AS gameName
         FROM comments cm
         JOIN posts p ON cm.post_id = p.id
         JOIN clips c ON p.clip_id = c.id
@@ -24,7 +26,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         WHERE cm.user_id = :userId
         ORDER BY c.title ASC
         """, nativeQuery = true)
-    List<Map<String, Object>> findClipsCommentedByUser(@Param("userId") Long userId);
+    List<CommentedClipView> findClipsCommentedByUser(@Param("userId") Long userId);
 
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
@@ -40,7 +42,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         WHERE c.uploader_id = :uploaderId AND (c.is_deleted = false OR c.is_deleted IS NULL)
         ORDER BY c.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findAllByUserId(@Param("uploaderId") Long uploaderId);
+    List<ClipView> findAllByUserId(@Param("uploaderId") Long uploaderId);
 
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
@@ -56,7 +58,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
           AND c.visibility_status = 'PUBLIC'
         ORDER BY uf.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findFavoritesByUserId(@Param("userId") Long userId);
+    List<ClipView> findFavoritesByUserId(@Param("userId") Long userId);
 
     @Transactional
     @Modifying
@@ -89,7 +91,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         WHERE c.is_deleted = false OR c.is_deleted IS NULL
         ORDER BY c.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findAllClips();
+    List<ClipView> findAllClips();
 
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
@@ -104,10 +106,10 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         LEFT JOIN games g ON c.game_id = g.id
         WHERE c.id = :id AND (c.is_deleted = false OR c.is_deleted IS NULL)
         """, nativeQuery = true)
-    List<Map<String, Object>> findClipRowsById(@Param("id") Long id);
+    List<ClipView> findClipRowsById(@Param("id") Long id);
 
-    default Map<String, Object> findClipDetailsById(Long id) {
-        List<Map<String, Object>> rows = findClipRowsById(id);
+    default ClipView findClipDetailsById(Long id) {
+        List<ClipView> rows = findClipRowsById(id);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
@@ -175,7 +177,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         WHERE c.uploader_id = :uploaderId AND c.is_deleted = true
         ORDER BY c.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findAllDeletedByUserId(@Param("uploaderId") Long uploaderId);
+    List<ClipView> findAllDeletedByUserId(@Param("uploaderId") Long uploaderId);
 
     @Transactional
     @Modifying
@@ -231,7 +233,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
           AND c.moderation_status IN ('PENDING_REVIEW', 'NEEDS_MANUAL_REVIEW', 'APPEALED')
         ORDER BY c.created_at ASC
         """, nativeQuery = true)
-    List<Map<String, Object>> findModerationQueue();
+    List<ModerationQueueItemView> findModerationQueue();
 
     @Transactional
     @Modifying

@@ -1,8 +1,8 @@
 package hvault.app.repository;
 
 import hvault.app.entity.Comment;
+import hvault.app.repository.projection.CommentView;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query(value = """
-        SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
+        SELECT c.id, c.content, c.created_at AS createdAt, c.user_id AS userId, c.post_id AS postId,
                c.post_comment_id AS parentCommentId,
                u.username, u.profile_photo_url AS profilePhoto
         FROM comments c
@@ -22,10 +22,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         WHERE c.post_id = :postId
         ORDER BY c.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findByPostId(@Param("postId") Long postId);
+    List<CommentView> findByPostId(@Param("postId") Long postId);
 
     @Query(value = """
-        SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
+        SELECT c.id, c.content, c.created_at AS createdAt, c.user_id AS userId, c.post_id AS postId,
                c.post_comment_id AS parentCommentId,
                u.username, u.profile_photo_url AS profilePhoto,
                cl.title AS postTitle, cl.thumbnail_url AS postThumbnail,
@@ -42,7 +42,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         WHERE c.user_id = :userId
         ORDER BY c.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findByUserId(@Param("userId") Long userId);
+    List<CommentView> findByUserId(@Param("userId") Long userId);
 
     @Transactional
     @Modifying

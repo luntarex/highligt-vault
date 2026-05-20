@@ -1,8 +1,9 @@
 package hvault.app.repository;
 
 import hvault.app.entity.Playlist;
+import hvault.app.repository.projection.PlaylistClipView;
+import hvault.app.repository.projection.PlaylistView;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
 
     @Query(value = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE user_id = :userId ORDER BY created_at DESC", nativeQuery = true)
-    List<Map<String, Object>> findPlaylistsByUserId(@Param("userId") Long userId);
+    List<PlaylistView> findPlaylistsByUserId(@Param("userId") Long userId);
 
     @Query(value = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE id = :id", nativeQuery = true)
-    List<Map<String, Object>> findPlaylistRowsById(@Param("id") Long id);
+    List<PlaylistView> findPlaylistRowsById(@Param("id") Long id);
 
-    default Map<String, Object> findPlaylistById(Long id) {
-        List<Map<String, Object>> rows = findPlaylistRowsById(id);
+    default PlaylistView findPlaylistById(Long id) {
+        List<PlaylistView> rows = findPlaylistRowsById(id);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
@@ -34,7 +35,7 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
         WHERE pi.playlist_id = :playlistId AND (c.is_deleted = false OR c.is_deleted IS NULL)
         ORDER BY pi.added_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findClipsByPlaylistId(@Param("playlistId") Long playlistId);
+    List<PlaylistClipView> findClipsByPlaylistId(@Param("playlistId") Long playlistId);
 
     @Transactional
     @Modifying

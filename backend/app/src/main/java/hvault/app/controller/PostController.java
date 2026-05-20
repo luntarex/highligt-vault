@@ -3,8 +3,9 @@ package hvault.app.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
+
+import hvault.app.dto.PostFeedResponse;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -114,7 +115,7 @@ public class PostController {
      */
     @GetMapping("/clip/{clipId}")
     public ResponseEntity<?> getPostByClipId(@PathVariable Long clipId, @RequestParam(required = false) Long userId) {
-        Map<String, Object> post = postService.getPostByClipId(clipId, userId);
+        PostFeedResponse post = postService.getPostByClipId(clipId, userId);
         if (post == null) {
             return ResponseEntity.notFound().build();
         }

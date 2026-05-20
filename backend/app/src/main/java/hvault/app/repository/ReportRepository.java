@@ -1,8 +1,8 @@
 package hvault.app.repository;
 
 import hvault.app.entity.ContentReport;
+import hvault.app.repository.projection.ReportView;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +21,7 @@ public interface ReportRepository extends JpaRepository<ContentReport, Long> {
         WHERE reporter_id = :reporterId
         ORDER BY created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findByReporterId(@Param("reporterId") Long reporterId);
+    List<ReportView> findByReporterId(@Param("reporterId") Long reporterId);
 
     @Query(value = """
         SELECT cr.id, cr.reporter_id AS reporterId, cr.target_type AS targetType,
@@ -34,7 +34,7 @@ public interface ReportRepository extends JpaRepository<ContentReport, Long> {
         WHERE cr.status IN ('OPEN', 'IN_REVIEW')
         ORDER BY cr.created_at ASC
         """, nativeQuery = true)
-    List<Map<String, Object>> findOpenReports();
+    List<ReportView> findOpenReports();
 
     @Transactional
     @Modifying

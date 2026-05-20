@@ -3,8 +3,12 @@ package hvault.app.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
+
+import hvault.app.dto.UserListResponse;
+import hvault.app.dto.UserProfileResponse;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,7 +27,7 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<?> getAllUsersWithPostCount() {
-        List<Map<String, Object>> users = userService.getAllUsersWithPostCount();
+        List<UserListResponse> users = userService.getAllUsersWithPostCount();
         return ResponseEntity.ok(users);
     }
 
@@ -33,7 +37,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        java.util.Map<String, Object> user = userService.getUserById(id);
+        UserProfileResponse user = userService.getUserById(id);
         if (user != null) {
             return ResponseEntity.ok(user);
         } else {

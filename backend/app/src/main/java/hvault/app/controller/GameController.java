@@ -1,6 +1,7 @@
 package hvault.app.controller;
 
 import hvault.app.entity.Game;
+import hvault.app.dto.GameResponse;
 import hvault.app.repository.GameRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,9 @@ public class GameController {
 
     @GetMapping
     public ResponseEntity<?> getGames() {
-        return ResponseEntity.ok(gameRepository.findAllGames());
+        return ResponseEntity.ok(gameRepository.findAllGames().stream()
+            .map(game -> new GameResponse(game.getId(), game.getName(), game.getCoverUrl()))
+            .toList());
     }
 
     @PostMapping
