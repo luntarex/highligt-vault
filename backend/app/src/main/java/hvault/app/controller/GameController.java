@@ -1,31 +1,25 @@
 package hvault.app.controller;
 
+import hvault.app.entity.Game;
+import hvault.app.repository.GameRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final GameRepository gameRepository;
 
-    public GameController(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public GameController(GameRepository gameRepository) {
+        this.gameRepository = gameRepository;
     }
 
     @GetMapping
     public ResponseEntity<?> getGames() {
-        String sql = "SELECT id, name, cover_url FROM games ORDER BY name ASC";
-        List<Map<String, Object>> games = jdbcTemplate.queryForList(sql);
-        return ResponseEntity.ok(games);
+        return ResponseEntity.ok(gameRepository.findAllGames());
     }
 
     @PostMapping
@@ -34,25 +28,16 @@ public class GameController {
         if (name == null || name.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Game name cannot be empty"));
         }
-        
+
         name = name.trim();
-        
-        // Check if exists
-        String checkSql = "SELECT id FROM games WHERE name = ?";
-        List<Long> existing = jdbcTemplate.queryForList(checkSql, Long.class, name);
-        if (!existing.isEmpty()) {
+        if (gameRepository.findByName(name).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Game already exists"));
         }
-        
-        String sql = "INSERT INTO games (name) VALUES (?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        final String finalName = name;
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, finalName);
-            return ps;
-        }, keyHolder);
-        
-        return ResponseEntity.ok(Map.of("id", keyHolder.getKey().longValue(), "name", name, "message", "Game added successfully"));
+
+        Game game = new Game();
+        game.setName(name);
+        Game saved = gameRepository.save(game);
+
+        return ResponseEntity.ok(Map.of("id", saved.getId(), "name", saved.getName(), "message", "Game added successfully"));
     }
 }

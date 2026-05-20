@@ -1,87 +1,76 @@
 package hvault.app.repository;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
-
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import hvault.app.entity.Playlist;
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class PlaylistRepository {
+public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Query(value = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE user_id = :userId ORDER BY created_at DESC", nativeQuery = true)
+    List<Map<String, Object>> findPlaylistsByUserId(@Param("userId") Long userId);
 
-    public PlaylistRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Query(value = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE id = :id", nativeQuery = true)
+    List<Map<String, Object>> findPlaylistRowsById(@Param("id") Long id);
+
+    default Map<String, Object> findPlaylistById(Long id) {
+        List<Map<String, Object>> rows = findPlaylistRowsById(id);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
-    public List<Map<String, Object>> findPlaylistsByUserId(Long userId) {
-        String sql = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE user_id = ? ORDER BY created_at DESC";
-        return jdbcTemplate.queryForList(sql, userId);
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+               pi.added_at AS addedAt
+        FROM clips c
+        JOIN playlist_items pi ON pi.clip_id = c.id
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE pi.playlist_id = :playlistId AND (c.is_deleted = false OR c.is_deleted IS NULL)
+        ORDER BY pi.added_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findClipsByPlaylistId(@Param("playlistId") Long playlistId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE playlists SET name = :name, description = :description WHERE id = :id", nativeQuery = true)
+    void updatePlaylist(@Param("id") Long id, @Param("name") String name, @Param("description") String description);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM playlist_items WHERE playlist_id = :id", nativeQuery = true)
+    void deletePlaylistItems(@Param("id") Long id);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM playlists WHERE id = :id", nativeQuery = true)
+    void deletePlaylistRow(@Param("id") Long id);
+
+    @Transactional
+    default void deletePlaylist(Long id) {
+        deletePlaylistItems(id);
+        deletePlaylistRow(id);
     }
 
-    public Map<String, Object> findPlaylistById(Long id) {
-        String sql = "SELECT id, name, description, user_id as userId, created_at as createdAt FROM playlists WHERE id = ?";
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, id);
-        return results.isEmpty() ? null : results.get(0);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO playlist_items (playlist_id, clip_id) VALUES (:playlistId, :clipId)", nativeQuery = true)
+    void addClipToPlaylist(@Param("playlistId") Long playlistId, @Param("clipId") Long clipId);
 
-    public List<Map<String, Object>> findClipsByPlaylistId(Long playlistId) {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game, 
-                   pi.added_at AS addedAt
-            FROM clips c
-            JOIN playlist_items pi ON pi.clip_id = c.id
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE pi.playlist_id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
-            ORDER BY pi.added_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, playlistId);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM playlist_items WHERE playlist_id = :playlistId AND clip_id = :clipId", nativeQuery = true)
+    void removeClipFromPlaylist(@Param("playlistId") Long playlistId, @Param("clipId") Long clipId);
 
-    public Long createPlaylist(Long userId, String name, String description) {
-        String sql = "INSERT INTO playlists (user_id, name, description) VALUES (?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, userId);
-            ps.setString(2, name);
-            ps.setString(3, description);
-            return ps;
-        }, keyHolder);
-        
-        return keyHolder.getKey().longValue();
-    }
+    @Query(value = "SELECT COUNT(*) FROM playlist_items WHERE playlist_id = :playlistId AND clip_id = :clipId", nativeQuery = true)
+    int countClipInPlaylist(@Param("playlistId") Long playlistId, @Param("clipId") Long clipId);
 
-    public void updatePlaylist(Long id, String name, String description) {
-        String sql = "UPDATE playlists SET name = ?, description = ? WHERE id = ?";
-        jdbcTemplate.update(sql, name, description, id);
-    }
-
-    public void deletePlaylist(Long id) {
-        String sql = "DELETE FROM playlists WHERE id = ?";
-        jdbcTemplate.update(sql, id);
-    }
-
-    public void addClipToPlaylist(Long playlistId, Long clipId) {
-        String sql = "INSERT IGNORE INTO playlist_items (playlist_id, clip_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, playlistId, clipId);
-    }
-
-    public void removeClipFromPlaylist(Long playlistId, Long clipId) {
-        String sql = "DELETE FROM playlist_items WHERE playlist_id = ? AND clip_id = ?";
-        jdbcTemplate.update(sql, playlistId, clipId);
-    }
-
-    public boolean isClipInPlaylist(Long playlistId, Long clipId) {
-        String sql = "SELECT COUNT(*) FROM playlist_items WHERE playlist_id = ? AND clip_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, playlistId, clipId);
-        return count != null && count > 0;
+    default boolean isClipInPlaylist(Long playlistId, Long clipId) {
+        return countClipInPlaylist(playlistId, clipId) > 0;
     }
 }

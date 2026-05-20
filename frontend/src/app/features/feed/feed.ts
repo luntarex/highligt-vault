@@ -65,8 +65,8 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   openAddPostModal(): void {
     const userId = this.authService.getCurrentUserId();
     this.clipService.getClips(userId).subscribe((clips: Clip[]) => {
-      // Filter out clips that are public (already posted)
-      this.unpostedClips = clips.filter((c: Clip) => !c.isPublic && !c.isDeleted);
+      // Filter out clips that are already public/posted.
+      this.unpostedClips = clips.filter((c: Clip) => c.visibilityStatus !== 'PUBLIC' && !c.isDeleted);
       this.showClipPickerModal = true;
       this.cdr.detectChanges();
     });

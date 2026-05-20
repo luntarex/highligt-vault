@@ -84,8 +84,8 @@ export class AddPostPage implements OnInit {
     this.isSubmitting = true;
     this.cdr.detectChanges();
 
-    // 1. Update the clip metadata (isPublic = true and update tags)
-    this.clip.isPublic = true;
+    // 1. Update the clip metadata and mark it visible for the feed.
+    this.clip.visibilityStatus = 'PUBLIC';
     this.clipService.updateClip(this.clip).subscribe({
       next: () => {
         // 2. Create the exact explicit post with the caption

@@ -77,16 +77,4 @@ public class UserController {
         }
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
-    @GetMapping("/debug/schema")
-    public ResponseEntity<?> debugSchema() {
-        try {
-            List<Map<String, Object>> columns = jdbcTemplate.queryForList("DESCRIBE users");
-            return ResponseEntity.ok(columns);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
-    }
 }

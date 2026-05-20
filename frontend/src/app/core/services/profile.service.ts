@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user';
 import { Clip } from '../models/clip';
@@ -17,9 +18,14 @@ export class ProfileService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
-  getUserProfile(id?: string | null): Observable<User> {
+  getUserProfile(id?: string | null): Observable<User | null> {
     const userId = id ? id : this.authService.getCurrentUserId().toString();
-    return this.http.get<User>(`${this.apiUsersUrl}/${userId}`);
+    if (!userId || userId === '0') {
+      return of(null);
+    }
+    return this.http.get<User>(`${this.apiUsersUrl}/${userId}`).pipe(
+      catchError(() => of(null))
+    );
   }
 
   getFavoriteClips(id?: string | null): Observable<Clip[]> {

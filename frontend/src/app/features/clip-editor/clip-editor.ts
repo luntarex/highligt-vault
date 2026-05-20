@@ -8,6 +8,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { BackLink } from '../../shared/back-link/back-link';
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
+import { getSafeErrorMessage } from '../../core/utils/error-message';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-clip-editor',
@@ -36,7 +38,8 @@ export class ClipEditor implements OnInit {
     private router: Router, 
     private authService: AuthService,
     private gameService: GameService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +71,7 @@ export class ClipEditor implements OnInit {
            uploaderId: this.authService.getCurrentUserId(),
            isFavorite: false,
            isDeleted: false,
-           isPublic: false,
+           visibilityStatus: 'PRIVATE',
            dateCreated: new Date()
          };
       } else {
@@ -191,55 +194,36 @@ export class ClipEditor implements OnInit {
     if (this.clip) {
       if (this.clip.id === 0 && !this.isUploading) {
         if (!this.fileToUpload) {
-          alert("No video file selected!");
+          this.toast.error('Please select a video file first.');
           return;
         }
         
         this.isUploading = true;
-        this.uploadStatus = 'Uploading video to Cloudinary...';
+        this.uploadStatus = 'Uploading video through backend...';
         this.cdr.detectChanges();
-        
-        const formData = new FormData();
-        formData.append('file', this.fileToUpload);
-        formData.append('upload_preset', 'hvault_unsigned');
-        
-        fetch('https://api.cloudinary.com/v1_1/dticc1u7k/video/upload', {
-          method: 'POST',
-          body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.secure_url) {
-                this.clip!.url = data.secure_url;
-                
-                // Auto-generate thumbnail from the uploaded video
-                const publicId = data.public_id;
-                this.clip!.thumbnailUrl = `https://res.cloudinary.com/dticc1u7k/video/upload/so_1,w_400,h_300,c_fill/${publicId}.jpg`;
-                
-                // Use Cloudinary's reported duration if available
-                if (data.duration) {
-                  this.clip!.duration = data.duration;
-                }
-                
-                this.uploadStatus = 'Saving highlight to vault...';
-                this.cdr.detectChanges();
 
-                this.clipService.addClip(this.clip!).subscribe(() => {
-                    this.isUploading = false;
-                    this.cdr.detectChanges();
-                    this.router.navigate(['/']);
-                });
-            } else {
-                this.isUploading = false;
-                this.cdr.detectChanges();
-                alert('Upload failed: ' + (data.error?.message || JSON.stringify(data)));
+        this.clipService.uploadVideo(this.fileToUpload).subscribe({
+          next: (data) => {
+            this.clip!.url = data.secureUrl;
+            this.clip!.thumbnailUrl = data.thumbnailUrl || this.clip!.thumbnailUrl;
+            if (data.duration) {
+              this.clip!.duration = data.duration;
             }
-        })
-        .catch(err => {
+
+            this.uploadStatus = 'Saving highlight to vault...';
+            this.cdr.detectChanges();
+
+            this.clipService.addClip(this.clip!).subscribe(() => {
+              this.isUploading = false;
+              this.cdr.detectChanges();
+              this.router.navigate(['/']);
+            });
+          },
+          error: (err) => {
             this.isUploading = false;
             this.cdr.detectChanges();
-            console.error(err);
-            alert('Upload error: ' + err.message);
+            this.toast.error(getSafeErrorMessage(err, 'Video upload failed. Please try again.'));
+          }
         });
 
       } else if (this.clip.id !== 0 && !this.isUploading) {

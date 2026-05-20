@@ -1,184 +1,166 @@
 package hvault.app.repository;
 
 import hvault.app.entity.Post;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
-
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class PostRepository {
+public interface PostRepository extends JpaRepository<Post, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE posts SET caption = :newCaption WHERE id = :id", nativeQuery = true)
+    int updateCaption(@Param("id") Long id, @Param("newCaption") String newCaption);
 
-    public PostRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at, p.clip_id,
+               c.title AS clip_title, c.video_url, c.duration,
+               c.start_time AS start_time, c.end_time AS end_time,
+               g.name AS game_name,
+               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+        ORDER BY p.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findAllPostsWithDetails();
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO post_likes (post_id, user_id, created_at) VALUES (:postId, :userId, CURRENT_TIMESTAMP)", nativeQuery = true)
+    void likePost(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM post_likes WHERE post_id = :postId AND user_id = :userId", nativeQuery = true)
+    void unlikePost(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    @Query(value = "SELECT COUNT(*) FROM post_likes WHERE post_id = :postId AND user_id = :userId", nativeQuery = true)
+    int countLikedByUser(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    default boolean isLikedByUser(Long postId, Long userId) {
+        return countLikedByUser(postId, userId) > 0;
     }
 
-    /**
-     * REQUIREMENT #4: Add a new post.
-     * Uses INSERT.
-     */
-    public Long insertPost(Post post) {
-        String sql = "INSERT INTO posts (user_id, clip_id, caption, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
-        
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, post.getUserId());
-            ps.setLong(2, post.getClipId());
-            ps.setString(3, post.getCaption());
-            return ps;
-        }, keyHolder);
-        
-        return keyHolder.getKey() != null ? keyHolder.getKey().longValue() : null;
-    }
+    @Query(value = "SELECT id FROM posts WHERE clip_id = :clipId", nativeQuery = true)
+    List<Long> findPostIdsByClipId(@Param("clipId") Long clipId);
 
-    /**
-     * REQUIREMENT #3 (Part 1): Edit the text of a post.
-     * Uses UPDATE.
-     */
-    public int updateCaption(Long id, String newCaption) {
-        String sql = "UPDATE posts SET caption = ? WHERE id = ?";
-        return jdbcTemplate.update(sql, newCaption, id);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM comments WHERE post_id = :postId", nativeQuery = true)
+    void deleteCommentsByPostId(@Param("postId") Long postId);
 
-    public List<Map<String, Object>> findAllPostsWithDetails() {
-        String sql = """
-            SELECT p.id, p.caption, p.created_at, p.clip_id,
-                   c.title AS clip_title, c.video_url, c.duration,
-                   c.start_time AS start_time, c.end_time AS end_time,
-                   g.name AS game_name,
-                   u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
-                   COUNT(DISTINCT pl.user_id) AS likes,
-                   COUNT(DISTINCT cm.id) AS comments
-            FROM posts p
-            JOIN clips c ON p.clip_id = c.id
-            JOIN users u ON p.user_id = u.id
-            LEFT JOIN games g ON c.game_id = g.id
-            LEFT JOIN post_likes pl ON pl.post_id = p.id
-            LEFT JOIN comments cm ON cm.post_id = p.id
-            WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
-              AND (c.is_public = true)
-            GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration, 
-                     c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
-            ORDER BY p.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM post_likes WHERE post_id = :postId", nativeQuery = true)
+    void deletePostLikesByPostId(@Param("postId") Long postId);
 
-    /**
-     * Like a post (insert into post_likes).
-     */
-    public void likePost(Long postId, Long userId) {
-        // Avoid duplicate likes
-        String checkSql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
-        int count = jdbcTemplate.queryForObject(checkSql, Integer.class, postId, userId);
-        if (count == 0) {
-            String sql = "INSERT IGNORE INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
-            jdbcTemplate.update(sql, postId, userId);
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM posts WHERE clip_id = :clipId", nativeQuery = true)
+    void deletePostRowsByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    default void deleteByClipId(Long clipId) {
+        for (Long postId : findPostIdsByClipId(clipId)) {
+            deleteCommentsByPostId(postId);
+            deletePostLikesByPostId(postId);
         }
+        deletePostRowsByClipId(clipId);
     }
 
-    /**
-     * Unlike a post (delete from post_likes).
-     */
-    public void unlikePost(Long postId, Long userId) {
-        String sql = "DELETE FROM post_likes WHERE post_id = ? AND user_id = ?";
-        jdbcTemplate.update(sql, postId, userId);
+    @Query(value = "SELECT clip_id FROM posts WHERE id = :postId", nativeQuery = true)
+    List<Long> findClipIdsByPostId(@Param("postId") Long postId);
+
+    default Long getClipIdByPostId(Long postId) {
+        List<Long> rows = findClipIdsByPostId(postId);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
-    /**
-     * Check if a user has liked a specific post.
-     */
-    public boolean isLikedByUser(Long postId, Long userId) {
-        String sql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND user_id = ?";
-        int count = jdbcTemplate.queryForObject(sql, Integer.class, postId, userId);
-        return count > 0;
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM posts WHERE id = :postId", nativeQuery = true)
+    void deletePostRow(@Param("postId") Long postId);
+
+    @Transactional
+    default void deletePost(Long postId) {
+        deleteCommentsByPostId(postId);
+        deletePostLikesByPostId(postId);
+        deletePostRow(postId);
     }
 
-    public void deleteByClipId(Long clipId) {
-        // First delete related likes and comments for posts of this clip
-        List<Long> postIds = jdbcTemplate.queryForList("SELECT id FROM posts WHERE clip_id = ?", Long.class, clipId);
-        for (Long postId : postIds) {
-            jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
-            jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
-        }
-        jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", clipId);
+    @Query(value = "SELECT COUNT(*) FROM posts WHERE clip_id = :clipId", nativeQuery = true)
+    int countByClipId(@Param("clipId") Long clipId);
+
+    default boolean existsByClipId(Long clipId) {
+        return countByClipId(clipId) > 0;
     }
 
-    public Long getClipIdByPostId(Long postId) {
-        String sql = "SELECT clip_id FROM posts WHERE id = ?";
-        List<Long> results = jdbcTemplate.queryForList(sql, Long.class, postId);
-        return results.isEmpty() ? null : results.get(0);
-    }
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at, p.clip_id,
+               c.title AS clip_title, c.video_url, c.duration,
+               c.start_time AS start_time, c.end_time AS end_time,
+               g.name AS game_name,
+               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+          AND (p.user_id = :userId OR p.user_id IN (SELECT followed_id FROM follows WHERE follower_id = :userId))
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+        ORDER BY p.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findFollowingFeedPosts(@Param("userId") Long userId);
 
-    public void deletePost(Long postId) {
-        jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
-        jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
-        jdbcTemplate.update("DELETE FROM posts WHERE id = ?", postId);
-    }
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at, p.clip_id,
+               c.title AS clip_title, c.video_url, c.duration,
+               c.start_time AS start_time, c.end_time AS end_time,
+               g.name AS game_name,
+               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE p.clip_id = :clipId
+          AND (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+        """, nativeQuery = true)
+    List<Map<String, Object>> findRowsByClipIdWithDetails(@Param("clipId") Long clipId);
 
-    public boolean existsByClipId(Long clipId) {
-        String sql = "SELECT COUNT(*) FROM posts WHERE clip_id = ?";
-        int count = jdbcTemplate.queryForObject(sql, Integer.class, clipId);
-        return count > 0;
-    }
-
-    /**
-     * Get posts only from users that the given userId is following.
-     */
-    public List<Map<String, Object>> findFollowingFeedPosts(Long userId) {
-        String sql = """
-            SELECT p.id, p.caption, p.created_at, p.clip_id,
-                   c.title AS clip_title, c.video_url, c.duration,
-                   c.start_time AS start_time, c.end_time AS end_time,
-                   g.name AS game_name,
-                   u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
-                   COUNT(DISTINCT pl.user_id) AS likes,
-                   COUNT(DISTINCT cm.id) AS comments
-            FROM posts p
-            JOIN clips c ON p.clip_id = c.id
-            JOIN users u ON p.user_id = u.id
-            LEFT JOIN games g ON c.game_id = g.id
-            LEFT JOIN post_likes pl ON pl.post_id = p.id
-            LEFT JOIN comments cm ON cm.post_id = p.id
-            WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
-              AND (c.is_public = true)
-              AND (p.user_id = ? OR p.user_id IN (SELECT followed_id FROM follows WHERE follower_id = ?))
-            GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
-                     c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
-            ORDER BY p.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, userId, userId);
-    }
-
-    public Map<String, Object> findByClipIdWithDetails(Long clipId) {
-        String sql = """
-            SELECT p.id, p.caption, p.created_at, p.clip_id,
-                   c.title AS clip_title, c.video_url, c.duration,
-                   c.start_time AS start_time, c.end_time AS end_time,
-                   g.name AS game_name,
-                   u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
-                   COUNT(DISTINCT pl.user_id) AS likes,
-                   COUNT(DISTINCT cm.id) AS comments
-            FROM posts p
-            JOIN clips c ON p.clip_id = c.id
-            JOIN users u ON p.user_id = u.id
-            LEFT JOIN games g ON c.game_id = g.id
-            LEFT JOIN post_likes pl ON pl.post_id = p.id
-            LEFT JOIN comments cm ON cm.post_id = p.id
-            WHERE p.clip_id = ?
-            GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration, 
-                     c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
-            """;
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, clipId);
-        return results.isEmpty() ? null : results.get(0);
+    default Map<String, Object> findByClipIdWithDetails(Long clipId) {
+        List<Map<String, Object>> rows = findRowsByClipIdWithDetails(clipId);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 }

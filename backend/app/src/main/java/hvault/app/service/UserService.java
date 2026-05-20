@@ -1,5 +1,6 @@
 package hvault.app.service;
 
+import hvault.app.entity.User;
 import hvault.app.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,20 +18,16 @@ public class UserService {
     public List<Map<String, Object>> getAllUsersWithPostCount() {
         return userRepository.findAllUsersWithPostCount();
     }
-    
-    public java.util.Map<String, Object> getUserById(Long id) {
-        return userRepository.findById(id);
+
+    public Map<String, Object> getUserById(Long id) {
+        return userRepository.findProfileById(id);
     }
 
     public boolean updateProfile(Long id, String username, String description, String profilePhotoUrl) {
         if (username != null) {
-            Map<String, Object> existingUser = userRepository.findByUsername(username);
-            // If username exists and it's NOT the current user's current username
-            if (existingUser != null) {
-                Long foundId = Long.valueOf(existingUser.get("id").toString());
-                if (!foundId.equals(id)) {
-                    throw new RuntimeException("Username '" + username + "' is already taken.");
-                }
+            User existingUser = userRepository.findActiveByUsername(username).orElse(null);
+            if (existingUser != null && !existingUser.getId().equals(id)) {
+                throw new RuntimeException("Username '" + username + "' is already taken.");
             }
         }
         return userRepository.updateProfile(id, username, description, profilePhotoUrl) > 0;

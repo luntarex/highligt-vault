@@ -1,125 +1,72 @@
 package hvault.app.repository;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import hvault.app.entity.Comment;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class CommentRepository {
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Query(value = """
+        SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
+               c.post_comment_id AS parentCommentId,
+               u.username, u.profile_photo_url AS profilePhoto
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = :postId
+        ORDER BY c.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findByPostId(@Param("postId") Long postId);
 
-    public CommentRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Query(value = """
+        SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
+               c.post_comment_id AS parentCommentId,
+               u.username, u.profile_photo_url AS profilePhoto,
+               cl.title AS postTitle, cl.thumbnail_url AS postThumbnail,
+               cl.video_url AS postVideoUrl, cl.duration AS postDuration,
+               cl.start_time AS postStartTime, cl.end_time AS postEndTime,
+               g.name AS postGameName,
+               pu.username AS postAuthorName, pu.profile_photo_url AS postAuthorPhoto, pu.id AS postAuthorId
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        JOIN posts p ON c.post_id = p.id
+        JOIN users pu ON p.user_id = pu.id
+        JOIN clips cl ON p.clip_id = cl.id
+        LEFT JOIN games g ON cl.game_id = g.id
+        WHERE c.user_id = :userId
+        ORDER BY c.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findByUserId(@Param("userId") Long userId);
 
-    /**
-     * Get all comments for a specific post, including the username of the commenter.
-     */
-    public List<Map<String, Object>> findByPostId(Long postId) {
-        String sql = """
-            SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
-                   c.post_comment_id AS parentCommentId,
-                   u.username, u.profile_photo_url AS profilePhoto
-            FROM comments c
-            JOIN users u ON c.user_id = u.id
-            WHERE c.post_id = ?
-            ORDER BY c.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, postId);
-    }
-
-    /**
-     * Get all comments made by a specific user.
-     */
-    public List<Map<String, Object>> findByUserId(Long userId) {
-        String sql = """
-            SELECT c.id, c.content, c.created_at, c.user_id AS userId, c.post_id AS postId,
-                   c.post_comment_id AS parentCommentId,
-                   u.username, u.profile_photo_url AS profilePhoto,
-                   cl.title AS postTitle, cl.thumbnail_url AS postThumbnail,
-                   cl.video_url AS postVideoUrl, cl.duration AS postDuration,
-                   cl.start_time AS postStartTime, cl.end_time AS postEndTime,
-                   g.name AS postGameName,
-                   pu.username AS postAuthorName, pu.profile_photo_url AS postAuthorPhoto, pu.id AS postAuthorId
-            FROM comments c
-            JOIN users u ON c.user_id = u.id
-            JOIN posts p ON c.post_id = p.id
-            JOIN users pu ON p.user_id = pu.id
-            JOIN clips cl ON p.clip_id = cl.id
-            LEFT JOIN games g ON cl.game_id = g.id
-            WHERE c.user_id = ?
-            ORDER BY c.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, userId);
-    }
-
-    /**
-     * Insert a new comment and return its generated ID.
-     */
-    public Long insertComment(Long postId, Long userId, String content, Long parentCommentId) {
-        String sql = "INSERT INTO comments (post_id, user_id, content, post_comment_id, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, postId);
-            ps.setLong(2, userId);
-            ps.setString(3, content);
-            if (parentCommentId != null) {
-                ps.setLong(4, parentCommentId);
-            } else {
-                ps.setNull(4, java.sql.Types.BIGINT);
-            }
-            return ps;
-        }, keyHolder);
-
-        return keyHolder.getKey() != null ? keyHolder.getKey().longValue() : null;
-    }
-
-    /**
-     * REQUIREMENT #3 (Part 2): Edit the text of a comment.
-     * Uses UPDATE.
-     */
-    public int updateContent(Long id, String newContent) {
-        String sql = "UPDATE comments SET content = ? WHERE id = ?";
-        return jdbcTemplate.update(sql, newContent, id);
-    }
-
-    /**
-     * REQUIREMENT #5: Remove a comment from the system for violating terms of service.
-    /**
-     * Normal delete for a comment (e.g., self-deletion by owner).
-     */
-    public int deleteComment(Long id) {
-        String sql = "DELETE FROM comments WHERE id = ?";
-        return jdbcTemplate.update(sql, id);
-    }
-
-    /**
-     * REQUIREMENT #5: Remove a comment from the system for violating terms of service.
-     * Archives the comment in violated_comments before hard-deleting from comments.
-     */
     @Transactional
-    public int deleteForViolation(Long id) {
-        // 1. Copy the comment to violated_comments
-        String archiveSql = """
-            INSERT INTO violated_comments (original_comment_id, user_id, post_id, content, original_created_at)
-            SELECT id, user_id, post_id, content, created_at
-            FROM comments
-            WHERE id = ?
-            """;
-        jdbcTemplate.update(archiveSql, id);
+    @Modifying
+    @Query(value = "UPDATE comments SET content = :newContent WHERE id = :id", nativeQuery = true)
+    int updateContent(@Param("id") Long id, @Param("newContent") String newContent);
 
-        // 2. Delete the comment from the comments table
-        String deleteSql = "DELETE FROM comments WHERE id = ?";
-        return jdbcTemplate.update(deleteSql, id);
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM comments WHERE id = :id", nativeQuery = true)
+    int deleteComment(@Param("id") Long id);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        INSERT INTO violated_comments (original_comment_id, user_id, post_id, content, original_created_at)
+        SELECT id, user_id, post_id, content, created_at
+        FROM comments
+        WHERE id = :id
+        """, nativeQuery = true)
+    void archiveViolation(@Param("id") Long id);
+
+    @Transactional
+    default int deleteForViolation(Long id) {
+        archiveViolation(id);
+        return deleteComment(id);
     }
 }
