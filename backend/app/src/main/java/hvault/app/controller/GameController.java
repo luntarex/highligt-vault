@@ -1,8 +1,10 @@
 package hvault.app.controller;
 
-import hvault.app.entity.Game;
+import hvault.app.dto.CreateGameRequest;
 import hvault.app.dto.GameResponse;
+import hvault.app.entity.Game;
 import hvault.app.repository.GameRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +28,8 @@ public class GameController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addGame(@RequestBody Map<String, String> request) {
-        String name = request.get("name");
-        if (name == null || name.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Game name cannot be empty"));
-        }
-
-        name = name.trim();
+    public ResponseEntity<?> addGame(@Valid @RequestBody CreateGameRequest request) {
+        String name = request.getName().trim();
         if (gameRepository.findByName(name).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Game already exists"));
         }
