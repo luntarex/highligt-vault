@@ -20,4 +20,5 @@ public class ReportResponse {
     private Long reviewedBy;
     private LocalDateTime reviewedAt;
     private String resolution;
+    private String reporterUsername;
 }

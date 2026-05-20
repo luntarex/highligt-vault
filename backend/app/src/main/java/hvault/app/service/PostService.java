@@ -1,15 +1,15 @@
 package hvault.app.service;
 
+import hvault.app.dto.PostAuthorResponse;
+import hvault.app.dto.PostFeedResponse;
 import hvault.app.entity.Post;
 import hvault.app.enums.VisibilityStatus;
 import hvault.app.repository.PostRepository;
+import hvault.app.repository.projection.PostDetailsView;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -36,16 +36,20 @@ public class PostService {
         postRepository.updateCaption(id, newCaption);
     }
 
-    public List<Map<String, Object>> getAllPosts() {
+    public List<PostFeedResponse> getAllPosts() {
         return getAllPostsForUser(null);
     }
 
-    public List<Map<String, Object>> getAllPostsForUser(Long currentUserId) {
-        return postRepository.findAllPostsWithDetails().stream().map(row -> mapPostRow(row, currentUserId)).collect(Collectors.toList());
+    public List<PostFeedResponse> getAllPostsForUser(Long currentUserId) {
+        return postRepository.findAllPostsWithDetails().stream()
+            .map(row -> toPostFeedResponse(row, currentUserId))
+            .toList();
     }
 
-    public List<Map<String, Object>> getFollowingFeed(Long userId) {
-        return postRepository.findFollowingFeedPosts(userId).stream().map(row -> mapPostRow(row, userId)).collect(Collectors.toList());
+    public List<PostFeedResponse> getFollowingFeed(Long userId) {
+        return postRepository.findFollowingFeedPosts(userId).stream()
+            .map(row -> toPostFeedResponse(row, userId))
+            .toList();
     }
 
     public void likePost(Long postId, Long userId) {
@@ -72,44 +76,30 @@ public class PostService {
         return postRepository.existsByClipId(clipId);
     }
 
-    public Map<String, Object> getPostByClipId(Long clipId, Long currentUserId) {
-        Map<String, Object> row = postRepository.findByClipIdWithDetails(clipId);
-        return row == null ? null : mapPostRow(row, currentUserId);
+    public PostFeedResponse getPostByClipId(Long clipId, Long currentUserId) {
+        PostDetailsView row = postRepository.findByClipIdWithDetails(clipId);
+        return row == null ? null : toPostFeedResponse(row, currentUserId);
     }
 
-    private Map<String, Object> mapPostRow(Map<String, Object> row, Long currentUserId) {
-        Map<String, Object> mapped = new HashMap<>();
-        Long postId = ((Number) row.get("id")).longValue();
-        Long clipId = ((Number) row.get("clip_id")).longValue();
+    private PostFeedResponse toPostFeedResponse(PostDetailsView row, Long currentUserId) {
+        Long postId = row.getId();
+        Long clipId = row.getClipId();
 
-        mapped.put("id", postId.toString());
-        mapped.put("clipId", clipId.toString());
-        mapped.put("title", row.get("caption"));
-        mapped.put("game", row.get("game_name"));
-        mapped.put("videoUrl", row.get("video_url"));
-        mapped.put("duration", row.get("duration"));
-        mapped.put("startTime", row.get("start_time"));
-        mapped.put("endTime", row.get("end_time"));
-        mapped.put("likes", row.get("likes"));
-        mapped.put("comments", row.get("comments"));
-        if (row.get("created_at") != null) {
-            mapped.put("createdAt", row.get("created_at").toString());
-        }
-
-        if (currentUserId != null) {
-            mapped.put("isLiked", postRepository.isLikedByUser(postId, currentUserId));
-            mapped.put("isFavorited", clipRepository.isFavorited(currentUserId, clipId));
-        } else {
-            mapped.put("isLiked", false);
-            mapped.put("isFavorited", false);
-        }
-
-        Map<String, Object> author = new HashMap<>();
-        author.put("id", row.get("author_id"));
-        author.put("username", row.get("author_name"));
-        author.put("profilePhotoUrl", row.get("author_photo"));
-        mapped.put("author", author);
-
-        return mapped;
+        PostFeedResponse response = new PostFeedResponse();
+        response.setId(postId.toString());
+        response.setClipId(clipId.toString());
+        response.setTitle(row.getCaption());
+        response.setGame(row.getGameName());
+        response.setVideoUrl(row.getVideoUrl());
+        response.setDuration(row.getDuration());
+        response.setStartTime(row.getStartTime());
+        response.setEndTime(row.getEndTime());
+        response.setLikes(row.getLikes());
+        response.setComments(row.getComments());
+        response.setCreatedAt(row.getCreatedAt() != null ? row.getCreatedAt().toString() : null);
+        response.setIsLiked(currentUserId != null && postRepository.isLikedByUser(postId, currentUserId));
+        response.setIsFavorited(currentUserId != null && clipRepository.isFavorited(currentUserId, clipId));
+        response.setAuthor(new PostAuthorResponse(row.getAuthorId(), row.getAuthorName(), row.getAuthorPhoto()));
+        return response;
     }
 }

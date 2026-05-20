@@ -1,12 +1,13 @@
 package hvault.app.service;
 
+import hvault.app.dto.MessageConversationResponse;
 import hvault.app.entity.Message;
 import hvault.app.repository.MessageRepository;
+import hvault.app.repository.projection.MessageConversationView;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class MessageService {
@@ -31,8 +32,8 @@ public class MessageService {
         return messageRepository.getConversation(userId1, userId2);
     }
 
-    public List<Map<String, Object>> getConversations(Long userId) {
-        return messageRepository.getConversations(userId);
+    public List<MessageConversationResponse> getConversations(Long userId) {
+        return messageRepository.getConversations(userId).stream().map(this::toConversationResponse).toList();
     }
 
     public void markAsRead(Long messageId) {
@@ -51,5 +52,17 @@ public class MessageService {
         if (ids != null && !ids.isEmpty()) {
             messageRepository.deleteByIds(ids);
         }
+    }
+
+    private MessageConversationResponse toConversationResponse(MessageConversationView conversation) {
+        MessageConversationResponse response = new MessageConversationResponse();
+        response.setOtherUserId(conversation.getOtherUserId());
+        response.setContent(conversation.getContent());
+        response.setCreatedAt(conversation.getCreatedAt());
+        response.setIsRead(Boolean.TRUE.equals(conversation.getIsRead()));
+        response.setSenderId(conversation.getSenderId());
+        response.setUsername(conversation.getUsername());
+        response.setProfilePhotoUrl(conversation.getProfilePhotoUrl());
+        return response;
     }
 }

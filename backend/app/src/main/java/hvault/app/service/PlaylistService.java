@@ -1,13 +1,15 @@
 package hvault.app.service;
 
+import hvault.app.dto.PlaylistClipResponse;
+import hvault.app.dto.PlaylistResponse;
 import hvault.app.entity.Playlist;
 import hvault.app.repository.PlaylistRepository;
+import hvault.app.repository.projection.PlaylistClipView;
+import hvault.app.repository.projection.PlaylistView;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class PlaylistService {
@@ -18,22 +20,23 @@ public class PlaylistService {
         this.playlistRepository = playlistRepository;
     }
 
-    public List<Map<String, Object>> getPlaylistsByUserId(Long userId) {
-        return playlistRepository.findPlaylistsByUserId(userId);
+    public List<PlaylistResponse> getPlaylistsByUserId(Long userId) {
+        return playlistRepository.findPlaylistsByUserId(userId).stream()
+            .map(playlist -> toPlaylistResponse(playlist, null))
+            .toList();
     }
 
-    public Map<String, Object> getPlaylistById(Long id) {
-        Map<String, Object> playlist = playlistRepository.findPlaylistById(id);
+    public PlaylistResponse getPlaylistById(Long id) {
+        PlaylistView playlist = playlistRepository.findPlaylistById(id);
         if (playlist == null) {
             throw new IllegalArgumentException("Playlist not found");
         }
 
-        List<Map<String, Object>> clips = playlistRepository.findClipsByPlaylistId(id);
+        List<PlaylistClipResponse> clips = playlistRepository.findClipsByPlaylistId(id).stream()
+            .map(this::toPlaylistClipResponse)
+            .toList();
 
-        Map<String, Object> response = new HashMap<>(playlist);
-        response.put("clips", clips);
-
-        return response;
+        return toPlaylistResponse(playlist, clips);
     }
 
     public Long createPlaylist(Long userId, String name, String description) {
@@ -49,7 +52,7 @@ public class PlaylistService {
     }
 
     public void updatePlaylist(Long id, String name, String description) {
-        Map<String, Object> playlist = playlistRepository.findPlaylistById(id);
+        PlaylistView playlist = playlistRepository.findPlaylistById(id);
         if (playlist == null) {
             throw new IllegalArgumentException("Playlist not found");
         }
@@ -61,7 +64,7 @@ public class PlaylistService {
     }
 
     public void addClipToPlaylist(Long playlistId, Long clipId) {
-        Map<String, Object> playlist = playlistRepository.findPlaylistById(playlistId);
+        PlaylistView playlist = playlistRepository.findPlaylistById(playlistId);
         if (playlist == null) {
             throw new IllegalArgumentException("Playlist not found");
         }
@@ -70,5 +73,31 @@ public class PlaylistService {
 
     public void removeClipFromPlaylist(Long playlistId, Long clipId) {
         playlistRepository.removeClipFromPlaylist(playlistId, clipId);
+    }
+
+    private PlaylistResponse toPlaylistResponse(PlaylistView playlist, List<PlaylistClipResponse> clips) {
+        PlaylistResponse response = new PlaylistResponse();
+        response.setId(playlist.getId());
+        response.setName(playlist.getName());
+        response.setDescription(playlist.getDescription());
+        response.setUserId(playlist.getUserId());
+        response.setCreatedAt(playlist.getCreatedAt());
+        response.setClips(clips);
+        return response;
+    }
+
+    private PlaylistClipResponse toPlaylistClipResponse(PlaylistClipView clip) {
+        PlaylistClipResponse response = new PlaylistClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(clip.getDuration());
+        response.setStartTime(clip.getStartTime());
+        response.setEndTime(clip.getEndTime());
+        response.setNotes(clip.getNotes());
+        response.setGame(clip.getGame());
+        response.setAddedAt(clip.getAddedAt());
+        return response;
     }
 }

@@ -1,8 +1,8 @@
 package hvault.app.repository;
 
 import hvault.app.entity.Post;
+import hvault.app.repository.projection.PostDetailsView;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,11 +19,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     int updateCaption(@Param("id") Long id, @Param("newCaption") String newCaption);
 
     @Query(value = """
-        SELECT p.id, p.caption, p.created_at, p.clip_id,
-               c.title AS clip_title, c.video_url, c.duration,
-               c.start_time AS start_time, c.end_time AS end_time,
-               g.name AS game_name,
-               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               g.name AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
                COUNT(DISTINCT cm.id) AS comments
         FROM posts p
@@ -39,7 +39,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                  c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findAllPostsWithDetails();
+    List<PostDetailsView> findAllPostsWithDetails();
 
     @Transactional
     @Modifying
@@ -113,11 +113,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     }
 
     @Query(value = """
-        SELECT p.id, p.caption, p.created_at, p.clip_id,
-               c.title AS clip_title, c.video_url, c.duration,
-               c.start_time AS start_time, c.end_time AS end_time,
-               g.name AS game_name,
-               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               g.name AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
                COUNT(DISTINCT cm.id) AS comments
         FROM posts p
@@ -134,14 +134,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                  c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findFollowingFeedPosts(@Param("userId") Long userId);
+    List<PostDetailsView> findFollowingFeedPosts(@Param("userId") Long userId);
 
     @Query(value = """
-        SELECT p.id, p.caption, p.created_at, p.clip_id,
-               c.title AS clip_title, c.video_url, c.duration,
-               c.start_time AS start_time, c.end_time AS end_time,
-               g.name AS game_name,
-               u.id AS author_id, u.username AS author_name, u.profile_photo_url AS author_photo,
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               g.name AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
                COUNT(DISTINCT cm.id) AS comments
         FROM posts p
@@ -157,10 +157,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
                  c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
         """, nativeQuery = true)
-    List<Map<String, Object>> findRowsByClipIdWithDetails(@Param("clipId") Long clipId);
+    List<PostDetailsView> findRowsByClipIdWithDetails(@Param("clipId") Long clipId);
 
-    default Map<String, Object> findByClipIdWithDetails(Long clipId) {
-        List<Map<String, Object>> rows = findRowsByClipIdWithDetails(clipId);
+    default PostDetailsView findByClipIdWithDetails(Long clipId) {
+        List<PostDetailsView> rows = findRowsByClipIdWithDetails(clipId);
         return rows.isEmpty() ? null : rows.get(0);
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import hvault.app.dto.ClipCreateRequest;
+import hvault.app.dto.ClipResponse;
 import hvault.app.dto.ClipUpdateRequest;
 import hvault.app.security.JwtService;
 import jakarta.validation.Valid;
@@ -48,7 +49,7 @@ public class ClipController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getClipById(@PathVariable Long id) {
-        Map<String, Object> clip = clipService.getClipById(id);
+        ClipResponse clip = clipService.getClipById(id);
         if (clip != null) {
             return ResponseEntity.ok(clip);
         }
@@ -61,7 +62,7 @@ public class ClipController {
      */
     @GetMapping("/commented-by/{userId}")
     public ResponseEntity<?> getClipsCommentedByUser(@PathVariable Long userId) {
-        List<Map<String, Object>> clips = clipService.getClipsCommentedByUser(userId);
+        List<ClipResponse> clips = clipService.getClipsCommentedByUser(userId);
         return ResponseEntity.ok(clips);
     }
 
@@ -71,7 +72,7 @@ public class ClipController {
      */
     @GetMapping("/favorites/{userId}")
     public ResponseEntity<?> getFavoritesByUserId(@PathVariable Long userId) {
-        List<Map<String, Object>> clips = clipService.getFavoritesByUserId(userId);
+        List<ClipResponse> clips = clipService.getFavoritesByUserId(userId);
         return ResponseEntity.ok(clips);
     }
 

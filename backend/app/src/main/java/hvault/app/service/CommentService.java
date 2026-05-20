@@ -1,12 +1,13 @@
 package hvault.app.service;
 
+import hvault.app.dto.CommentResponse;
 import hvault.app.entity.Comment;
 import hvault.app.repository.CommentRepository;
+import hvault.app.repository.projection.CommentView;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class CommentService {
@@ -16,12 +17,12 @@ public class CommentService {
         this.commentRepository = commentRepository;
     }
 
-    public List<Map<String, Object>> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPostId(postId);
+    public List<CommentResponse> getCommentsByPostId(Long postId) {
+        return commentRepository.findByPostId(postId).stream().map(this::toCommentResponse).toList();
     }
 
-    public List<Map<String, Object>> getCommentsByUserId(Long userId) {
-        return commentRepository.findByUserId(userId);
+    public List<CommentResponse> getCommentsByUserId(Long userId) {
+        return commentRepository.findByUserId(userId).stream().map(this::toCommentResponse).toList();
     }
 
     public Long addComment(Long postId, Long userId, String content, Long parentCommentId) {
@@ -44,5 +45,28 @@ public class CommentService {
 
     public void deleteCommentViolation(Long id) {
         commentRepository.deleteForViolation(id);
+    }
+
+    private CommentResponse toCommentResponse(CommentView comment) {
+        CommentResponse response = new CommentResponse();
+        response.setId(comment.getId());
+        response.setContent(comment.getContent());
+        response.setCreatedAt(comment.getCreatedAt());
+        response.setUserId(comment.getUserId());
+        response.setPostId(comment.getPostId());
+        response.setParentCommentId(comment.getParentCommentId());
+        response.setUsername(comment.getUsername());
+        response.setProfilePhoto(comment.getProfilePhoto());
+        response.setPostTitle(comment.getPostTitle());
+        response.setPostThumbnail(comment.getPostThumbnail());
+        response.setPostVideoUrl(comment.getPostVideoUrl());
+        response.setPostDuration(comment.getPostDuration());
+        response.setPostStartTime(comment.getPostStartTime());
+        response.setPostEndTime(comment.getPostEndTime());
+        response.setPostGameName(comment.getPostGameName());
+        response.setPostAuthorName(comment.getPostAuthorName());
+        response.setPostAuthorPhoto(comment.getPostAuthorPhoto());
+        response.setPostAuthorId(comment.getPostAuthorId());
+        return response;
     }
 }

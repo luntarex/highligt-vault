@@ -1,8 +1,11 @@
 package hvault.app.repository;
 
 import hvault.app.entity.User;
+import hvault.app.repository.projection.SuggestedUserView;
+import hvault.app.repository.projection.UserCompactView;
+import hvault.app.repository.projection.UserListView;
+import hvault.app.repository.projection.UserProfileView;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,7 +31,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         GROUP BY u.id, u.username, u.email, u.description, u.profile_photo_url, u.created_at, u.isAdmin
         ORDER BY postCount DESC
         """, nativeQuery = true)
-    List<Map<String, Object>> findAllUsersWithPostCount();
+    List<UserListView> findAllUsersWithPostCount();
 
     @Query("""
         SELECT u FROM User u
@@ -57,10 +60,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
             (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
         FROM users u WHERE u.id = :id AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
         """, nativeQuery = true)
-    List<Map<String, Object>> findProfileRowsById(@Param("id") Long id);
+    List<UserProfileView> findProfileRowsById(@Param("id") Long id);
 
-    default Map<String, Object> findProfileById(Long id) {
-        List<Map<String, Object>> rows = findProfileRowsById(id);
+    default UserProfileView findProfileById(Long id) {
+        List<UserProfileView> rows = findProfileRowsById(id);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
@@ -97,7 +100,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         JOIN follows f ON u.id = f.follower_id
         WHERE f.followed_id = :userId AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
         """, nativeQuery = true)
-    List<Map<String, Object>> findFollowers(@Param("userId") Long userId);
+    List<UserCompactView> findFollowers(@Param("userId") Long userId);
 
     @Query(value = """
         SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
@@ -105,7 +108,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         JOIN follows f ON u.id = f.followed_id
         WHERE f.follower_id = :userId AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
         """, nativeQuery = true)
-    List<Map<String, Object>> findFollowing(@Param("userId") Long userId);
+    List<UserCompactView> findFollowing(@Param("userId") Long userId);
 
     @Query(value = """
         SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
@@ -122,7 +125,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY mutualCount DESC, followers DESC
         LIMIT 6
         """, nativeQuery = true)
-    List<Map<String, Object>> findSuggestedUsersFromFriends(@Param("userId") Long userId);
+    List<SuggestedUserView> findSuggestedUsersFromFriends(@Param("userId") Long userId);
 
     @Query(value = """
         SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
@@ -136,10 +139,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY followers DESC
         LIMIT 6
         """, nativeQuery = true)
-    List<Map<String, Object>> findPopularSuggestedUsers(@Param("userId") Long userId);
+    List<SuggestedUserView> findPopularSuggestedUsers(@Param("userId") Long userId);
 
-    default List<Map<String, Object>> findSuggestedUsers(Long userId) {
-        List<Map<String, Object>> rows = findSuggestedUsersFromFriends(userId);
+    default List<SuggestedUserView> findSuggestedUsers(Long userId) {
+        List<SuggestedUserView> rows = findSuggestedUsersFromFriends(userId);
         return rows.isEmpty() ? findPopularSuggestedUsers(userId) : rows;
     }
 }

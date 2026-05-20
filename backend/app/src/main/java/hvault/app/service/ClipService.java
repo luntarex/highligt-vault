@@ -1,13 +1,12 @@
 package hvault.app.service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import hvault.app.dto.ClipCreateRequest;
+import hvault.app.dto.ClipResponse;
 import hvault.app.dto.ClipUpdateRequest;
 import hvault.app.entity.Clip;
 import hvault.app.entity.Game;
@@ -15,6 +14,8 @@ import hvault.app.enums.ModerationStatus;
 import hvault.app.enums.VisibilityStatus;
 import hvault.app.repository.ClipRepository;
 import hvault.app.repository.GameRepository;
+import hvault.app.repository.projection.ClipView;
+import hvault.app.repository.projection.CommentedClipView;
 
 @Service
 public class ClipService {
@@ -28,21 +29,22 @@ public class ClipService {
         this.postService = postService;
     }
 
-    public List<Map<String, Object>> getClipsCommentedByUser(Long userId) {
-        return clipRepository.findClipsCommentedByUser(userId);
+    public List<ClipResponse> getClipsCommentedByUser(Long userId) {
+        return clipRepository.findClipsCommentedByUser(userId).stream()
+            .map(this::toClipResponse)
+            .toList();
     }
 
-    public List<Map<String, Object>> getClipsByUserId(Long uploaderId) {
-        List<Map<String, Object>> clips = normalizeRows(clipRepository.findAllByUserId(uploaderId));
-        for (Map<String, Object> clip : clips) {
-            Long clipId = ((Number) clip.get("id")).longValue();
-            clip.put("tags", clipRepository.getTagsForClip(clipId));
-        }
-        return clips;
+    public List<ClipResponse> getClipsByUserId(Long uploaderId) {
+        return clipRepository.findAllByUserId(uploaderId).stream()
+            .map(this::toClipResponse)
+            .toList();
     }
 
-    public List<Map<String, Object>> getFavoritesByUserId(Long userId) {
-        return normalizeRows(clipRepository.findFavoritesByUserId(userId));
+    public List<ClipResponse> getFavoritesByUserId(Long userId) {
+        return clipRepository.findFavoritesByUserId(userId).stream()
+            .map(this::toClipResponse)
+            .toList();
     }
 
     public void addFavorite(Long userId, Long clipId) {
@@ -53,21 +55,15 @@ public class ClipService {
         clipRepository.removeFavorite(userId, clipId);
     }
 
-    public List<Map<String, Object>> getAllClips() {
-        List<Map<String, Object>> clips = normalizeRows(clipRepository.findAllClips());
-        for (Map<String, Object> clip : clips) {
-            Long clipId = ((Number) clip.get("id")).longValue();
-            clip.put("tags", clipRepository.getTagsForClip(clipId));
-        }
-        return clips;
+    public List<ClipResponse> getAllClips() {
+        return clipRepository.findAllClips().stream()
+            .map(this::toClipResponse)
+            .toList();
     }
 
-    public Map<String, Object> getClipById(Long id) {
-        Map<String, Object> clip = normalizeRow(clipRepository.findClipDetailsById(id));
-        if (clip != null) {
-            clip.put("tags", clipRepository.getTagsForClip(id));
-        }
-        return clip;
+    public ClipResponse getClipById(Long id) {
+        ClipView clip = clipRepository.findClipDetailsById(id);
+        return clip == null ? null : toClipResponse(clip);
     }
 
     public void createClip(ClipCreateRequest clipData) {
@@ -132,8 +128,10 @@ public class ClipService {
         clipRepository.hardDeleteClip(id);
     }
 
-    public List<Map<String, Object>> getDeletedClipsByUserId(Long uploaderId) {
-        return normalizeRows(clipRepository.findAllDeletedByUserId(uploaderId));
+    public List<ClipResponse> getDeletedClipsByUserId(Long uploaderId) {
+        return clipRepository.findAllDeletedByUserId(uploaderId).stream()
+            .map(this::toClipResponse)
+            .toList();
     }
 
     public void recoverClip(Long id) {
@@ -153,59 +151,51 @@ public class ClipService {
             });
     }
 
-    private Float toFloat(Double value, Double fallback) {
-        return (value != null ? value : fallback).floatValue();
+    private ClipResponse toClipResponse(ClipView clip) {
+        ClipResponse response = new ClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(clip.getDuration());
+        response.setStartTime(clip.getStartTime());
+        response.setEndTime(clip.getEndTime());
+        response.setNotes(clip.getNotes());
+        response.setGame(clip.getGame());
+        response.setIsDeleted(Boolean.TRUE.equals(clip.getIsDeleted()));
+        response.setDateCreated(clip.getDateCreated());
+        response.setUploaderId(clip.getUploaderId());
+        response.setTags(clipRepository.getTagsForClip(clip.getId()));
+        response.setModerationStatus(parseEnum(ModerationStatus.class, clip.getModerationStatus()));
+        response.setModerationScore(clip.getModerationScore());
+        response.setModerationReason(clip.getModerationReason());
+        response.setVisibilityStatus(parseEnum(VisibilityStatus.class, clip.getVisibilityStatus()));
+        response.setRemovedReason(clip.getRemovedReason());
+        return response;
     }
 
-    private List<Map<String, Object>> normalizeRows(List<Map<String, Object>> rows) {
-        return rows.stream().map(this::normalizeRow).toList();
+    private ClipResponse toClipResponse(CommentedClipView clip) {
+        ClipResponse response = new ClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getVideoUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(clip.getDuration());
+        response.setStartTime(clip.getStartTime());
+        response.setEndTime(clip.getEndTime());
+        response.setGame(clip.getGameName());
+        response.setTags(clipRepository.getTagsForClip(clip.getId()));
+        return response;
     }
 
-    private Map<String, Object> normalizeRow(Map<String, Object> row) {
-        if (row == null) {
+    private <T extends Enum<T>> T parseEnum(Class<T> enumType, String value) {
+        if (value == null || value.isBlank()) {
             return null;
         }
-        Map<String, Object> normalized = new HashMap<>();
-        row.forEach((key, value) -> normalized.put(normalizeKey(key), value));
-        return normalized;
+        return Enum.valueOf(enumType, value);
     }
 
-    private String normalizeKey(String key) {
-        String compact = key.replace("_", "").toLowerCase();
-        return switch (compact) {
-            case "thumbnailurl" -> "thumbnailUrl";
-            case "starttime" -> "startTime";
-            case "endtime" -> "endTime";
-            case "isdeleted" -> "isDeleted";
-            case "datecreated" -> "dateCreated";
-            case "moderationstatus" -> "moderationStatus";
-            case "moderationscore" -> "moderationScore";
-            case "moderationreason" -> "moderationReason";
-            case "moderationcheckedat" -> "moderationCheckedAt";
-            case "reviewedby" -> "reviewedBy";
-            case "reviewedat" -> "reviewedAt";
-            case "removedreason" -> "removedReason";
-            case "removedat" -> "removedAt";
-            case "visibilitystatus" -> "visibilityStatus";
-            case "uploaderid" -> "uploaderId";
-            default -> toCamelCase(key);
-        };
-    }
-
-    private String toCamelCase(String key) {
-        String lower = key.toLowerCase();
-        StringBuilder result = new StringBuilder();
-        boolean upperNext = false;
-        for (char ch : lower.toCharArray()) {
-            if (ch == '_') {
-                upperNext = true;
-            } else if (upperNext) {
-                result.append(Character.toUpperCase(ch));
-                upperNext = false;
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
+    private Float toFloat(Double value, Double fallback) {
+        return (value != null ? value : fallback).floatValue();
     }
 }

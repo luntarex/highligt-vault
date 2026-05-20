@@ -1,11 +1,18 @@
 package hvault.app.service;
 
+import hvault.app.dto.SuggestedUserResponse;
+import hvault.app.dto.UserCompactResponse;
+import hvault.app.dto.UserListResponse;
+import hvault.app.dto.UserProfileResponse;
 import hvault.app.entity.User;
 import hvault.app.repository.UserRepository;
+import hvault.app.repository.projection.SuggestedUserView;
+import hvault.app.repository.projection.UserCompactView;
+import hvault.app.repository.projection.UserListView;
+import hvault.app.repository.projection.UserProfileView;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class UserService {
@@ -15,12 +22,15 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<Map<String, Object>> getAllUsersWithPostCount() {
-        return userRepository.findAllUsersWithPostCount();
+    public List<UserListResponse> getAllUsersWithPostCount() {
+        return userRepository.findAllUsersWithPostCount().stream()
+            .map(this::toUserListResponse)
+            .toList();
     }
 
-    public Map<String, Object> getUserById(Long id) {
-        return userRepository.findProfileById(id);
+    public UserProfileResponse getUserById(Long id) {
+        UserProfileView user = userRepository.findProfileById(id);
+        return user == null ? null : toUserProfileResponse(user);
     }
 
     public boolean updateProfile(Long id, String username, String description, String profilePhotoUrl) {
@@ -49,15 +59,68 @@ public class UserService {
         return userRepository.softDeleteUser(id) > 0;
     }
 
-    public List<Map<String, Object>> getFollowers(Long userId) {
-        return userRepository.findFollowers(userId);
+    public List<UserCompactResponse> getFollowers(Long userId) {
+        return userRepository.findFollowers(userId).stream()
+            .map(this::toUserCompactResponse)
+            .toList();
     }
 
-    public List<Map<String, Object>> getFollowing(Long userId) {
-        return userRepository.findFollowing(userId);
+    public List<UserCompactResponse> getFollowing(Long userId) {
+        return userRepository.findFollowing(userId).stream()
+            .map(this::toUserCompactResponse)
+            .toList();
     }
 
-    public List<Map<String, Object>> getSuggestedUsers(Long userId) {
-        return userRepository.findSuggestedUsers(userId);
+    public List<SuggestedUserResponse> getSuggestedUsers(Long userId) {
+        return userRepository.findSuggestedUsers(userId).stream()
+            .map(this::toSuggestedUserResponse)
+            .toList();
+    }
+
+    private UserListResponse toUserListResponse(UserListView user) {
+        return new UserListResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getDescription(),
+            user.getProfilePhotoUrl(),
+            user.getCreatedAt(),
+            Boolean.TRUE.equals(user.getIsAdmin()),
+            user.getPostCount(),
+            user.getTotalClips(),
+            user.getPublicClipCount(),
+            user.getTotalFavorites()
+        );
+    }
+
+    private UserProfileResponse toUserProfileResponse(UserProfileView user) {
+        return new UserProfileResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getDescription(),
+            user.getProfilePhotoUrl(),
+            Boolean.TRUE.equals(user.getIsAdmin()),
+            user.getCreatedAt(),
+            user.getFollowers(),
+            user.getFollowing(),
+            user.getTotalClips(),
+            user.getTotalFavorites()
+        );
+    }
+
+    private UserCompactResponse toUserCompactResponse(UserCompactView user) {
+        return new UserCompactResponse(user.getId(), user.getUsername(), user.getProfilePhotoUrl());
+    }
+
+    private SuggestedUserResponse toSuggestedUserResponse(SuggestedUserView user) {
+        return new SuggestedUserResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getProfilePhotoUrl(),
+            user.getDescription(),
+            user.getMutualCount(),
+            user.getFollowers()
+        );
     }
 }

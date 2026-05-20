@@ -2,17 +2,20 @@ package hvault.app.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import hvault.app.dto.ModerationDecisionRequest;
+import hvault.app.dto.ModerationQueueItemResponse;
 import hvault.app.entity.ModerationAction;
 import hvault.app.enums.ModerationActionType;
+import hvault.app.enums.ModerationStatus;
 import hvault.app.enums.ReportTargetType;
+import hvault.app.enums.VisibilityStatus;
 import hvault.app.repository.ClipRepository;
 import hvault.app.repository.ModerationActionRepository;
+import hvault.app.repository.projection.ModerationQueueItemView;
 
 @Service
 public class ModerationService {
@@ -24,8 +27,10 @@ public class ModerationService {
         this.moderationActionRepository = moderationActionRepository;
     }
 
-    public List<Map<String, Object>> getClipQueue() {
-        return clipRepository.findModerationQueue();
+    public List<ModerationQueueItemResponse> getClipQueue() {
+        return clipRepository.findModerationQueue().stream()
+            .map(this::toModerationQueueItemResponse)
+            .toList();
     }
 
     @Transactional
@@ -50,5 +55,28 @@ public class ModerationService {
         action.setReason(reason);
         action.setCreatedAt(LocalDateTime.now());
         moderationActionRepository.save(action);
+    }
+
+    private ModerationQueueItemResponse toModerationQueueItemResponse(ModerationQueueItemView item) {
+        ModerationQueueItemResponse response = new ModerationQueueItemResponse();
+        response.setClipId(item.getClipId());
+        response.setTitle(item.getTitle());
+        response.setVideoUrl(item.getVideoUrl());
+        response.setThumbnailUrl(item.getThumbnailUrl());
+        response.setUploaderId(item.getUploaderId());
+        response.setUploaderUsername(item.getUploaderUsername());
+        response.setModerationStatus(parseEnum(ModerationStatus.class, item.getModerationStatus()));
+        response.setModerationScore(item.getModerationScore());
+        response.setModerationReason(item.getModerationReason());
+        response.setVisibilityStatus(parseEnum(VisibilityStatus.class, item.getVisibilityStatus()));
+        response.setCreatedAt(item.getCreatedAt());
+        return response;
+    }
+
+    private <T extends Enum<T>> T parseEnum(Class<T> enumType, String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return Enum.valueOf(enumType, value);
     }
 }
