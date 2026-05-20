@@ -1,167 +1,145 @@
 package hvault.app.repository;
 
+import hvault.app.entity.User;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class UserRepository {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Query(value = """
+        SELECT u.id, u.username, u.email, u.description, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
+               COUNT(DISTINCT p.id) AS postCount,
+               COUNT(DISTINCT CASE WHEN c.is_deleted = false OR c.is_deleted IS NULL THEN c.id END) AS totalClips,
+               COUNT(DISTINCT CASE WHEN (c.is_deleted = false OR c.is_deleted IS NULL) AND c.visibility_status = 'PUBLIC' THEN c.id END) AS publicClipCount,
+               COUNT(DISTINCT uf.clip_id) AS totalFavorites
+        FROM users u
+        LEFT JOIN posts p ON u.id = p.user_id
+        LEFT JOIN clips c ON u.id = c.uploader_id
+        LEFT JOIN user_favorites uf ON u.id = uf.user_id
+        WHERE u.isDeleted = FALSE OR u.isDeleted IS NULL
+        GROUP BY u.id, u.username, u.email, u.description, u.profile_photo_url, u.created_at, u.isAdmin
+        ORDER BY postCount DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findAllUsersWithPostCount();
 
-    public UserRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Query("""
+        SELECT u FROM User u
+        WHERE u.username = :username AND (u.isDeleted = false OR u.isDeleted IS NULL)
+        """)
+    Optional<User> findActiveByUsername(@Param("username") String username);
+
+    @Query("""
+        SELECT u FROM User u
+        WHERE u.email = :email AND (u.isDeleted = false OR u.isDeleted IS NULL)
+        """)
+    Optional<User> findActiveByEmail(@Param("email") String email);
+
+    @Query(value = """
+        SELECT
+            u.id,
+            u.username,
+            u.email,
+            u.description,
+            u.profile_photo_url AS profilePhotoUrl,
+            u.isAdmin,
+            u.created_at AS createdAt,
+            (SELECT COUNT(*) FROM follows f WHERE f.followed_id = u.id) AS followers,
+            (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS following,
+            (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
+            (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
+        FROM users u WHERE u.id = :id AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+        """, nativeQuery = true)
+    List<Map<String, Object>> findProfileRowsById(@Param("id") Long id);
+
+    default Map<String, Object> findProfileById(Long id) {
+        List<Map<String, Object>> rows = findProfileRowsById(id);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
-    /**
-     * REQUIREMENT #2: List all users and how many posts they have made.
-     * Uses COUNT and GROUP BY.
-     */
-    public List<Map<String, Object>> findAllUsersWithPostCount() {
-        String sql = """
-            SELECT u.id, u.username, u.email, u.description, u.profile_photo_url AS profilePhotoUrl, u.created_at AS createdAt, u.isAdmin,
-                   COUNT(DISTINCT p.id) AS postCount,
-                   COUNT(DISTINCT CASE WHEN c.is_deleted = false OR c.is_deleted IS NULL THEN c.id END) AS totalClips,
-                   COUNT(DISTINCT CASE WHEN (c.is_deleted = false OR c.is_deleted IS NULL) AND c.is_public = 1 THEN c.id END) AS publicClipCount,
-                   COUNT(DISTINCT uf.clip_id) AS totalFavorites
-            FROM users u
-            LEFT JOIN posts p ON u.id = p.user_id
-            LEFT JOIN clips c ON u.id = c.uploader_id
-            LEFT JOIN user_favorites uf ON u.id = uf.user_id
-            WHERE u.isDeleted = FALSE OR u.isDeleted IS NULL
-            GROUP BY u.id, u.username, u.email, u.description, u.profile_photo_url, u.created_at, u.isAdmin
-            ORDER BY postCount DESC
-            """;
-        
-        return jdbcTemplate.queryForList(sql);
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO follows (follower_id, followed_id) VALUES (:followerId, :followedId)", nativeQuery = true)
+    void followUser(@Param("followerId") Long followerId, @Param("followedId") Long followedId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM follows WHERE follower_id = :followerId AND followed_id = :followedId", nativeQuery = true)
+    void unfollowUser(@Param("followerId") Long followerId, @Param("followedId") Long followedId);
+
+    @Query(value = "SELECT COUNT(*) FROM follows WHERE follower_id = :followerId AND followed_id = :followedId", nativeQuery = true)
+    int countFollowing(@Param("followerId") Long followerId, @Param("followedId") Long followedId);
+
+    default boolean isFollowing(Long followerId, Long followedId) {
+        return countFollowing(followerId, followedId) > 0;
     }
 
-    // New Auth Methods
-    public Map<String, Object> findByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ? AND (isDeleted = FALSE OR isDeleted IS NULL)";
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, username);
-        return results.isEmpty() ? null : results.get(0);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE users SET username = :username, description = :description, profile_photo_url = :profilePhotoUrl WHERE id = :id", nativeQuery = true)
+    int updateProfile(@Param("id") Long id, @Param("username") String username, @Param("description") String description, @Param("profilePhotoUrl") String profilePhotoUrl);
 
-    public void insertUser(String username, String email, String passwordHash) {
-        String sql = "INSERT INTO users (username, email, password_hash, profile_photo_url, isAdmin) VALUES (?, ?, ?, 'https://i.pravatar.cc/150?img=1', FALSE)";
-        jdbcTemplate.update(sql, username, email, passwordHash);
-    }
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE users SET isDeleted = TRUE WHERE id = :id", nativeQuery = true)
+    int softDeleteUser(@Param("id") Long id);
 
-    public Map<String, Object> findById(Long id) {
-        String sql = """
-            SELECT 
-                u.id, 
-                u.username, 
-                u.email, 
-                u.description, 
-                u.profile_photo_url AS profilePhotoUrl, 
-                u.isAdmin, 
-                u.created_at AS createdAt,
-                (SELECT COUNT(*) FROM follows f WHERE f.followed_id = u.id) AS followers,
-                (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS following,
-                (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
-                (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
-            FROM users u WHERE u.id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
-            """;
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, id);
-        return results.isEmpty() ? null : results.get(0);
-    }
+    @Query(value = """
+        SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
+        FROM users u
+        JOIN follows f ON u.id = f.follower_id
+        WHERE f.followed_id = :userId AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+        """, nativeQuery = true)
+    List<Map<String, Object>> findFollowers(@Param("userId") Long userId);
 
-    public void followUser(Long followerId, Long followedId) {
-        String sql = "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)";
-        try {
-            jdbcTemplate.update(sql, followerId, followedId);
-        } catch (Exception e) {
-            // Ignore if already following
-        }
-    }
+    @Query(value = """
+        SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
+        FROM users u
+        JOIN follows f ON u.id = f.followed_id
+        WHERE f.follower_id = :userId AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+        """, nativeQuery = true)
+    List<Map<String, Object>> findFollowing(@Param("userId") Long userId);
 
-    public void unfollowUser(Long followerId, Long followedId) {
-        String sql = "DELETE FROM follows WHERE follower_id = ? AND followed_id = ?";
-        jdbcTemplate.update(sql, followerId, followedId);
-    }
+    @Query(value = """
+        SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
+               u.description,
+               COUNT(DISTINCT f2.follower_id) AS mutualCount,
+               (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
+        FROM follows f1
+        JOIN follows f2 ON f2.follower_id = f1.followed_id AND f2.followed_id != :userId
+        JOIN users u ON u.id = f2.followed_id
+        WHERE f1.follower_id = :userId
+          AND f2.followed_id NOT IN (SELECT followed_id FROM follows WHERE follower_id = :userId)
+          AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+        GROUP BY u.id, u.username, u.profile_photo_url, u.description
+        ORDER BY mutualCount DESC, followers DESC
+        LIMIT 6
+        """, nativeQuery = true)
+    List<Map<String, Object>> findSuggestedUsersFromFriends(@Param("userId") Long userId);
 
-    public boolean isFollowing(Long followerId, Long followedId) {
-        String sql = "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followed_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, followerId, followedId);
-        return count != null && count > 0;
-    }
+    @Query(value = """
+        SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
+               u.description,
+               0 AS mutualCount,
+               (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
+        FROM users u
+        WHERE u.id != :userId
+          AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id = :userId)
+          AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
+        ORDER BY followers DESC
+        LIMIT 6
+        """, nativeQuery = true)
+    List<Map<String, Object>> findPopularSuggestedUsers(@Param("userId") Long userId);
 
-
-    public int updateProfile(Long id, String username, String description, String profilePhotoUrl) {
-        String sql = "UPDATE users SET username = ?, description = ?, profile_photo_url = ? WHERE id = ?";
-        return jdbcTemplate.update(sql, username, description, profilePhotoUrl, id);
-    }
-
-    public int softDeleteUser(Long id) {
-        String sql = "UPDATE users SET isDeleted = TRUE WHERE id = ?";
-        return jdbcTemplate.update(sql, id);
-    }
-
-    public List<Map<String, Object>> findFollowers(Long userId) {
-        String sql = """
-            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
-            FROM users u
-            JOIN follows f ON u.id = f.follower_id
-            WHERE f.followed_id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
-            """;
-        return jdbcTemplate.queryForList(sql, userId);
-    }
-
-    public List<Map<String, Object>> findFollowing(Long userId) {
-        String sql = """
-            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl
-            FROM users u
-            JOIN follows f ON u.id = f.followed_id
-            WHERE f.follower_id = ? AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
-            """;
-        return jdbcTemplate.queryForList(sql, userId);
-    }
-    /**
-     * Suggest users to follow based on "friends of friends" logic.
-     * Falls back to popular users if no mutual connections found.
-     * Excludes self and already-followed users.
-     */
-    public List<Map<String, Object>> findSuggestedUsers(Long userId) {
-        // First try friends-of-friends
-        String fofSql = """
-            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
-                   u.description,
-                   COUNT(DISTINCT f2.follower_id) AS mutualCount,
-                   (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
-            FROM follows f1
-            JOIN follows f2 ON f2.follower_id = f1.followed_id AND f2.followed_id != ?
-            JOIN users u ON u.id = f2.followed_id
-            WHERE f1.follower_id = ?
-              AND f2.followed_id NOT IN (SELECT followed_id FROM follows WHERE follower_id = ?)
-              AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
-            GROUP BY u.id, u.username, u.profile_photo_url, u.description
-            ORDER BY mutualCount DESC, followers DESC
-            LIMIT 6
-            """;
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(fofSql, userId, userId, userId);
-
-        if (!results.isEmpty()) {
-            return results;
-        }
-
-        // Fallback: popular users not yet followed
-        String popularSql = """
-            SELECT u.id, u.username, u.profile_photo_url AS profilePhotoUrl,
-                   u.description,
-                   0 AS mutualCount,
-                   (SELECT COUNT(*) FROM follows WHERE followed_id = u.id) AS followers
-            FROM users u
-            WHERE u.id != ?
-              AND u.id NOT IN (SELECT followed_id FROM follows WHERE follower_id = ?)
-              AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
-            ORDER BY followers DESC
-            LIMIT 6
-            """;
-        return jdbcTemplate.queryForList(popularSql, userId, userId);
+    default List<Map<String, Object>> findSuggestedUsers(Long userId) {
+        List<Map<String, Object>> rows = findSuggestedUsersFromFriends(userId);
+        return rows.isEmpty() ? findPopularSuggestedUsers(userId) : rows;
     }
 }
-

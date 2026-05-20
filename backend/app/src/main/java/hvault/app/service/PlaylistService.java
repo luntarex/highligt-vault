@@ -1,8 +1,10 @@
 package hvault.app.service;
 
+import hvault.app.entity.Playlist;
 import hvault.app.repository.PlaylistRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +27,12 @@ public class PlaylistService {
         if (playlist == null) {
             throw new IllegalArgumentException("Playlist not found");
         }
-        
+
         List<Map<String, Object>> clips = playlistRepository.findClipsByPlaylistId(id);
-        
+
         Map<String, Object> response = new HashMap<>(playlist);
         response.put("clips", clips);
-        
+
         return response;
     }
 
@@ -38,7 +40,12 @@ public class PlaylistService {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Playlist name cannot be empty");
         }
-        return playlistRepository.createPlaylist(userId, name, description);
+        Playlist playlist = new Playlist();
+        playlist.setUserId(userId);
+        playlist.setName(name);
+        playlist.setDescription(description);
+        playlist.setCreatedAt(LocalDateTime.now());
+        return playlistRepository.save(playlist).getId();
     }
 
     public void updatePlaylist(Long id, String name, String description) {

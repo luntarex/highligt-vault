@@ -4,6 +4,7 @@ import { LoginRequest } from '../../../core/models/user';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
+import { getSafeErrorMessage } from '../../../core/utils/error-message';
 
 @Component({
   selector: 'app-login',
@@ -39,13 +40,11 @@ export class Login {
       },
       error: (err) => {
         this.isSubmitting = false;
-        console.error('Login error:', err);
-        
         let message = 'Login failed. Please try again.';
         if (err.status === 401) {
           message = 'Invalid credentials';
-        } else if (err.error && err.error.message) {
-          message = err.error.message;
+        } else {
+          message = getSafeErrorMessage(err, message);
         }
 
         this.toast.error(message);

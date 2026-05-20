@@ -49,12 +49,9 @@ export class Register {
         }
       },
       error: (err) => {
-        console.error('Registration error details:', err);
         let msg = 'Registration failed. Please try again.';
         if (err.error && err.error.message) {
           msg = err.error.message;
-        } else if (err.error && err.error.error) {
-          msg = err.error.error;
         }
         this.toast.error(msg);
       }

@@ -3,8 +3,10 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
+import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { GameService } from '../../core/services/game.service';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-users-list-page',
@@ -27,7 +29,8 @@ export class UsersListPage implements OnInit {
     private userService: UserService,
     private router: Router,
     private gameService: GameService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -77,8 +80,7 @@ export class UsersListPage implements OnInit {
         this.closeDeleteModal();
       },
       error: (err) => {
-        console.error('Failed to delete user:', err);
-        alert('Failed to delete user.');
+        this.toast.error(getSafeErrorMessage(err, 'Failed to delete user. Please try again.'));
       }
     });
   }
@@ -96,7 +98,7 @@ export class UsersListPage implements OnInit {
         }, 3000);
       },
       error: (err) => {
-        this.addGameMessage = "Error: " + (err.error?.error || "Failed to add game");
+        this.addGameMessage = getSafeErrorMessage(err, 'Failed to add game. Please try again.');
         this.cdr.detectChanges();
         setTimeout(() => {
           this.addGameMessage = '';

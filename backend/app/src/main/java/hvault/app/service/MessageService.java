@@ -4,6 +4,7 @@ import hvault.app.entity.Message;
 import hvault.app.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,13 @@ public class MessageService {
     }
 
     public void sendMessage(Long senderId, Long receiverId, String content) {
-        messageRepository.save(senderId, receiverId, content);
+        Message message = new Message();
+        message.setSenderId(senderId);
+        message.setReceiverId(receiverId);
+        message.setContent(content);
+        message.setIsRead(false);
+        message.setCreatedAt(LocalDateTime.now());
+        messageRepository.save(message);
     }
 
     public List<Message> getConversation(Long userId1, Long userId2) {
@@ -41,6 +48,8 @@ public class MessageService {
     }
 
     public void deleteMessages(List<Long> ids) {
-        messageRepository.deleteByIds(ids);
+        if (ids != null && !ids.isEmpty()) {
+            messageRepository.deleteByIds(ids);
+        }
     }
 }

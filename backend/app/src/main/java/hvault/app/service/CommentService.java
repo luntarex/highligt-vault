@@ -1,8 +1,10 @@
 package hvault.app.service;
 
+import hvault.app.entity.Comment;
 import hvault.app.repository.CommentRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +25,13 @@ public class CommentService {
     }
 
     public Long addComment(Long postId, Long userId, String content, Long parentCommentId) {
-        return commentRepository.insertComment(postId, userId, content, parentCommentId);
+        Comment comment = new Comment();
+        comment.setPostId(postId);
+        comment.setUserId(userId);
+        comment.setContent(content);
+        comment.setPostCommentId(parentCommentId);
+        comment.setCreatedAt(LocalDateTime.now());
+        return commentRepository.save(comment).getId();
     }
 
     public void updateCommentContent(Long id, String newContent) {

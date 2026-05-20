@@ -1,8 +1,10 @@
 package hvault.app.controller;
 
+import hvault.app.exception.AuthRegistrationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import hvault.app.dto.LoginResponse;
 import java.util.Map;
 
 @RestController
@@ -25,11 +27,16 @@ public class AuthController {
         String email = request.get("email");
         String password = request.get("password");
         
-        boolean success = authService.register(username, email, password);
-        if (success) {
+        try {
+            authService.register(username, email, password);
             return ResponseEntity.ok(Map.of("message", "User registered successfully", "success", true));
-        } else {
-            return org.springframework.http.ResponseEntity.badRequest().body(Map.of("message", "Username already exists", "success", false));
+        } catch (AuthRegistrationException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "message", "Registration failed. Please try again later.",
+                "success", false
+            ));
         }
     }
 
@@ -43,7 +50,7 @@ public class AuthController {
         String username = request.get("username");
         String password = request.get("password");
         
-        Map<String, Object> user = authService.login(username, password);
+        LoginResponse user = authService.login(username, password);
         if (user != null) {
             return ResponseEntity.ok(user);
         } else {
@@ -51,3 +58,4 @@ public class AuthController {
         }
     }
 }
+

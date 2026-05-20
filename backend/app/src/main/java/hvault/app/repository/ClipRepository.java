@@ -1,229 +1,305 @@
 package hvault.app.repository;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
+import hvault.app.entity.Clip;
+import hvault.app.enums.VisibilityStatus;
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class ClipRepository {
+public interface ClipRepository extends JpaRepository<Clip, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Query(value = """
+        SELECT DISTINCT c.id, c.title, c.video_url, c.thumbnail_url, c.duration,
+               c.start_time, c.end_time, g.name AS game_name
+        FROM comments cm
+        JOIN posts p ON cm.post_id = p.id
+        JOIN clips c ON p.clip_id = c.id
+        JOIN games g ON c.game_id = g.id
+        WHERE cm.user_id = :userId
+        ORDER BY c.title ASC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findClipsCommentedByUser(@Param("userId") Long userId);
 
-    public ClipRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+               c.is_deleted AS isDeleted, c.created_at AS dateCreated,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.moderation_checked_at AS moderationCheckedAt,
+               c.reviewed_by AS reviewedBy, c.reviewed_at AS reviewedAt,
+               c.removed_reason AS removedReason, c.removed_at AS removedAt,
+               c.visibility_status AS visibilityStatus
+        FROM clips c
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE c.uploader_id = :uploaderId AND (c.is_deleted = false OR c.is_deleted IS NULL)
+        ORDER BY c.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findAllByUserId(@Param("uploaderId") Long uploaderId);
+
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+               c.is_deleted AS isDeleted,
+               c.moderation_status AS moderationStatus, c.visibility_status AS visibilityStatus
+        FROM user_favorites uf
+        JOIN clips c ON uf.clip_id = c.id
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE uf.user_id = :userId
+          AND (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        ORDER BY uf.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findFavoritesByUserId(@Param("userId") Long userId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO user_favorites (user_id, clip_id, created_at) VALUES (:userId, :clipId, CURRENT_TIMESTAMP)", nativeQuery = true)
+    void addFavorite(@Param("userId") Long userId, @Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM user_favorites WHERE user_id = :userId AND clip_id = :clipId", nativeQuery = true)
+    void removeFavorite(@Param("userId") Long userId, @Param("clipId") Long clipId);
+
+    @Query(value = "SELECT COUNT(*) FROM user_favorites WHERE user_id = :userId AND clip_id = :clipId", nativeQuery = true)
+    int countFavorite(@Param("userId") Long userId, @Param("clipId") Long clipId);
+
+    default boolean isFavorited(Long userId, Long clipId) {
+        return countFavorite(userId, clipId) > 0;
     }
 
-    /**
-     * REQUIREMENT #1: List all clips that a certain user has commented on.
-     * Uses JOIN linking 4 tables: comments -> posts -> clips -> games.
-     */
-    public List<Map<String, Object>> findClipsCommentedByUser(Long userId) {
-        String sql = """
-            SELECT DISTINCT c.id, c.title, c.video_url, c.thumbnail_url, c.duration,
-                   c.start_time, c.end_time, g.name AS game_name
-            FROM comments cm
-            JOIN posts p ON cm.post_id = p.id
-            JOIN clips c ON p.clip_id = c.id
-            JOIN games g ON c.game_id = g.id
-            WHERE cm.user_id = ?
-            ORDER BY c.title ASC
-            """;
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+               c.is_deleted AS isDeleted, c.created_at AS dateCreated,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.moderation_checked_at AS moderationCheckedAt,
+               c.reviewed_by AS reviewedBy, c.reviewed_at AS reviewedAt,
+               c.removed_reason AS removedReason, c.removed_at AS removedAt,
+               c.visibility_status AS visibilityStatus
+        FROM clips c
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE c.is_deleted = false OR c.is_deleted IS NULL
+        ORDER BY c.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findAllClips();
 
-        return jdbcTemplate.queryForList(sql, userId);
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
+               c.uploader_id AS uploaderId, c.is_deleted AS isDeleted,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.moderation_checked_at AS moderationCheckedAt,
+               c.reviewed_by AS reviewedBy, c.reviewed_at AS reviewedAt,
+               c.removed_reason AS removedReason, c.removed_at AS removedAt,
+               c.visibility_status AS visibilityStatus
+        FROM clips c
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE c.id = :id AND (c.is_deleted = false OR c.is_deleted IS NULL)
+        """, nativeQuery = true)
+    List<Map<String, Object>> findClipRowsById(@Param("id") Long id);
+
+    default Map<String, Object> findClipDetailsById(Long id) {
+        List<Map<String, Object>> rows = findClipRowsById(id);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
-    public List<Map<String, Object>> findAllByUserId(Long uploaderId) {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-                   c.is_public AS isPublic, c.created_at AS dateCreated
-            FROM clips c
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE c.uploader_id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
-            ORDER BY c.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, uploaderId);
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE clips SET is_deleted = true, visibility_status = 'REMOVED' WHERE id = :id", nativeQuery = true)
+    void softDeleteClip(@Param("id") Long id);
+
+    @Query(value = "SELECT id FROM posts WHERE clip_id = :clipId", nativeQuery = true)
+    List<Long> findPostIdsByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM comments WHERE post_id = :postId", nativeQuery = true)
+    void deleteCommentsByPostId(@Param("postId") Long postId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM post_likes WHERE post_id = :postId", nativeQuery = true)
+    void deletePostLikesByPostId(@Param("postId") Long postId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM posts WHERE clip_id = :clipId", nativeQuery = true)
+    void deletePostsByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM clip_tags WHERE clip_id = :clipId", nativeQuery = true)
+    void deleteClipTags(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM playlist_items WHERE clip_id = :clipId", nativeQuery = true)
+    void deletePlaylistItemsByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM user_favorites WHERE clip_id = :clipId", nativeQuery = true)
+    void deleteFavoritesByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM clips WHERE id = :clipId", nativeQuery = true)
+    void deleteClipRow(@Param("clipId") Long clipId);
+
+    @Transactional
+    default void hardDeleteClip(Long id) {
+        for (Long postId : findPostIdsByClipId(id)) {
+            deleteCommentsByPostId(postId);
+            deletePostLikesByPostId(postId);
+        }
+        deletePostsByClipId(id);
+        deleteClipTags(id);
+        deletePlaylistItemsByClipId(id);
+        deleteFavoritesByClipId(id);
+        deleteClipRow(id);
     }
-    public List<Map<String, Object>> findFavoritesByUserId(Long userId) {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-                   c.is_public AS isPublic
-            FROM user_favorites uf
-            JOIN clips c ON uf.clip_id = c.id
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE uf.user_id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
-            ORDER BY uf.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, userId);
+
+    @Query(value = """
+        SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
+        FROM clips c
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE c.uploader_id = :uploaderId AND c.is_deleted = true
+        ORDER BY c.created_at DESC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findAllDeletedByUserId(@Param("uploaderId") Long uploaderId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE clips SET is_deleted = false, visibility_status = 'PRIVATE' WHERE id = :id", nativeQuery = true)
+    void recoverClip(@Param("id") Long id);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET title = :title, notes = :notes, game_id = :gameId,
+            moderation_status = :moderationStatus, visibility_status = :visibilityStatus,
+            moderation_reason = NULL, reviewed_by = NULL, reviewed_at = NULL
+        WHERE id = :id
+        """, nativeQuery = true)
+    void updateClipFields(@Param("id") Long id, @Param("title") String title, @Param("notes") String notes,
+                          @Param("gameId") Long gameId, @Param("moderationStatus") String moderationStatus,
+                          @Param("visibilityStatus") String visibilityStatus);
+
+    default void updateClip(Long id, String title, String notes, Long gameId, VisibilityStatus visibilityStatus) {
+        VisibilityStatus finalVisibilityStatus = visibilityStatus != null ? visibilityStatus : VisibilityStatus.PRIVATE;
+        String moderationStatus = finalVisibilityStatus == VisibilityStatus.PUBLIC ? "AUTO_APPROVED" : "DRAFT";
+        updateClipFields(id, title, notes, gameId, moderationStatus, finalVisibilityStatus.name());
     }
-    
-    public void addFavorite(Long userId, Long clipId) {
-        String checkSql = "SELECT COUNT(*) FROM user_favorites WHERE user_id = ? AND clip_id = ?";
-        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, clipId);
-        if (count == null || count == 0) {
-            jdbcTemplate.update(
-                "INSERT INTO user_favorites (user_id, clip_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
-                userId, clipId
-            );
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET visibility_status = :visibilityStatus,
+            moderation_status = CASE
+                WHEN :visibilityStatus = 'PUBLIC' THEN 'AUTO_APPROVED'
+                ELSE moderation_status
+            END
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void updateVisibilityStatusValue(@Param("clipId") Long clipId, @Param("visibilityStatus") String visibilityStatus);
+
+    default void updateVisibilityStatus(Long clipId, VisibilityStatus visibilityStatus) {
+        VisibilityStatus finalVisibilityStatus = visibilityStatus != null ? visibilityStatus : VisibilityStatus.PRIVATE;
+        updateVisibilityStatusValue(clipId, finalVisibilityStatus.name());
+    }
+
+    @Query(value = """
+        SELECT c.id AS clipId, c.title, c.video_url AS videoUrl, c.thumbnail_url AS thumbnailUrl,
+               c.uploader_id AS uploaderId, u.username AS uploaderUsername,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.visibility_status AS visibilityStatus,
+               c.created_at AS createdAt
+        FROM clips c
+        LEFT JOIN users u ON c.uploader_id = u.id
+        WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('PENDING_REVIEW', 'NEEDS_MANUAL_REVIEW', 'APPEALED')
+        ORDER BY c.created_at ASC
+        """, nativeQuery = true)
+    List<Map<String, Object>> findModerationQueue();
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET moderation_status = 'APPROVED', visibility_status = 'PUBLIC', moderation_reason = :reason,
+            reviewed_by = :moderatorId, reviewed_at = CURRENT_TIMESTAMP, removed_reason = NULL, removed_at = NULL
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void approveClip(@Param("clipId") Long clipId, @Param("moderatorId") Long moderatorId, @Param("reason") String reason);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET moderation_status = 'REJECTED', visibility_status = 'HIDDEN', moderation_reason = :reason,
+            reviewed_by = :moderatorId, reviewed_at = CURRENT_TIMESTAMP
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void rejectClip(@Param("clipId") Long clipId, @Param("moderatorId") Long moderatorId, @Param("reason") String reason);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET moderation_status = 'REMOVED', visibility_status = 'REMOVED', removed_reason = :reason,
+            removed_at = CURRENT_TIMESTAMP, reviewed_by = :moderatorId, reviewed_at = CURRENT_TIMESTAMP
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void removeClipByModeration(@Param("clipId") Long clipId, @Param("moderatorId") Long moderatorId, @Param("reason") String reason);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET moderation_status = 'APPROVED', visibility_status = 'PUBLIC', moderation_reason = :reason,
+            reviewed_by = :moderatorId, reviewed_at = CURRENT_TIMESTAMP, removed_reason = NULL, removed_at = NULL
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void restoreClip(@Param("clipId") Long clipId, @Param("moderatorId") Long moderatorId, @Param("reason") String reason);
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM clip_tags WHERE clip_id = :clipId", nativeQuery = true)
+    void clearTagsForClip(@Param("clipId") Long clipId);
+
+    @Query(value = "SELECT id FROM tags WHERE name = :tagName", nativeQuery = true)
+    List<Long> findTagIdsByName(@Param("tagName") String tagName);
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO tags (name) VALUES (:tagName)", nativeQuery = true)
+    void insertTagIfNotExists(@Param("tagName") String tagName);
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO clip_tags (clip_id, tag_id) VALUES (:clipId, :tagId)", nativeQuery = true)
+    void linkTagToClip(@Param("clipId") Long clipId, @Param("tagId") Long tagId);
+
+    @Transactional
+    default void insertTagIfNotExistAndLink(Long clipId, String tagName) {
+        insertTagIfNotExists(tagName);
+        List<Long> tagIds = findTagIdsByName(tagName);
+        if (!tagIds.isEmpty()) {
+            linkTagToClip(clipId, tagIds.get(0));
         }
     }
 
-    public void removeFavorite(Long userId, Long clipId) {
-        jdbcTemplate.update("DELETE FROM user_favorites WHERE user_id = ? AND clip_id = ?", userId, clipId);
-    }
-
-    public boolean isFavorited(Long userId, Long clipId) {
-        String sql = "SELECT COUNT(*) FROM user_favorites WHERE user_id = ? AND clip_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, clipId);
-        return count != null && count > 0;
-    }
-
-    public List<Map<String, Object>> findAllClips() {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-                   c.is_public AS isPublic, c.created_at AS dateCreated
-            FROM clips c
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE c.is_deleted = false OR c.is_deleted IS NULL
-            ORDER BY c.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql);
-    }
-
-    public Map<String, Object> findById(Long id) {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-                   c.uploader_id AS uploaderId, c.is_public AS isPublic
-            FROM clips c
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE c.id = ? AND (c.is_deleted = false OR c.is_deleted IS NULL)
-            """;
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, id);
-        return results.isEmpty() ? null : results.get(0);
-    }
-
-    public void softDeleteClip(Long id) {
-        String sql = "UPDATE clips SET is_deleted = true WHERE id = ?";
-        jdbcTemplate.update(sql, id);
-    }
-
-    public void hardDeleteClip(Long id) {
-        // Manually delete related entities in case ON DELETE CASCADE is missing
-        List<Long> postIds = jdbcTemplate.queryForList("SELECT id FROM posts WHERE clip_id = ?", Long.class, id);
-        for (Long postId : postIds) {
-            jdbcTemplate.update("DELETE FROM comments WHERE post_id = ?", postId);
-            jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ?", postId);
-        }
-        jdbcTemplate.update("DELETE FROM posts WHERE clip_id = ?", id);
-        
-        jdbcTemplate.update("DELETE FROM clip_tags WHERE clip_id = ?", id);
-        jdbcTemplate.update("DELETE FROM playlist_items WHERE clip_id = ?", id);
-        jdbcTemplate.update("DELETE FROM user_favorites WHERE clip_id = ?", id);
-        
-        jdbcTemplate.update("DELETE FROM clips WHERE id = ?", id);
-    }
-
-    public List<Map<String, Object>> findAllDeletedByUserId(Long uploaderId) {
-        String sql = """
-            SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
-                   c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game
-            FROM clips c
-            LEFT JOIN games g ON c.game_id = g.id
-            WHERE c.uploader_id = ? AND c.is_deleted = true
-            ORDER BY c.created_at DESC
-            """;
-        return jdbcTemplate.queryForList(sql, uploaderId);
-    }
-
-    public void recoverClip(Long id) {
-        String sql = "UPDATE clips SET is_deleted = false WHERE id = ?";
-        jdbcTemplate.update(sql, id);
-    }
-
-    public Long getGameIdByNameOrCreate(String gameName) {
-        if (gameName == null || gameName.trim().isEmpty()) {
-            return 1L;
-        }
-        String findSql = "SELECT id FROM games WHERE name = ?";
-        List<Long> gameIds = jdbcTemplate.queryForList(findSql, Long.class, gameName);
-        if (gameIds.isEmpty()) {
-            org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
-            jdbcTemplate.update(connection -> {
-                java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO games (name) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, gameName);
-                return ps;
-            }, keyHolder);
-            return keyHolder.getKey().longValue();
-        } else {
-            return gameIds.get(0);
-        }
-    }
-
-    public Long insertClip(String title, String videoUrl, String thumbnailUrl, 
-                           Double duration, Double startTime, Double endTime, String notes, Long uploaderId, Long gameId, Boolean isPublic) {
-        String sql = "INSERT INTO clips (title, video_url, thumbnail_url, duration, start_time, end_time, notes, uploader_id, game_id, is_public) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            java.sql.PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, title);
-            ps.setString(2, videoUrl);
-            ps.setString(3, thumbnailUrl);
-            ps.setObject(4, duration);
-            ps.setObject(5, startTime);
-            ps.setObject(6, endTime);
-            ps.setString(7, notes);
-            ps.setObject(8, uploaderId);
-            ps.setObject(9, gameId);
-            ps.setObject(10, isPublic != null ? isPublic : true);
-            return ps;
-        }, keyHolder);
-        
-        return keyHolder.getKey().longValue();
-    }
-    
-    public void updateClip(Long id, String title, String notes, Long gameId, Boolean isPublic) {
-        String sql = "UPDATE clips SET title = ?, notes = ?, game_id = ?, is_public = ? WHERE id = ?";
-        jdbcTemplate.update(sql, title, notes, gameId, isPublic != null ? isPublic : true, id);
-    }
-    
-    public void updateIsPublic(Long clipId, boolean isPublic) {
-        String sql = "UPDATE clips SET is_public = ? WHERE id = ?";
-        jdbcTemplate.update(sql, isPublic, clipId);
-    }
-    
-    public void clearTagsForClip(Long clipId) {
-        String sql = "DELETE FROM clip_tags WHERE clip_id = ?";
-        jdbcTemplate.update(sql, clipId);
-    }
-    
-    public void insertTagIfNotExistAndLink(Long clipId, String tagName) {
-        String findSql = "SELECT id FROM tags WHERE name = ?";
-        List<Long> tagIds = jdbcTemplate.queryForList(findSql, Long.class, tagName);
-        Long tagId;
-        if (tagIds.isEmpty()) {
-            org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
-            jdbcTemplate.update(connection -> {
-                java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO tags (name) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, tagName);
-                return ps;
-            }, keyHolder);
-            tagId = keyHolder.getKey().longValue();
-        } else {
-            tagId = tagIds.get(0);
-        }
-        
-        String linkSql = "INSERT IGNORE INTO clip_tags (clip_id, tag_id) VALUES (?, ?)";
-        jdbcTemplate.update(linkSql, clipId, tagId);
-    }
-    
-    public List<String> getTagsForClip(Long clipId) {
-        String sql = "SELECT t.name FROM tags t JOIN clip_tags ct ON t.id = ct.tag_id WHERE ct.clip_id = ?";
-        return jdbcTemplate.queryForList(sql, String.class, clipId);
-    }
+    @Query(value = "SELECT t.name FROM tags t JOIN clip_tags ct ON t.id = ct.tag_id WHERE ct.clip_id = :clipId", nativeQuery = true)
+    List<String> getTagsForClip(@Param("clipId") Long clipId);
 }

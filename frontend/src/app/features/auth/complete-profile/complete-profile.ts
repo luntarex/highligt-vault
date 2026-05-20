@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { ProfileService } from '../../../core/services/profile.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { getSafeErrorMessage } from '../../../core/utils/error-message';
+import { ToastService } from '../../../core/services/toast.service';
+import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
   selector: 'app-complete-profile',
@@ -24,7 +27,9 @@ export class CompleteProfile implements OnInit {
     private profileService: ProfileService,
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService,
+    private uploadService: UploadService
   ) {}
 
   ngOnInit(): void {
@@ -59,30 +64,16 @@ export class CompleteProfile implements OnInit {
     const userId = this.authService.getCurrentUserId();
 
     if (this.fileToUpload) {
-      const formData = new FormData();
-      formData.append('file', this.fileToUpload);
-      formData.append('upload_preset', 'hvault_unsigned');
-      
-      fetch('https://api.cloudinary.com/v1_1/dticc1u7k/image/upload', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.secure_url) {
-          this.customAvatarUrl = data.secure_url;
+      this.uploadService.uploadImage(this.fileToUpload).subscribe({
+        next: (data) => {
+          this.customAvatarUrl = data.secureUrl;
           this.submitProfile(userId);
-        } else {
+        },
+        error: (err) => {
           this.saving = false;
           this.cdr.detectChanges();
-          alert('Upload failed: ' + (data.error?.message || JSON.stringify(data)));
+          this.toast.error(getSafeErrorMessage(err, 'Image upload failed. Please try again.'));
         }
-      })
-      .catch(err => {
-        this.saving = false;
-        this.cdr.detectChanges();
-        console.error(err);
-        alert('Upload error: ' + err.message);
       });
     } else {
       this.submitProfile(userId);
@@ -104,7 +95,7 @@ export class CompleteProfile implements OnInit {
       error: () => {
         this.saving = false;
         this.cdr.detectChanges();
-        alert('Failed to save profile. Please try again.');
+        this.toast.error('Failed to save profile. Please try again.');
       }
     });
   }

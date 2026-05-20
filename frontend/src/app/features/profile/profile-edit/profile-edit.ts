@@ -7,6 +7,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { BackLink } from '../../../shared/back-link/back-link';
+import { getSafeErrorMessage } from '../../../core/utils/error-message';
+import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
   selector: 'app-profile-edit',
@@ -31,12 +33,18 @@ export class ProfileEdit implements OnInit {
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private uploadService: UploadService
   ) {}
 
   ngOnInit(): void {
     const userId = this.authService.getCurrentUserId();
     this.profileService.getUserProfile(userId.toString()).subscribe(user => {
+      if (!user) {
+        this.authService.logout();
+        this.router.navigate(['/welcome']);
+        return;
+      }
       this.user = user;
       this.username = user.username || '';
       this.description = user.description || '';
@@ -59,30 +67,16 @@ export class ProfileEdit implements OnInit {
     const userId = this.authService.getCurrentUserId();
     
     if (this.fileToUpload) {
-      const formData = new FormData();
-      formData.append('file', this.fileToUpload);
-      formData.append('upload_preset', 'hvault_unsigned');
-      
-      fetch('https://api.cloudinary.com/v1_1/dticc1u7k/image/upload', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.secure_url) {
-          this.selectedPhotoUrl = data.secure_url;
+      this.uploadService.uploadImage(this.fileToUpload).subscribe({
+        next: (data) => {
+          this.selectedPhotoUrl = data.secureUrl;
           this.submitProfileUpdate(userId);
-        } else {
+        },
+        error: (err) => {
           this.saving = false;
           this.cdr.detectChanges();
-          this.toast.error('Upload failed: ' + (data.error?.message || 'Unknown error'));
+          this.toast.error(getSafeErrorMessage(err, 'Image upload failed. Please try again.'));
         }
-      })
-      .catch(err => {
-        this.saving = false;
-        this.cdr.detectChanges();
-        console.error(err);
-        this.toast.error('Image upload error: ' + err.message);
       });
     } else {
       this.submitProfileUpdate(userId);
@@ -106,11 +100,7 @@ export class ProfileEdit implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        let msg = 'Failed to update profile. Please try again.';
-        if (err.error && (err.error.error || err.error.message)) {
-          msg = err.error.error || err.error.message;
-        }
-        this.toast.error(msg);
+        this.toast.error(getSafeErrorMessage(err, 'Failed to update profile. Please try again.'));
         this.cdr.detectChanges();
       }
     });
@@ -135,7 +125,6 @@ export class ProfileEdit implements OnInit {
       },
       error: (err) => {
         this.toast.error('Failed to delete account. Please try again.');
-        console.error(err);
       }
     });
   }

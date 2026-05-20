@@ -1,10 +1,24 @@
 package hvault.app.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import hvault.app.dto.ClipCreateRequest;
+import hvault.app.dto.ClipUpdateRequest;
+import hvault.app.security.JwtService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/clips")
@@ -44,7 +58,6 @@ public class ClipController {
     /**
      * GET /api/clips/commented-by/{userId}
      * List all clips a certain user has commented on.
-     * REQUIREMENT #1: JOIN query — linking tables (comments → posts → clips)
      */
     @GetMapping("/commented-by/{userId}")
     public ResponseEntity<?> getClipsCommentedByUser(@PathVariable Long userId) {
@@ -93,8 +106,12 @@ public class ClipController {
      * Create a new clip.
      */
     @PostMapping
-    public ResponseEntity<?> createClip(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> createClip(@Valid @RequestBody ClipCreateRequest request, Authentication authentication) {
         try {
+            Long currentUserId = getCurrentUserId(authentication);
+            if (currentUserId != null) {
+                request.setUploaderId(currentUserId);
+            }
             clipService.createClip(request);
             return ResponseEntity.ok(Map.of("message", "Clip created successfully"));
         } catch (Exception e) {
@@ -109,7 +126,7 @@ public class ClipController {
      * Update an existing clip.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> updateClip(@PathVariable Long id, @Valid @RequestBody ClipUpdateRequest request) {
         try {
             clipService.updateClip(id, request);
             return ResponseEntity.ok(Map.of("message", "Clip updated successfully"));
@@ -167,5 +184,12 @@ public class ClipController {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    private Long getCurrentUserId(Authentication authentication) {
+        if (authentication != null && authentication.getDetails() instanceof JwtService.JwtClaims claims) {
+            return claims.userId();
+        }
+        return null;
     }
 }

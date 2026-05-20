@@ -21,12 +21,13 @@ export class AuthService {
       tap((res: any) => {
         const userId = res.userId || res.id;
         if (res && userId) {
-          localStorage.setItem('auth_token', res.token || 'dummy');
+          localStorage.setItem('auth_token', res.token || '');
           localStorage.setItem('user_id', userId.toString());
           if (res.username) localStorage.setItem('username', res.username);
-          if (res.profile_photo_url) {
-            localStorage.setItem('profile_photo_url', res.profile_photo_url);
-            this.userPhotoSubject.next(res.profile_photo_url);
+          const profilePhotoUrl = res.profilePhotoUrl || res.profile_photo_url;
+          if (profilePhotoUrl) {
+            localStorage.setItem('profile_photo_url', profilePhotoUrl);
+            this.userPhotoSubject.next(profilePhotoUrl);
           }
 
           // Store the isAdmin flag
@@ -58,7 +59,8 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('auth_token'); 
+    const token = localStorage.getItem('auth_token');
+    return !!token && token !== 'dummy';
   }
 
   isAdmin(): boolean {
@@ -66,7 +68,29 @@ export class AuthService {
   }
 
   getCurrentUserId(): number {
+    const tokenUserId = this.getUserIdFromToken();
+    if (tokenUserId) {
+      localStorage.setItem('user_id', tokenUserId.toString());
+      return tokenUserId;
+    }
+
     const id = localStorage.getItem('user_id');
-    return id ? parseInt(id, 10) : 1;
+    const parsedId = id ? parseInt(id, 10) : NaN;
+    return Number.isFinite(parsedId) ? parsedId : 0;
+  }
+
+  private getUserIdFromToken(): number {
+    const token = localStorage.getItem('auth_token');
+    if (!token || token === 'dummy') return 0;
+
+    try {
+      const payloadPart = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
+      if (!payloadPart) return 0;
+      const payload = JSON.parse(atob(payloadPart));
+      const parsedId = payload?.sub ? parseInt(payload.sub, 10) : NaN;
+      return Number.isFinite(parsedId) ? parsedId : 0;
+    } catch {
+      return 0;
+    }
   }
 }

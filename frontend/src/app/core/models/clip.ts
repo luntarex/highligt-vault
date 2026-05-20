@@ -17,7 +17,8 @@ export  interface Clip{
   uploaderId : number
   isFavorite : boolean;
   isDeleted : boolean;
-  isPublic : boolean;
+  visibilityStatus: 'PRIVATE' | 'PUBLIC' | 'LIMITED' | 'HIDDEN' | 'REMOVED';
+  moderationStatus?: 'DRAFT' | 'PENDING_REVIEW' | 'AUTO_APPROVED' | 'NEEDS_MANUAL_REVIEW' | 'APPROVED' | 'REJECTED' | 'REMOVED' | 'APPEALED';
 
   dateCreated : Date;
 

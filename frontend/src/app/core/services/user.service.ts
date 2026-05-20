@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user';
 
@@ -16,7 +17,12 @@ export class UserService {
   }
 
   getUserById(id: number): Observable<User | null> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+    if (!id || id <= 0) {
+      return of(null);
+    }
+    return this.http.get<User>(`${this.apiUrl}/${id}`).pipe(
+      catchError(() => of(null))
+    );
   }
 
   deleteAccount(id: number): Observable<any> {

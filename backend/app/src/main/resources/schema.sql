@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS users (
     profile_photo_url VARCHAR(255),
     isAdmin BOOLEAN DEFAULT FALSE,
     isDeleted BOOLEAN DEFAULT FALSE,
+    trust_score INT DEFAULT 50,
+    violation_count INT DEFAULT 0,
+    suspended_until TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -33,13 +36,22 @@ CREATE TABLE IF NOT EXISTS clips (
     start_time FLOAT DEFAULT 0,
     end_time FLOAT,
     notes TEXT,
-    is_public BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
+    moderation_status VARCHAR(30) DEFAULT 'DRAFT',
+    moderation_score INT DEFAULT 0,
+    moderation_reason TEXT,
+    moderation_checked_at TIMESTAMP NULL,
+    reviewed_by BIGINT NULL,
+    reviewed_at TIMESTAMP NULL,
+    removed_reason TEXT,
+    removed_at TIMESTAMP NULL,
+    visibility_status VARCHAR(30) DEFAULT 'PRIVATE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     uploader_id BIGINT,
     game_id BIGINT,
     FOREIGN KEY (uploader_id) REFERENCES users(id),
-    FOREIGN KEY (game_id) REFERENCES games(id)
+    FOREIGN KEY (game_id) REFERENCES games(id),
+    FOREIGN KEY (reviewed_by) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS clip_tags (
@@ -137,3 +149,64 @@ CREATE TABLE IF NOT EXISTS violated_comments (
     violation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     original_created_at TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS content_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reporter_id BIGINT NOT NULL,
+    target_type VARCHAR(30) NOT NULL,
+    target_id BIGINT NOT NULL,
+    reason VARCHAR(50) NOT NULL,
+    details TEXT,
+    status VARCHAR(30) DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by BIGINT NULL,
+    reviewed_at TIMESTAMP NULL,
+    resolution TEXT,
+    FOREIGN KEY (reporter_id) REFERENCES users(id),
+    FOREIGN KEY (reviewed_by) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS moderation_actions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    moderator_id BIGINT,
+    target_type VARCHAR(30) NOT NULL,
+    target_id BIGINT NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    reason TEXT,
+    metadata JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (moderator_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS moderation_results (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    target_type VARCHAR(30) NOT NULL,
+    target_id BIGINT NOT NULL,
+    provider VARCHAR(50),
+    category VARCHAR(50),
+    score FLOAT,
+    flagged BOOLEAN DEFAULT FALSE,
+    raw_result JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users ADD COLUMN trust_score INT DEFAULT 50;
+ALTER TABLE users ADD COLUMN violation_count INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN suspended_until TIMESTAMP NULL;
+
+ALTER TABLE clips ADD COLUMN moderation_status VARCHAR(30) DEFAULT 'DRAFT';
+ALTER TABLE clips ADD COLUMN moderation_score INT DEFAULT 0;
+ALTER TABLE clips ADD COLUMN moderation_reason TEXT;
+ALTER TABLE clips ADD COLUMN moderation_checked_at TIMESTAMP NULL;
+ALTER TABLE clips ADD COLUMN reviewed_by BIGINT NULL;
+ALTER TABLE clips ADD COLUMN reviewed_at TIMESTAMP NULL;
+ALTER TABLE clips ADD COLUMN removed_reason TEXT;
+ALTER TABLE clips ADD COLUMN removed_at TIMESTAMP NULL;
+ALTER TABLE clips ADD COLUMN visibility_status VARCHAR(30) DEFAULT 'PRIVATE';
+UPDATE clips
+SET visibility_status = CASE
+    WHEN is_public = true THEN 'PUBLIC'
+    WHEN visibility_status IS NULL THEN 'PRIVATE'
+    ELSE visibility_status
+END;
+ALTER TABLE clips DROP COLUMN is_public;
