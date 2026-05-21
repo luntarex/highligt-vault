@@ -41,6 +41,34 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         """, nativeQuery = true)
     List<PostDetailsView> findAllPostsWithDetails();
 
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               g.name AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE p.id = :postId
+          AND (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+        """, nativeQuery = true)
+    List<PostDetailsView> findRowsByPostIdWithDetails(@Param("postId") Long postId);
+
+    default PostDetailsView findByPostIdWithDetails(Long postId) {
+        List<PostDetailsView> rows = findRowsByPostIdWithDetails(postId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
     @Transactional
     @Modifying
     @Query(value = "INSERT IGNORE INTO post_likes (post_id, user_id, created_at) VALUES (:postId, :userId, CURRENT_TIMESTAMP)", nativeQuery = true)

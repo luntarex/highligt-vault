@@ -37,7 +37,7 @@ public class UserService {
         if (username != null) {
             User existingUser = userRepository.findActiveByUsername(username).orElse(null);
             if (existingUser != null && !existingUser.getId().equals(id)) {
-                throw new RuntimeException("Username '" + username + "' is already taken.");
+                throw new IllegalArgumentException("This username is already taken.");
             }
         }
         return userRepository.updateProfile(id, username, description, profilePhotoUrl) > 0;

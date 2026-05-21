@@ -64,7 +64,8 @@
       [mode]="isTrashView ? 'trash' : 'library'"
       (removeClip)="handleDelete($event)"
       (recoverClip)="handleRecover($event)"
-      (hardDeleteClip)="handleHardDelete($event)">
+      (hardDeleteClip)="handleHardDelete($event)"
+      (appealClip)="handleAppeal($event)">
     </app-clip-card>
 
     <!-- Upload Card -->

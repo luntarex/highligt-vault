@@ -1,15 +1,18 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.CreatePlaylistRequest;
+import hvault.app.dto.IdMessageResponse;
 import hvault.app.dto.PlaylistResponse;
 import hvault.app.dto.UpdatePlaylistRequest;
+import hvault.app.security.SecurityUtil;
 import hvault.app.service.PlaylistService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/playlists")
@@ -22,74 +25,72 @@ public class PlaylistController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getPlaylistsByUserId(@PathVariable Long userId) {
-        try {
-            List<PlaylistResponse> playlists = playlistService.getPlaylistsByUserId(userId);
-            return ResponseEntity.ok(playlists);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<List<PlaylistResponse>> getPlaylistsByUserId(@PathVariable Long userId, Authentication authentication) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        Long targetUserId = SecurityUtil.isAdmin(authentication) ? userId : currentUserId;
+        List<PlaylistResponse> playlists = playlistService.getPlaylistsByUserId(targetUserId);
+        return ResponseEntity.ok(playlists);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPlaylistById(@PathVariable Long id) {
-        try {
-            PlaylistResponse playlist = playlistService.getPlaylistById(id);
-            return ResponseEntity.ok(playlist);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<PlaylistResponse> getPlaylistById(@PathVariable Long id, Authentication authentication) {
+        PlaylistResponse playlist = playlistService.getPlaylistById(
+            id,
+            SecurityUtil.requireCurrentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(playlist);
     }
 
     @PostMapping
-    public ResponseEntity<?> createPlaylist(@Valid @RequestBody CreatePlaylistRequest request) {
-        try {
-            Long id = playlistService.createPlaylist(request.getUserId(), request.getName(), request.getDescription());
-            return ResponseEntity.ok(Map.of("message", "Playlist created successfully", "id", id));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<IdMessageResponse> createPlaylist(@Valid @RequestBody CreatePlaylistRequest request, Authentication authentication) {
+        Long id = playlistService.createPlaylist(
+            SecurityUtil.requireCurrentUserId(authentication),
+            request.getName(),
+            request.getDescription()
+        );
+        return ResponseEntity.ok(new IdMessageResponse("Playlist created successfully", id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePlaylist(@PathVariable Long id, @RequestBody UpdatePlaylistRequest request) {
-        try {
-            playlistService.updatePlaylist(id, request.getName(), request.getDescription());
-            return ResponseEntity.ok(Map.of("message", "Playlist updated successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> updatePlaylist(
+        @PathVariable Long id,
+        @RequestBody UpdatePlaylistRequest request,
+        Authentication authentication
+    ) {
+        playlistService.updatePlaylist(
+            id,
+            request.getName(),
+            request.getDescription(),
+            SecurityUtil.requireCurrentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(new ApiMessageResponse("Playlist updated successfully"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePlaylist(@PathVariable Long id) {
-        try {
-            playlistService.deletePlaylist(id);
-            return ResponseEntity.ok(Map.of("message", "Playlist deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> deletePlaylist(@PathVariable Long id, Authentication authentication) {
+        playlistService.deletePlaylist(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Playlist deleted successfully"));
     }
 
     @PostMapping("/{id}/clips/{clipId}")
-    public ResponseEntity<?> addClipToPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
-        try {
-            playlistService.addClipToPlaylist(id, clipId);
-            return ResponseEntity.ok(Map.of("message", "Clip added to playlist"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> addClipToPlaylist(
+        @PathVariable Long id,
+        @PathVariable Long clipId,
+        Authentication authentication
+    ) {
+        playlistService.addClipToPlaylist(id, clipId, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip added to playlist"));
     }
 
     @DeleteMapping("/{id}/clips/{clipId}")
-    public ResponseEntity<?> removeClipFromPlaylist(@PathVariable Long id, @PathVariable Long clipId) {
-        try {
-            playlistService.removeClipFromPlaylist(id, clipId);
-            return ResponseEntity.ok(Map.of("message", "Clip removed from playlist"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> removeClipFromPlaylist(
+        @PathVariable Long id,
+        @PathVariable Long clipId,
+        Authentication authentication
+    ) {
+        playlistService.removeClipFromPlaylist(id, clipId, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip removed from playlist"));
     }
 }

@@ -1,0 +1,164 @@
+<div class="moderation-page">
+  <div class="header">
+    <h1>Moderation Queue</h1>
+    <p>Review clips flagged by automatic checks before they appear publicly.</p>
+  </div>
+
+  <div class="queue-shell" *ngIf="!isLoading; else loadingState">
+    <aside class="queue-list">
+      <div class="queue-header">
+        <span>Pending Clips</span>
+        <button class="refresh-btn" [disabled]="isRefreshing" (click)="loadQueue()">
+          {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+        </button>
+      </div>
+
+      <div class="queue-filters">
+        <select [(ngModel)]="statusFilter" (change)="applyQueueFilters()">
+          <option *ngFor="let status of statusOptions" [value]="status">{{ status || 'All Statuses' }}</option>
+        </select>
+        <input type="number" min="0" max="100" placeholder="Min score" [(ngModel)]="minScoreFilter" (change)="applyQueueFilters()">
+        <input type="text" placeholder="Category" [(ngModel)]="categoryFilter" (keyup.enter)="applyQueueFilters()">
+        <div class="date-row">
+          <input type="date" [(ngModel)]="fromDateFilter" (change)="applyQueueFilters()">
+          <input type="date" [(ngModel)]="toDateFilter" (change)="applyQueueFilters()">
+        </div>
+        <button class="clear-filter-btn" (click)="clearQueueFilters()">Clear filters</button>
+      </div>
+
+      <div class="queue-items">
+        <button
+          *ngFor="let item of queue"
+          class="queue-item"
+          [class.active]="selectedClip?.clipId === item.clipId"
+          (click)="selectClip(item)">
+          <img [src]="item.thumbnailUrl" alt="{{ item.title }}" class="thumb">
+          <div class="queue-meta">
+            <strong>{{ item.title }}</strong>
+            <span>{{ item.uploaderUsername || ('User #' + item.uploaderId) }}</span>
+            <small>{{ item.moderationStatus }} - Score {{ item.moderationScore || 0 }}</small>
+            <small *ngIf="item.moderationCategory">{{ item.moderationCategory }}</small>
+          </div>
+        </button>
+
+        <div class="empty-card" *ngIf="queue.length === 0">
+          <h3>No clips waiting</h3>
+          <p>The moderation queue is clear.</p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="review-panel" *ngIf="selectedClip; else emptySelection">
+      <div class="video-card">
+        <div #reviewVideoContainer class="video-container" (click)="toggleReviewPlay(reviewVideo)">
+          <video #reviewVideo
+                 [src]="selectedClip.videoUrl"
+                 class="post-video"
+                 muted
+                 playsinline
+                 disablePictureInPicture
+                 controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                 (timeupdate)="onReviewTimeUpdate(reviewVideo)"
+                 (loadedmetadata)="onReviewMetadataLoaded(reviewVideo)"
+                 (play)="isReviewPlaying = true"
+                 (pause)="isReviewPlaying = false">
+          </video>
+
+          <div class="play-button" [class.hidden]="isReviewPlaying">▶</div>
+
+          <button class="fullscreen-button" (click)="openReviewFullscreen($event, reviewVideoContainer)" title="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+
+          <div class="controls-bar" (click)="$event.stopPropagation()">
+            <div class="progress-container" (click)="onReviewSeek($event, reviewVideo)">
+              <div class="progress-bar" [style.width.%]="progressPercent()"></div>
+            </div>
+            <div class="time-display">
+              {{ formatTime(reviewCurrentTime) }} / {{ formatTime(reviewDuration) }}
+            </div>
+            <button class="mute-button" (click)="toggleReviewMute($event, reviewVideo)">
+              @if(reviewVideo.muted){
+                <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-miterlimit="10">
+                  <path d="M12,5V19L7,16H2V8H7Z"></path>
+                  <line x1="16" y1="15" x2="22" y2="9"></line>
+                  <line x1="16" y1="9" x2="22" y2="15"></line>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-miterlimit="10">
+                  <path d="M12,5V19L7,16H2V8H7Z"></path>
+                  <path d="M19.3,19.3a11.2,11.2,0,0,0,0-14.6"></path>
+                  <path d="M16.4,16.4a6.8,6.8,0,0,0,0-8.8"></path>
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-card">
+        <div class="details-header">
+          <div>
+            <h2>{{ selectedClip.title }}</h2>
+            <p>Uploaded by {{ selectedClip.uploaderUsername || ('User #' + selectedClip.uploaderId) }}</p>
+          </div>
+          <span class="status-pill">{{ selectedClip.visibilityStatus }}</span>
+        </div>
+
+        <div class="detail-grid">
+          <div>
+            <span class="label">Status</span>
+            <strong>{{ selectedClip.moderationStatus }}</strong>
+          </div>
+          <div>
+            <span class="label">Score</span>
+            <strong>{{ selectedClip.moderationScore || 0 }}</strong>
+          </div>
+          <div>
+            <span class="label">Created</span>
+            <strong>{{ formatDate(selectedClip.createdAt) }}</strong>
+          </div>
+          <div>
+            <span class="label">Category</span>
+            <strong>{{ selectedClip.moderationCategory || 'N/A' }}</strong>
+          </div>
+        </div>
+
+        <div class="reason-box">
+          <span class="label">AI reason</span>
+          <p>{{ selectedClip.moderationReason || 'No reason was provided.' }}</p>
+        </div>
+
+        <textarea
+          [(ngModel)]="decisionReason"
+          placeholder="Optional moderator note..."
+          rows="2"></textarea>
+
+        <p class="decision-help">
+          Reject hides a denied upload. Remove marks already unsafe content as removed and records a removal reason.
+        </p>
+
+        <div class="actions">
+          <button class="approve-btn" [disabled]="isSubmitting" (click)="decide('APPROVE')">Approve</button>
+          <button class="reject-btn" [disabled]="isSubmitting" (click)="decide('REJECT')">Reject</button>
+          <button class="remove-btn" [disabled]="isSubmitting" (click)="decide('REMOVE')">Remove</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-card">Loading moderation queue...</div>
+</ng-template>
+
+<ng-template #emptySelection>
+  <section class="review-panel empty-selection">
+    <div class="empty-card">
+      <h3>Select a clip</h3>
+      <p>Choose a queued clip to inspect its AI reason and apply a decision.</p>
+    </div>
+  </section>
+</ng-template>

@@ -1,6 +1,7 @@
 package hvault.app.service;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -21,16 +22,37 @@ import hvault.app.repository.projection.ModerationQueueItemView;
 public class ModerationService {
     private final ClipRepository clipRepository;
     private final ModerationActionRepository moderationActionRepository;
+    private final ModerationScannerService moderationScannerService;
 
-    public ModerationService(ClipRepository clipRepository, ModerationActionRepository moderationActionRepository) {
+    public ModerationService(
+        ClipRepository clipRepository,
+        ModerationActionRepository moderationActionRepository,
+        ModerationScannerService moderationScannerService
+    ) {
         this.clipRepository = clipRepository;
         this.moderationActionRepository = moderationActionRepository;
+        this.moderationScannerService = moderationScannerService;
     }
 
-    public List<ModerationQueueItemResponse> getClipQueue() {
+    public List<ModerationQueueItemResponse> getClipQueue(
+        ModerationStatus status,
+        Integer minScore,
+        String category,
+        LocalDate fromDate,
+        LocalDate toDate
+    ) {
         return clipRepository.findModerationQueue().stream()
             .map(this::toModerationQueueItemResponse)
+            .filter(item -> status == null || item.getModerationStatus() == status)
+            .filter(item -> minScore == null || (item.getModerationScore() != null && item.getModerationScore() >= minScore))
+            .filter(item -> category == null || category.isBlank() || category.equalsIgnoreCase(nullSafe(item.getModerationCategory())))
+            .filter(item -> fromDate == null || (item.getCreatedAt() != null && !item.getCreatedAt().toLocalDate().isBefore(fromDate)))
+            .filter(item -> toDate == null || (item.getCreatedAt() != null && !item.getCreatedAt().toLocalDate().isAfter(toDate)))
             .toList();
+    }
+
+    public ModerationScanResult rescanClip(Long clipId) {
+        return moderationScannerService.scanClipForPublishing(clipId, "");
     }
 
     @Transactional
@@ -68,6 +90,7 @@ public class ModerationService {
         response.setModerationStatus(parseEnum(ModerationStatus.class, item.getModerationStatus()));
         response.setModerationScore(item.getModerationScore());
         response.setModerationReason(item.getModerationReason());
+        response.setModerationCategory(item.getModerationCategory());
         response.setVisibilityStatus(parseEnum(VisibilityStatus.class, item.getVisibilityStatus()));
         response.setCreatedAt(item.getCreatedAt());
         return response;
@@ -78,5 +101,9 @@ public class ModerationService {
             return null;
         }
         return Enum.valueOf(enumType, value);
+    }
+
+    private String nullSafe(String value) {
+        return value == null ? "" : value;
     }
 }

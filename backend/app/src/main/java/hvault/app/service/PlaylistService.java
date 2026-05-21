@@ -6,10 +6,12 @@ import hvault.app.entity.Playlist;
 import hvault.app.repository.PlaylistRepository;
 import hvault.app.repository.projection.PlaylistClipView;
 import hvault.app.repository.projection.PlaylistView;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class PlaylistService {
@@ -26,11 +28,12 @@ public class PlaylistService {
             .toList();
     }
 
-    public PlaylistResponse getPlaylistById(Long id) {
+    public PlaylistResponse getPlaylistById(Long id, Long currentUserId, boolean admin) {
         PlaylistView playlist = playlistRepository.findPlaylistById(id);
         if (playlist == null) {
-            throw new IllegalArgumentException("Playlist not found");
+            throw new NoSuchElementException("Playlist not found");
         }
+        requirePlaylistOwnerOrAdmin(playlist, currentUserId, admin);
 
         List<PlaylistClipResponse> clips = playlistRepository.findClipsByPlaylistId(id).stream()
             .map(this::toPlaylistClipResponse)
@@ -51,27 +54,39 @@ public class PlaylistService {
         return playlistRepository.save(playlist).getId();
     }
 
-    public void updatePlaylist(Long id, String name, String description) {
+    public void updatePlaylist(Long id, String name, String description, Long currentUserId, boolean admin) {
         PlaylistView playlist = playlistRepository.findPlaylistById(id);
         if (playlist == null) {
-            throw new IllegalArgumentException("Playlist not found");
+            throw new NoSuchElementException("Playlist not found");
         }
+        requirePlaylistOwnerOrAdmin(playlist, currentUserId, admin);
         playlistRepository.updatePlaylist(id, name, description);
     }
 
-    public void deletePlaylist(Long id) {
+    public void deletePlaylist(Long id, Long currentUserId, boolean admin) {
+        PlaylistView playlist = playlistRepository.findPlaylistById(id);
+        if (playlist == null) {
+            throw new NoSuchElementException("Playlist not found");
+        }
+        requirePlaylistOwnerOrAdmin(playlist, currentUserId, admin);
         playlistRepository.deletePlaylist(id);
     }
 
-    public void addClipToPlaylist(Long playlistId, Long clipId) {
+    public void addClipToPlaylist(Long playlistId, Long clipId, Long currentUserId, boolean admin) {
         PlaylistView playlist = playlistRepository.findPlaylistById(playlistId);
         if (playlist == null) {
-            throw new IllegalArgumentException("Playlist not found");
+            throw new NoSuchElementException("Playlist not found");
         }
+        requirePlaylistOwnerOrAdmin(playlist, currentUserId, admin);
         playlistRepository.addClipToPlaylist(playlistId, clipId);
     }
 
-    public void removeClipFromPlaylist(Long playlistId, Long clipId) {
+    public void removeClipFromPlaylist(Long playlistId, Long clipId, Long currentUserId, boolean admin) {
+        PlaylistView playlist = playlistRepository.findPlaylistById(playlistId);
+        if (playlist == null) {
+            throw new NoSuchElementException("Playlist not found");
+        }
+        requirePlaylistOwnerOrAdmin(playlist, currentUserId, admin);
         playlistRepository.removeClipFromPlaylist(playlistId, clipId);
     }
 
@@ -99,5 +114,14 @@ public class PlaylistService {
         response.setGame(clip.getGame());
         response.setAddedAt(clip.getAddedAt());
         return response;
+    }
+
+    private void requirePlaylistOwnerOrAdmin(PlaylistView playlist, Long currentUserId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        if (currentUserId == null || !currentUserId.equals(playlist.getUserId())) {
+            throw new AccessDeniedException("You do not have permission to modify this playlist.");
+        }
     }
 }

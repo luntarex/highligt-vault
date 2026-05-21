@@ -105,6 +105,17 @@ export class Library implements OnInit {
     });
   }
 
+  handleAppeal(id: number) {
+    this.clipService.appealClip(id, 'User requested a second review for this clip.').subscribe(() => {
+      const userId = this.authService.getCurrentUserId();
+      this.clipService.getClips(userId).subscribe(clips => {
+        this.allClips = clips;
+        this.applyFilters();
+        this.cdr.detectChanges();
+      });
+    });
+  }
+
   handleHardDelete(id: number) {
     this.clipToDelete = id;
     this.showDeleteModal = true;

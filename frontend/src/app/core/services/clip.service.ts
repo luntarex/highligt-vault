@@ -12,6 +12,20 @@ export interface VideoUploadResponse {
   format?: string;
 }
 
+export interface AddClipResponse {
+  message: string;
+  clipId: number;
+}
+
+export interface ClipModerationResponse {
+  moderationStatus: 'DRAFT' | 'PENDING_REVIEW' | 'AUTO_APPROVED' | 'NEEDS_MANUAL_REVIEW' | 'APPROVED' | 'REJECTED' | 'REMOVED' | 'APPEALED';
+  visibilityStatus: 'PRIVATE' | 'PUBLIC' | 'LIMITED' | 'HIDDEN' | 'REMOVED';
+  score: number;
+  flagged: boolean;
+  category: string;
+  reason: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,8 +52,12 @@ export class ClipService {
     return this.http.get<Clip[]>(`${this.apiUrl}/commented-by/${userId}`);
   }
 
-  addClip(clip: Clip): Observable<any> {
-    return this.http.post(this.apiUrl, clip);
+  addClip(clip: Clip): Observable<AddClipResponse> {
+    return this.http.post<AddClipResponse>(this.apiUrl, clip);
+  }
+
+  scanClipAfterUpload(clipId: number): Observable<ClipModerationResponse> {
+    return this.http.post<ClipModerationResponse>(`${this.apiUrl}/scan/${clipId}`, {});
   }
 
   uploadVideo(file: File): Observable<VideoUploadResponse> {
@@ -66,6 +84,10 @@ export class ClipService {
 
   recoverClip(id: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/trash/recover/${id}`, {});
+  }
+
+  appealClip(id: number, reason: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/appeal`, { reason });
   }
 
   getFavorites(userId: number): Observable<Clip[]> {
