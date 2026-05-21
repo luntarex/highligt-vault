@@ -12,6 +12,7 @@ public interface ModerationQueueItemView {
     String getModerationStatus();
     Integer getModerationScore();
     String getModerationReason();
+    String getModerationCategory();
     String getVisibilityStatus();
     LocalDateTime getCreatedAt();
 }

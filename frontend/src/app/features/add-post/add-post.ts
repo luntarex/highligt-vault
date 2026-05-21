@@ -84,23 +84,27 @@ export class AddPostPage implements OnInit {
     this.isSubmitting = true;
     this.cdr.detectChanges();
 
-    // 1. Update the clip metadata and mark it visible for the feed.
-    this.clip.visibilityStatus = 'PUBLIC';
+    // 1. Update clip metadata first. The backend scanner decides whether it can become public.
     this.clipService.updateClip(this.clip).subscribe({
       next: () => {
-        // 2. Create the exact explicit post with the caption
+        // 2. Create the explicit post. Backend moderation decides feed visibility.
         const postData = {
           userId: this.authService.getCurrentUserId(),
           clipId: this.clip!.id,
           caption: this.caption.trim()
         };
         this.exploreService.addPost(postData).subscribe({
-          next: () => {
+          next: (response) => {
             this.ngZone.run(() => {
               this.isSubmitting = false;
               this.cdr.detectChanges();
-              this.toast.success('Post published to feed!');
-              this.router.navigate(['/']);
+              if (response?.published === false) {
+                this.toast.info('Post saved, but this clip is waiting for moderation review.');
+                this.router.navigate(['/library']);
+              } else {
+                this.toast.success('Post published to feed!');
+                this.router.navigate(['/']);
+              }
             });
           },
           error: (err) => {

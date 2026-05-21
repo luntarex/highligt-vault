@@ -33,9 +33,9 @@ export class ClipEditor implements OnInit {
   @ViewChild('timeline') timelineRef!: ElementRef<HTMLDivElement>;
 
   constructor(
-    private clipService: ClipService, 
-    private route: ActivatedRoute, 
-    private router: Router, 
+    private clipService: ClipService,
+    private route: ActivatedRoute,
+    private router: Router,
     private authService: AuthService,
     private gameService: GameService,
     private cdr: ChangeDetectorRef,
@@ -51,7 +51,7 @@ export class ClipEditor implements OnInit {
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
-    
+
     if (idParam === 'new') {
       const state = history.state;
       if (state && state.videoUrl) {
@@ -197,9 +197,9 @@ export class ClipEditor implements OnInit {
           this.toast.error('Please select a video file first.');
           return;
         }
-        
+
         this.isUploading = true;
-        this.uploadStatus = 'Uploading video through backend...';
+        this.uploadStatus = 'Uploading video...';
         this.cdr.detectChanges();
 
         this.clipService.uploadVideo(this.fileToUpload).subscribe({
@@ -213,10 +213,32 @@ export class ClipEditor implements OnInit {
             this.uploadStatus = 'Saving highlight to vault...';
             this.cdr.detectChanges();
 
-            this.clipService.addClip(this.clip!).subscribe(() => {
-              this.isUploading = false;
-              this.cdr.detectChanges();
-              this.router.navigate(['/']);
+            this.clipService.addClip(this.clip!).subscribe({
+              next: (createResponse) => {
+                const clipId = createResponse.clipId;
+                this.uploadStatus = 'Checking clip safety...';
+                this.cdr.detectChanges();
+
+                this.clipService.scanClipAfterUpload(clipId).subscribe({
+                  next: (scanResult) => {
+                    this.isUploading = false;
+                    this.cdr.detectChanges();
+                    this.showModerationToast(scanResult);
+                    this.router.navigate(['/library']);
+                  },
+                  error: (err) => {
+                    this.isUploading = false;
+                    this.cdr.detectChanges();
+                    this.toast.info('Clip saved, but automatic moderation could not finish. It may need review before sharing.');
+                    this.router.navigate(['/library']);
+                  }
+                });
+              },
+              error: (err) => {
+                this.isUploading = false;
+                this.cdr.detectChanges();
+                this.toast.error(getSafeErrorMessage(err, 'Could not save clip. Please try again.'));
+              }
             });
           },
           error: (err) => {
@@ -230,5 +252,13 @@ export class ClipEditor implements OnInit {
         this.clipService.updateClip(this.clip).subscribe(() => this.router.navigate(['/']));
       }
     }
+  }
+
+  private showModerationToast(scanResult: { flagged: boolean; visibilityStatus: string; reason?: string }): void {
+    if (scanResult.flagged || scanResult.visibilityStatus === 'HIDDEN') {
+      this.toast.info('Clip saved, but it needs moderation review before it can be shared.', 5000);
+      return;
+    }
+    this.toast.success('Clip uploaded and checked successfully.');
   }
 }

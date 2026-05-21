@@ -6,6 +6,7 @@ import hvault.app.repository.projection.ClipView;
 import hvault.app.repository.projection.CommentedClipView;
 import hvault.app.repository.projection.ModerationQueueItemView;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,15 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         ORDER BY c.title ASC
         """, nativeQuery = true)
     List<CommentedClipView> findClipsCommentedByUser(@Param("userId") Long userId);
+
+    @Query("""
+        SELECT c FROM Clip c
+        LEFT JOIN FETCH c.game
+        WHERE c.uploaderId = :uploaderId
+          AND (c.isDeleted = false OR c.isDeleted IS NULL)
+        ORDER BY c.createdAt DESC
+        """)
+    List<Clip> findActiveEntitiesByUploaderId(@Param("uploaderId") Long uploaderId);
 
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
@@ -93,6 +103,14 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         """, nativeQuery = true)
     List<ClipView> findAllClips();
 
+    @Query("""
+        SELECT c FROM Clip c
+        LEFT JOIN FETCH c.game
+        WHERE c.isDeleted = false OR c.isDeleted IS NULL
+        ORDER BY c.createdAt DESC
+        """)
+    List<Clip> findAllActiveEntities();
+
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
                c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
@@ -112,6 +130,14 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         List<ClipView> rows = findClipRowsById(id);
         return rows.isEmpty() ? null : rows.get(0);
     }
+
+    @Query("""
+        SELECT c FROM Clip c
+        LEFT JOIN FETCH c.game
+        WHERE c.id = :id
+          AND (c.isDeleted = false OR c.isDeleted IS NULL)
+        """)
+    Optional<Clip> findActiveEntityById(@Param("id") Long id);
 
     @Transactional
     @Modifying
@@ -179,10 +205,28 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         """, nativeQuery = true)
     List<ClipView> findAllDeletedByUserId(@Param("uploaderId") Long uploaderId);
 
+    @Query("""
+        SELECT c FROM Clip c
+        LEFT JOIN FETCH c.game
+        WHERE c.uploaderId = :uploaderId
+          AND (c.isDeleted = true OR c.visibilityStatus = hvault.app.enums.VisibilityStatus.REMOVED)
+        ORDER BY c.createdAt DESC
+        """)
+    List<Clip> findDeletedEntitiesByUploaderId(@Param("uploaderId") Long uploaderId);
+
     @Transactional
     @Modifying
     @Query(value = "UPDATE clips SET is_deleted = false, visibility_status = 'PRIVATE' WHERE id = :id", nativeQuery = true)
     void recoverClip(@Param("id") Long id);
+
+    @Transactional
+    @Modifying
+    @Query(value = """
+        UPDATE clips
+        SET moderation_status = 'APPEALED', visibility_status = 'HIDDEN', moderation_reason = :reason
+        WHERE id = :clipId
+        """, nativeQuery = true)
+    void appealClip(@Param("clipId") Long clipId, @Param("reason") String reason);
 
     @Transactional
     @Modifying
@@ -226,6 +270,13 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
                c.uploader_id AS uploaderId, u.username AS uploaderUsername,
                c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
                c.moderation_reason AS moderationReason, c.visibility_status AS visibilityStatus,
+               (
+                   SELECT mr.category
+                   FROM moderation_results mr
+                   WHERE mr.target_type = 'CLIP' AND mr.target_id = c.id
+                   ORDER BY mr.created_at DESC
+                   LIMIT 1
+               ) AS moderationCategory,
                c.created_at AS createdAt
         FROM clips c
         LEFT JOIN users u ON c.uploader_id = u.id

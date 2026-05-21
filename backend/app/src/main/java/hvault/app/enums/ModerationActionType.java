@@ -5,6 +5,7 @@ public enum ModerationActionType {
     REJECT,
     REMOVE,
     RESTORE,
+    APPEAL,
     HIDE,
     LIMIT,
     RESOLVE_REPORT,

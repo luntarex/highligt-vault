@@ -1,8 +1,21 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
+import hvault.app.dto.AppealClipRequest;
+import hvault.app.dto.ClipCreateResponse;
+import hvault.app.dto.ClipCreateRequest;
+import hvault.app.dto.ClipResponse;
+import hvault.app.dto.ClipUpdateRequest;
+import hvault.app.enums.ModerationStatus;
+import hvault.app.enums.VisibilityStatus;
+import hvault.app.security.SecurityUtil;
+import hvault.app.service.ClipService;
+import hvault.app.service.ModerationScanResult;
+import hvault.app.service.ModerationScannerService;
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,20 +28,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import hvault.app.dto.ClipCreateRequest;
-import hvault.app.dto.ClipResponse;
-import hvault.app.dto.ClipUpdateRequest;
-import hvault.app.security.JwtService;
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/clips")
 public class ClipController {
+    private static final Logger logger = LoggerFactory.getLogger(ClipController.class);
 
-    private final hvault.app.service.ClipService clipService;
+    private final ClipService clipService;
+    private final ModerationScannerService moderationScannerService;
 
-    public ClipController(hvault.app.service.ClipService clipService) {
+    public ClipController(ClipService clipService, ModerationScannerService moderationScannerService) {
         this.clipService = clipService;
+        this.moderationScannerService = moderationScannerService;
     }
 
     /**
@@ -80,26 +90,26 @@ public class ClipController {
      * POST /api/clips/{id}/favorite?userId={userId}
      */
     @PostMapping("/{id}/favorite")
-    public ResponseEntity<?> addFavorite(@PathVariable Long id, @RequestParam Long userId) {
-        try {
-            clipService.addFavorite(userId, id);
-            return ResponseEntity.ok(Map.of("message", "Clip favorited"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> addFavorite(
+        @PathVariable Long id,
+        @RequestParam(required = false) Long userId,
+        Authentication authentication
+    ) {
+        clipService.addFavorite(SecurityUtil.requireCurrentUserId(authentication), id);
+        return ResponseEntity.ok(new ApiMessageResponse("Clip favorited"));
     }
 
     /**
      * DELETE /api/clips/{id}/favorite?userId={userId}
      */
     @DeleteMapping("/{id}/favorite")
-    public ResponseEntity<?> removeFavorite(@PathVariable Long id, @RequestParam Long userId) {
-        try {
-            clipService.removeFavorite(userId, id);
-            return ResponseEntity.ok(Map.of("message", "Clip unfavorited"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> removeFavorite(
+        @PathVariable Long id,
+        @RequestParam(required = false) Long userId,
+        Authentication authentication
+    ) {
+        clipService.removeFavorite(SecurityUtil.requireCurrentUserId(authentication), id);
+        return ResponseEntity.ok(new ApiMessageResponse("Clip unfavorited"));
     }
 
     /**
@@ -107,19 +117,9 @@ public class ClipController {
      * Create a new clip.
      */
     @PostMapping
-    public ResponseEntity<?> createClip(@Valid @RequestBody ClipCreateRequest request, Authentication authentication) {
-        try {
-            Long currentUserId = getCurrentUserId(authentication);
-            if (currentUserId != null) {
-                request.setUploaderId(currentUserId);
-            }
-            clipService.createClip(request);
-            return ResponseEntity.ok(Map.of("message", "Clip created successfully"));
-        } catch (Exception e) {
-            System.err.println("Database error creating clip: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ClipCreateResponse> createClip(@Valid @RequestBody ClipCreateRequest request, Authentication authentication) {
+        Long clipId = clipService.createClip(request, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ClipCreateResponse("Clip created successfully", clipId));
     }
 
     /**
@@ -127,15 +127,13 @@ public class ClipController {
      * Update an existing clip.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClip(@PathVariable Long id, @Valid @RequestBody ClipUpdateRequest request) {
-        try {
-            clipService.updateClip(id, request);
-            return ResponseEntity.ok(Map.of("message", "Clip updated successfully"));
-        } catch (Exception e) {
-            System.err.println("Database error updating clip: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> updateClip(
+        @PathVariable Long id,
+        @Valid @RequestBody ClipUpdateRequest request,
+        Authentication authentication
+    ) {
+        clipService.updateClip(id, request, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip updated successfully"));
     }
 
     /**
@@ -143,15 +141,9 @@ public class ClipController {
      * Soft-delete a clip (sets is_deleted = 1).
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteClip(@PathVariable Long id) {
-        try {
-            clipService.deleteClip(id);
-            return ResponseEntity.ok(Map.of("message", "Clip soft-deleted successfully"));
-        } catch (Exception e) {
-            System.err.println("Database error deleting clip: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> deleteClip(@PathVariable Long id, Authentication authentication) {
+        clipService.deleteClip(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip soft-deleted successfully"));
     }
 
     /**
@@ -159,38 +151,51 @@ public class ClipController {
      * Hard-delete a clip completely from the database.
      */
     @DeleteMapping("/trash/{id}/hard")
-    public ResponseEntity<?> hardDeleteClip(@PathVariable Long id) {
-        try {
-            clipService.hardDeleteClip(id);
-            return ResponseEntity.ok(Map.of("message", "Clip permanently deleted"));
-        } catch (Exception e) {
-            System.err.println("Database error hard-deleting clip: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiMessageResponse> hardDeleteClip(@PathVariable Long id, Authentication authentication) {
+        clipService.hardDeleteClip(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip permanently deleted"));
     }
 
     @GetMapping("/trash")
-    public ResponseEntity<?> getDeletedClips(@RequestParam Long uploaderId) {
-        return ResponseEntity.ok(clipService.getDeletedClipsByUserId(uploaderId));
+    public ResponseEntity<?> getDeletedClips(@RequestParam(required = false) Long uploaderId, Authentication authentication) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        Long targetUserId = SecurityUtil.isAdmin(authentication) && uploaderId != null ? uploaderId : currentUserId;
+        return ResponseEntity.ok(clipService.getDeletedClipsByUserId(targetUserId));
     }
 
     @PutMapping("/trash/recover/{id}")
-    public ResponseEntity<?> recoverClip(@PathVariable Long id) {
+    public ResponseEntity<ApiMessageResponse> recoverClip(@PathVariable Long id, Authentication authentication) {
+        clipService.recoverClip(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Clip recovered successfully"));
+    }
+
+    @PostMapping("/scan/{id}")
+    public ResponseEntity<ModerationScanResult> scanClipAfterUpload(@PathVariable Long id, Authentication authentication) {
+        clipService.ensureClipOwnerOrAdmin(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
         try {
-            clipService.recoverClip(id);
-            return ResponseEntity.ok(Map.of("message", "Clip recovered successfully"));
+            ModerationScanResult result = moderationScannerService.scanClipForUpload(id);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            System.err.println("Database error recovering clip: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            logger.warn("Moderation scan failed for clip {}: {}", id, e.getMessage());
+            return ResponseEntity.ok(new ModerationScanResult(
+                ModerationStatus.NEEDS_MANUAL_REVIEW,
+                VisibilityStatus.PRIVATE,
+                40,
+                true,
+                "SCAN_UNAVAILABLE",
+                "Automatic moderation could not finish. The clip was saved and may need review before sharing."
+            ));
         }
     }
 
-    private Long getCurrentUserId(Authentication authentication) {
-        if (authentication != null && authentication.getDetails() instanceof JwtService.JwtClaims claims) {
-            return claims.userId();
-        }
-        return null;
+    @PostMapping("/{id}/appeal")
+    public ResponseEntity<ApiMessageResponse> appealClip(
+        @PathVariable Long id,
+        @RequestBody(required = false) AppealClipRequest request,
+        Authentication authentication
+    ) {
+        String reason = request == null ? null : request.getReason();
+        clipService.appealClip(id, reason, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Appeal submitted for moderator review."));
     }
 }

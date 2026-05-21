@@ -2,18 +2,25 @@ package hvault.app.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.NoSuchElementException;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import hvault.app.dto.ClipCreateRequest;
 import hvault.app.dto.ClipResponse;
 import hvault.app.dto.ClipUpdateRequest;
 import hvault.app.entity.Clip;
+import hvault.app.entity.ModerationAction;
 import hvault.app.entity.Game;
+import hvault.app.enums.ModerationActionType;
 import hvault.app.enums.ModerationStatus;
+import hvault.app.enums.ReportTargetType;
 import hvault.app.enums.VisibilityStatus;
 import hvault.app.repository.ClipRepository;
 import hvault.app.repository.GameRepository;
+import hvault.app.repository.ModerationActionRepository;
 import hvault.app.repository.projection.ClipView;
 import hvault.app.repository.projection.CommentedClipView;
 
@@ -22,11 +29,18 @@ public class ClipService {
     private final ClipRepository clipRepository;
     private final GameRepository gameRepository;
     private final PostService postService;
+    private final ModerationActionRepository moderationActionRepository;
 
-    public ClipService(ClipRepository clipRepository, GameRepository gameRepository, PostService postService) {
+    public ClipService(
+        ClipRepository clipRepository,
+        GameRepository gameRepository,
+        PostService postService,
+        ModerationActionRepository moderationActionRepository
+    ) {
         this.clipRepository = clipRepository;
         this.gameRepository = gameRepository;
         this.postService = postService;
+        this.moderationActionRepository = moderationActionRepository;
     }
 
     public List<ClipResponse> getClipsCommentedByUser(Long userId) {
@@ -36,7 +50,8 @@ public class ClipService {
     }
 
     public List<ClipResponse> getClipsByUserId(Long uploaderId) {
-        return clipRepository.findAllByUserId(uploaderId).stream()
+        return clipRepository.findActiveEntitiesByUploaderId(uploaderId).stream()
+            .filter(this::isVisibleInLibrary)
             .map(this::toClipResponse)
             .toList();
     }
@@ -56,17 +71,18 @@ public class ClipService {
     }
 
     public List<ClipResponse> getAllClips() {
-        return clipRepository.findAllClips().stream()
+        return clipRepository.findAllActiveEntities().stream()
             .map(this::toClipResponse)
             .toList();
     }
 
     public ClipResponse getClipById(Long id) {
-        ClipView clip = clipRepository.findClipDetailsById(id);
-        return clip == null ? null : toClipResponse(clip);
+        return clipRepository.findActiveEntityById(id)
+            .map(this::toClipResponse)
+            .orElse(null);
     }
 
-    public void createClip(ClipCreateRequest clipData) {
+    public Long createClip(ClipCreateRequest clipData, Long currentUserId) {
         VisibilityStatus visibilityStatus = clipData.getVisibilityStatus() != null
             ? clipData.getVisibilityStatus()
             : VisibilityStatus.PRIVATE;
@@ -81,7 +97,7 @@ public class ClipService {
         clip.setStartTime(toFloat(clipData.getStartTime(), 0.0));
         clip.setEndTime(toFloat(clipData.getEndTime(), 0.0));
         clip.setNotes(clipData.getNotes());
-        clip.setUploaderId(clipData.getUploaderId() != null ? clipData.getUploaderId() : 1L);
+        clip.setUploaderId(currentUserId);
         clip.setGameId(getGameIdByNameOrCreate(clipData.getGame()));
         clip.setIsDeleted(false);
         clip.setCreatedAt(LocalDateTime.now());
@@ -97,9 +113,11 @@ public class ClipService {
                 clipRepository.insertTagIfNotExistAndLink(clipId, tag.trim().toLowerCase());
             }
         }
+        return clipId;
     }
 
-    public void updateClip(Long id, ClipUpdateRequest clipData) {
+    public void updateClip(Long id, ClipUpdateRequest clipData, Long currentUserId, boolean admin) {
+        requireClipOwnerOrAdmin(id, currentUserId, admin);
         Long gameId = getGameIdByNameOrCreate(clipData.getGame());
         VisibilityStatus visibilityStatus = clipData.getVisibilityStatus() != null
             ? clipData.getVisibilityStatus()
@@ -120,22 +138,70 @@ public class ClipService {
         }
     }
 
-    public void deleteClip(Long id) {
+    public void deleteClip(Long id, Long currentUserId, boolean admin) {
+        requireClipOwnerOrAdmin(id, currentUserId, admin);
         clipRepository.softDeleteClip(id);
     }
 
-    public void hardDeleteClip(Long id) {
+    public void hardDeleteClip(Long id, Long currentUserId, boolean admin) {
+        requireClipOwnerOrAdmin(id, currentUserId, admin);
+        if (!admin) {
+            Clip clip = clipRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+            if (isModerationRemoved(clip)) {
+                throw new AccessDeniedException("This clip was removed by moderation and cannot be permanently deleted by the uploader.");
+            }
+        }
         clipRepository.hardDeleteClip(id);
     }
 
     public List<ClipResponse> getDeletedClipsByUserId(Long uploaderId) {
-        return clipRepository.findAllDeletedByUserId(uploaderId).stream()
+        return clipRepository.findDeletedEntitiesByUploaderId(uploaderId).stream()
             .map(this::toClipResponse)
             .toList();
     }
 
-    public void recoverClip(Long id) {
+    public void recoverClip(Long id, Long currentUserId, boolean admin) {
+        requireClipOwnerOrAdmin(id, currentUserId, admin);
+        Clip clip = clipRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        if (isModerationRemoved(clip)) {
+            throw new AccessDeniedException("This clip was removed by moderation and cannot be recovered from the user trash.");
+        }
+        if (!Boolean.TRUE.equals(clip.getIsDeleted())) {
+            throw new IllegalArgumentException("Only user-deleted clips can be recovered from trash.");
+        }
         clipRepository.recoverClip(id);
+    }
+
+    public void appealClip(Long id, String reason, Long currentUserId) {
+        Clip clip = clipRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        if (!currentUserId.equals(clip.getUploaderId())) {
+            throw new AccessDeniedException("You do not have permission to appeal this clip.");
+        }
+        if (clip.getModerationStatus() != ModerationStatus.REJECTED
+            && clip.getVisibilityStatus() != VisibilityStatus.HIDDEN) {
+            throw new IllegalArgumentException("Only rejected or hidden clips can be appealed.");
+        }
+
+        String appealReason = reason == null || reason.isBlank()
+            ? "User appealed the moderation decision."
+            : reason.trim();
+        clipRepository.appealClip(id, appealReason);
+
+        ModerationAction action = new ModerationAction();
+        action.setModeratorId(currentUserId);
+        action.setTargetType(ReportTargetType.CLIP);
+        action.setTargetId(id);
+        action.setAction(ModerationActionType.APPEAL);
+        action.setReason(appealReason);
+        action.setCreatedAt(LocalDateTime.now());
+        moderationActionRepository.save(action);
+    }
+
+    public void ensureClipOwnerOrAdmin(Long id, Long currentUserId, boolean admin) {
+        requireClipOwnerOrAdmin(id, currentUserId, admin);
     }
 
     private Long getGameIdByNameOrCreate(String gameName) {
@@ -165,11 +231,34 @@ public class ClipService {
         response.setIsDeleted(Boolean.TRUE.equals(clip.getIsDeleted()));
         response.setDateCreated(clip.getDateCreated());
         response.setUploaderId(clip.getUploaderId());
-        response.setTags(clipRepository.getTagsForClip(clip.getId()));
+        response.setTags(getTagsSafely(clip.getId()));
         response.setModerationStatus(parseEnum(ModerationStatus.class, clip.getModerationStatus()));
         response.setModerationScore(clip.getModerationScore());
         response.setModerationReason(clip.getModerationReason());
         response.setVisibilityStatus(parseEnum(VisibilityStatus.class, clip.getVisibilityStatus()));
+        response.setRemovedReason(clip.getRemovedReason());
+        return response;
+    }
+
+    private ClipResponse toClipResponse(Clip clip) {
+        ClipResponse response = new ClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getVideoUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(toDouble(clip.getDuration()));
+        response.setStartTime(toDouble(clip.getStartTime()));
+        response.setEndTime(toDouble(clip.getEndTime()));
+        response.setNotes(clip.getNotes());
+        response.setGame(clip.getGame() != null ? clip.getGame().getName() : null);
+        response.setIsDeleted(Boolean.TRUE.equals(clip.getIsDeleted()));
+        response.setDateCreated(clip.getCreatedAt());
+        response.setUploaderId(clip.getUploaderId());
+        response.setTags(getTagsSafely(clip.getId()));
+        response.setModerationStatus(clip.getModerationStatus());
+        response.setModerationScore(clip.getModerationScore());
+        response.setModerationReason(clip.getModerationReason());
+        response.setVisibilityStatus(clip.getVisibilityStatus());
         response.setRemovedReason(clip.getRemovedReason());
         return response;
     }
@@ -184,7 +273,7 @@ public class ClipService {
         response.setStartTime(clip.getStartTime());
         response.setEndTime(clip.getEndTime());
         response.setGame(clip.getGameName());
-        response.setTags(clipRepository.getTagsForClip(clip.getId()));
+        response.setTags(getTagsSafely(clip.getId()));
         return response;
     }
 
@@ -192,10 +281,43 @@ public class ClipService {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return Enum.valueOf(enumType, value);
+        try {
+            return Enum.valueOf(enumType, value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     private Float toFloat(Double value, Double fallback) {
         return (value != null ? value : fallback).floatValue();
+    }
+
+    private Double toDouble(Float value) {
+        return value == null ? null : value.doubleValue();
+    }
+
+    private List<String> getTagsSafely(Long clipId) {
+        return clipId == null ? List.of() : clipRepository.getTagsForClip(clipId);
+    }
+
+    private void requireClipOwnerOrAdmin(Long clipId, Long currentUserId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        Clip clip = clipRepository.findById(clipId)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        if (currentUserId == null || !currentUserId.equals(clip.getUploaderId())) {
+            throw new AccessDeniedException("You do not have permission to modify this clip.");
+        }
+    }
+
+    private boolean isVisibleInLibrary(Clip clip) {
+        return clip.getVisibilityStatus() != VisibilityStatus.HIDDEN
+            && clip.getVisibilityStatus() != VisibilityStatus.REMOVED;
+    }
+
+    private boolean isModerationRemoved(Clip clip) {
+        return clip.getModerationStatus() == ModerationStatus.REMOVED
+            || clip.getRemovedAt() != null;
     }
 }

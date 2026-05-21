@@ -17,6 +17,7 @@ public class ModerationQueueItemResponse {
     private ModerationStatus moderationStatus;
     private Integer moderationScore;
     private String moderationReason;
+    private String moderationCategory;
     private VisibilityStatus visibilityStatus;
     private LocalDateTime createdAt;
 }

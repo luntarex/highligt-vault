@@ -19,6 +19,9 @@ export  interface Clip{
   isDeleted : boolean;
   visibilityStatus: 'PRIVATE' | 'PUBLIC' | 'LIMITED' | 'HIDDEN' | 'REMOVED';
   moderationStatus?: 'DRAFT' | 'PENDING_REVIEW' | 'AUTO_APPROVED' | 'NEEDS_MANUAL_REVIEW' | 'APPROVED' | 'REJECTED' | 'REMOVED' | 'APPEALED';
+  moderationScore?: number;
+  moderationReason?: string;
+  removedReason?: string;
 
   dateCreated : Date;
 

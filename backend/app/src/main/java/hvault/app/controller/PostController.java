@@ -1,13 +1,15 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.CreatePostRequest;
+import hvault.app.dto.CreatePostResponse;
 import hvault.app.dto.PostFeedResponse;
 import hvault.app.dto.UpdatePostRequest;
+import hvault.app.security.SecurityUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -33,42 +35,61 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPostById(@PathVariable Long id) {
-        return ResponseEntity.ok(Map.of(
-                "id", id,
-                "caption", "Stub post caption",
-                "userId", 1,
-                "clipId", 1));
+    public ResponseEntity<?> getPostById(@PathVariable Long id, Authentication authentication) {
+        PostFeedResponse post = postService.getPostById(id, SecurityUtil.currentUserId(authentication));
+        return post == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(post);
     }
 
     @PostMapping
-    public ResponseEntity<?> createPost(@Valid @RequestBody CreatePostRequest request) {
-        Long id = postService.createPost(request.getUserId(), request.getClipId(), request.getCaption());
-        return ResponseEntity.ok(Map.of("message", "Post created successfully", "id", id));
+    public ResponseEntity<CreatePostResponse> createPost(@Valid @RequestBody CreatePostRequest request, Authentication authentication) {
+        CreatePostResponse response = postService.createPost(
+            SecurityUtil.requireCurrentUserId(authentication),
+            request.getClipId(),
+            request.getCaption(),
+            SecurityUtil.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestBody UpdatePostRequest request) {
-        postService.updatePostCaption(id, request.getCaption());
-        return ResponseEntity.ok(Map.of("message", "Post updated successfully"));
+    public ResponseEntity<ApiMessageResponse> updatePost(
+        @PathVariable Long id,
+        @RequestBody UpdatePostRequest request,
+        Authentication authentication
+    ) {
+        postService.updatePostCaption(
+            id,
+            request.getCaption(),
+            SecurityUtil.requireCurrentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
+        return ResponseEntity.ok(new ApiMessageResponse("Post updated successfully"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-        return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deletePost(@PathVariable Long id, Authentication authentication) {
+        postService.deletePost(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Post deleted successfully"));
     }
 
     @PostMapping("/{id}/like")
-    public ResponseEntity<?> likePost(@PathVariable Long id, @RequestParam Long userId) {
-        postService.likePost(id, userId);
-        return ResponseEntity.ok(Map.of("message", "Post liked"));
+    public ResponseEntity<ApiMessageResponse> likePost(
+        @PathVariable Long id,
+        @RequestParam(required = false) Long userId,
+        Authentication authentication
+    ) {
+        postService.likePost(id, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Post liked"));
     }
 
     @DeleteMapping("/{id}/like")
-    public ResponseEntity<?> unlikePost(@PathVariable Long id, @RequestParam Long userId) {
-        postService.unlikePost(id, userId);
-        return ResponseEntity.ok(Map.of("message", "Post unliked"));
+    public ResponseEntity<ApiMessageResponse> unlikePost(
+        @PathVariable Long id,
+        @RequestParam(required = false) Long userId,
+        Authentication authentication
+    ) {
+        postService.unlikePost(id, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Post unliked"));
     }
 
     @GetMapping("/clip/{clipId}")

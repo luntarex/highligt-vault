@@ -18,6 +18,11 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
 }
 
+.card-container.moderation-locked {
+  cursor: default;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
 .thumbnail-wrapper {
   position: relative;
   aspect-ratio: 1 / 1;
@@ -45,6 +50,13 @@
 
 .game-badge { top: 6px; left: 6px; text-transform: uppercase; }
 .duration-badge { bottom: 6px; right: 6px; }
+.moderation-badge {
+  top: 6px;
+  right: 6px;
+  background: rgba(245, 158, 11, 0.9);
+  color: #111;
+  text-transform: uppercase;
+}
 
 .delete-btn {
   position: absolute;
@@ -93,9 +105,77 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   opacity: 0;
   transition: opacity 0.2s;
   z-index: 1;
+}
+
+.moderation-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.94));
+  color: white;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 7px;
+  z-index: 3;
+}
+
+.moderation-overlay strong {
+  color: #fbbf24;
+  font-size: 0.9rem;
+}
+
+.moderation-overlay p {
+  margin: 0;
+  color: hsl(0, 0%, 78%);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  max-height: 48px;
+  overflow: hidden;
+}
+
+.moderation-removed-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.88));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 14px;
+  cursor: default;
+}
+
+.moderation-removed-overlay strong {
+  color: #ff5a5f;
+  font-size: 0.84rem;
+}
+
+.moderation-removed-overlay p {
+  margin: 0;
+  color: hsl(0, 0%, 78%);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  max-height: 58px;
+  overflow: hidden;
+}
+
+.appeal-btn {
+  align-self: flex-start;
+  background: #a855f7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .card-container:hover .recover-overlay {

@@ -1,5 +1,6 @@
 package hvault.app.controller;
 
+import hvault.app.dto.AuthMessageResponse;
 import hvault.app.dto.LoginRequest;
 import hvault.app.dto.LoginResponse;
 import hvault.app.dto.RegisterRequest;
@@ -7,8 +8,6 @@ import hvault.app.exception.AuthRegistrationException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,17 +24,14 @@ public class AuthController {
      * Expects: { username, email, password, confirmPassword }
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthMessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
             authService.register(request.getUsername(), request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(Map.of("message", "User registered successfully", "success", true));
+            return ResponseEntity.ok(new AuthMessageResponse("User registered successfully", true));
         } catch (AuthRegistrationException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
+            return ResponseEntity.badRequest().body(new AuthMessageResponse(e.getMessage(), false));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "message", "Registration failed. Please try again later.",
-                "success", false
-            ));
+            return ResponseEntity.internalServerError().body(new AuthMessageResponse("Registration failed. Please try again later.", false));
         }
     }
 
@@ -50,7 +46,7 @@ public class AuthController {
         if (user != null) {
             return ResponseEntity.ok(user);
         } else {
-            return org.springframework.http.ResponseEntity.status(401).body(Map.of("message", "Invalid credentials", "success", false));
+            return org.springframework.http.ResponseEntity.status(401).body(new AuthMessageResponse("Invalid credentials", false));
         }
     }
 }

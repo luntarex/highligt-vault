@@ -1,13 +1,16 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.UpdateUserProfileRequest;
 import hvault.app.dto.UserListResponse;
 import hvault.app.dto.UserProfileResponse;
+import hvault.app.security.SecurityUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,23 +38,28 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UpdateUserProfileRequest request) {
-        try {
-            boolean updated = userService.updateProfile(id, request.getUsername(), request.getDescription(), request.getProfilePhotoUrl());
-            if (updated) {
-                return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
-            }
-            return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    public ResponseEntity<?> updateUser(
+        @PathVariable Long id,
+        @RequestBody UpdateUserProfileRequest request,
+        Authentication authentication
+    ) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        if (!SecurityUtil.isAdmin(authentication) && !currentUserId.equals(id)) {
+            throw new AccessDeniedException("You do not have permission to update this profile.");
         }
+
+        boolean updated = userService.updateProfile(id, request.getUsername(), request.getDescription(), request.getProfilePhotoUrl());
+        if (updated) {
+            return ResponseEntity.ok(new ApiMessageResponse("Profile updated successfully"));
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.deleteUser(id);
         if (deleted) {
-            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+            return ResponseEntity.ok(new ApiMessageResponse("User deleted successfully"));
         }
         return ResponseEntity.notFound().build();
     }

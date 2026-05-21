@@ -1,7 +1,9 @@
 package hvault.app.service;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -20,6 +22,8 @@ import hvault.app.dto.VideoUploadResponse;
 @Service
 public class VideoUploadService {
     private final RestTemplate restTemplate = new RestTemplate();
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "m4v");
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
     @Value("${cloudinary.cloud-name}")
     private String cloudName;
@@ -27,13 +31,14 @@ public class VideoUploadService {
     @Value("${cloudinary.upload-preset}")
     private String uploadPreset;
 
+    @Value("${app.upload.video.max-bytes:104857600}")
+    private long maxVideoBytes;
+
+    @Value("${app.upload.image.max-bytes:10485760}")
+    private long maxImageBytes;
+
     public VideoUploadResponse uploadVideo(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Video file is required.");
-        }
-        if (file.getContentType() == null || !file.getContentType().startsWith("video/")) {
-            throw new IllegalArgumentException("Only video uploads are supported.");
-        }
+        validateUpload(file, "video", maxVideoBytes, ALLOWED_VIDEO_EXTENSIONS);
 
         Map<String, Object> result = upload(file, "video");
 
@@ -54,12 +59,7 @@ public class VideoUploadService {
     }
 
     public ImageUploadResponse uploadImage(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Image file is required.");
-        }
-        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
-            throw new IllegalArgumentException("Only image uploads are supported.");
-        }
+        validateUpload(file, "image", maxImageBytes, ALLOWED_IMAGE_EXTENSIONS);
 
         Map<String, Object> result = upload(file, "image");
         return new ImageUploadResponse(
@@ -68,6 +68,40 @@ public class VideoUploadService {
             asLong(result.get("bytes")),
             result.get("format") != null ? result.get("format").toString() : null
         );
+    }
+
+    private void validateUpload(MultipartFile file, String expectedType, long maxBytes, Set<String> allowedExtensions) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException(capitalize(expectedType) + " file is required.");
+        }
+        if (file.getSize() > maxBytes) {
+            throw new IllegalArgumentException("This file is too large. Please upload a smaller file.");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith(expectedType + "/")) {
+            throw new IllegalArgumentException("Only " + expectedType + " uploads are supported.");
+        }
+        String extension = extensionOf(file.getOriginalFilename());
+        if (extension.isBlank() || !allowedExtensions.contains(extension)) {
+            throw new IllegalArgumentException("Unsupported " + expectedType + " file type.");
+        }
+    }
+
+    private String extensionOf(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private String capitalize(String value) {
+        return value == null || value.isBlank()
+            ? ""
+            : value.substring(0, 1).toUpperCase(Locale.ROOT) + value.substring(1);
     }
 
     private Map<String, Object> upload(MultipartFile file, String resourceType) throws IOException {
