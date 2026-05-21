@@ -55,7 +55,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             u.isAdmin,
             u.created_at AS createdAt,
             (SELECT COUNT(*) FROM follows f WHERE f.followed_id = u.id) AS followers,
-            (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS following,
+            (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id) AS `following`,
             (SELECT COUNT(*) FROM clips c WHERE c.uploader_id = u.id AND (c.is_deleted = false OR c.is_deleted IS NULL)) AS totalClips,
             (SELECT COUNT(*) FROM user_favorites uf WHERE uf.user_id = u.id) AS totalFavorites
         FROM users u WHERE u.id = :id AND (u.isDeleted = FALSE OR u.isDeleted IS NULL)
