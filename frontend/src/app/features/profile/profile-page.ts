@@ -219,7 +219,7 @@ export class ProfilePage implements OnInit {
   }
 
   sendMessage(userId: number): void {
-    this.router.navigate(['/messages', { userId: userId }]);
+    this.router.navigate(['/messages', userId]);
   }
 
   // Clip Detail Modal Actions
