@@ -81,7 +81,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
           content: c.content || '',
           created_at: this.fixDate(createdAt).toISOString(),
           is_read: Boolean(c.is_read ?? c.isRead),
-          sender_id: Number(c.sender_id ?? c.senderId)
+          sender_id: Number(c.sender_id ?? c.senderId),
+          shared_post_id: c.shared_post_id ?? c.sharedPostId,
+          sharedPost: c.sharedPost ?? null
         };
       });
       this.filteredConversations = this.conversations;
@@ -143,6 +145,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe(msgs => {
       this.currentConversation = msgs.map(m => ({
         ...m,
+        sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
+        sharedPost: (m as any).sharedPost ?? null,
         createdAt: this.fixDate(m.createdAt).toISOString()
       }));
       this.loading = false;
@@ -252,6 +256,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
   clearSelection(): void {
     this.selectedMessageIds = new Set<number>();
     this.cdr.detectChanges();
+  }
+
+  postLink(postId: string | number): any[] {
+    return ['/post', postId];
   }
 
   private fixDate(val: any): Date {

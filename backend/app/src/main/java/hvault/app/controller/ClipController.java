@@ -84,9 +84,8 @@ public class ClipController {
      */
     @GetMapping("/favorites/{userId}")
     public ResponseEntity<?> getFavoritesByUserId(@PathVariable Long userId, Authentication authentication) {
-        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
-        Long targetUserId = SecurityUtil.isAdmin(authentication) ? userId : currentUserId;
-        List<ClipResponse> clips = clipService.getFavoritesByUserId(targetUserId);
+        SecurityUtil.requireCurrentUserId(authentication);
+        List<ClipResponse> clips = clipService.getFavoritesByUserId(userId);
         return ResponseEntity.ok(clips);
     }
 

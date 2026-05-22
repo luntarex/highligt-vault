@@ -1,0 +1,166 @@
+<div class="post-detail-page">
+  <div class="post-backdrop"></div>
+
+  <div class="post-detail-wrapper animate-in">
+    <button class="post-close" type="button" (click)="closePost()">x</button>
+
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading post...</p>
+      </div>
+    } @else if (post) {
+      <div class="post-detail-layout">
+        <div class="video-side" (click)="onTogglePlay($event)">
+          <video
+            #videoPlayer
+            [src]="post.videoUrl"
+            autoplay
+            muted
+            playsinline
+            class="detailed-video"
+            (timeupdate)="onTimeUpdate()"
+            (loadedmetadata)="onMetadataLoaded()">
+          </video>
+
+          <div class="fullscreen-hud" (click)="$event.stopPropagation()">
+            <div class="hud-bottom">
+              <div class="hud-progress-container" (click)="onSeekTo($event)">
+                <div
+                  class="hud-progress-bar"
+                  [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100">
+                </div>
+              </div>
+
+              <div class="hud-controls">
+                <button class="hud-play-btn" type="button" (click)="onTogglePlay($event)">
+                  @if (videoPlayer.paused) {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  }
+                </button>
+
+                <div class="hud-time">
+                  {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} /
+                  {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
+                </div>
+
+                <div class="hud-volume-control">
+                  <button class="hud-mute-btn" type="button" (click)="onToggleMute($event)">
+                    @if (videoPlayer.muted || videoPlayer.volume === 0) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    }
+                  </button>
+                  <input
+                    type="range"
+                    class="hud-volume-slider"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    [value]="videoPlayer.muted ? 0 : videoPlayer.volume"
+                    (input)="onVolumeChange($event)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="social-side">
+          <div class="social-header">
+            <a class="author-info" [routerLink]="['/profile', post.author.id]">
+              <img [src]="post.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+              <div class="name-box">
+                <span class="author-name">{{ post.author.username }}</span>
+                <span class="post-time">{{ formatTimeAgo(post.createdAt || post.timeAgo) }}</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="clip-description">
+            <h1>{{ post.title }}</h1>
+            <p class="game-tag">#{{ post.game }}</p>
+            @if (post.tags && post.tags.length > 0) {
+              <div class="tag-row">
+                @for (tag of post.tags; track tag) {
+                  <span class="tag-pill" [ngClass]="tag.toLowerCase()">{{ tag }}</span>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="social-action-bar">
+            <button class="social-act-btn" [class.active]="post.isLiked" type="button" (click)="togglePostLike()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" [attr.fill]="post.isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <span>{{ post.likes }}</span>
+            </button>
+            <button class="social-act-btn" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>{{ post.comments }}</span>
+            </button>
+          </div>
+
+          <div class="comments-section">
+            <div class="comments-scroll">
+              @if (commentsLoading) {
+                <p class="comments-empty">Loading comments...</p>
+              } @else {
+                @for (comment of comments; track comment.id) {
+                  <div class="comment-item">
+                    <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
+                    <div class="comment-content">
+                      <div class="comment-header">
+                        <span class="comment-user">{{ comment.username }}</span>
+                        <span class="comment-time">{{ comment.timeAgo }}</span>
+                      </div>
+                      <p class="comment-text">
+                        @if (comment.replyTargetUsername) {
+                          <span class="reply-target">@{{ comment.replyTargetUsername }} </span>
+                        }
+                        {{ comment.cleanText || comment.content }}
+                      </p>
+                      <div class="comment-actions">
+                        <button type="button" class="reply-btn" (click)="setReplyTo(comment)">Reply</button>
+                        @if (canEditComment(comment)) {
+                          <button type="button" class="delete-btn" (click)="deleteComment(comment)">Delete</button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="comments-empty">No comments yet. Start the conversation.</p>
+                }
+              }
+            </div>
+
+            <div class="comment-input-box" [class.is-replying]="replyingToComment">
+              @if (replyingToComment) {
+                <div class="reply-target-indicator">
+                  Replying to @{{ replyingToComment.username }}
+                  <button type="button" (click)="cancelReply()">x</button>
+                </div>
+              }
+              <div class="input-row">
+                <img [src]="currentUserPhoto || 'assets/icons/default-avatar.png'" alt="">
+                <input
+                  type="text"
+                  [(ngModel)]="newCommentText"
+                  [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
+                  (keyup.enter)="postComment()">
+                <button type="button" (click)="postComment()" [disabled]="!newCommentText.trim()">Post</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    } @else {
+      <section class="unavailable-state">
+        <h2>Post unavailable</h2>
+        <p>This post may have been removed, rejected, or made private.</p>
+        <a routerLink="/explore">Back to Explore</a>
+      </section>
+    }
+  </div>
+</div>

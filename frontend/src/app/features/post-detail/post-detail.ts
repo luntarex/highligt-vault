@@ -1,0 +1,273 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Comment } from '../../core/models/comment';
+import { ExplorePost } from '../../core/models/explore-post';
+import { AuthService } from '../../core/services/auth.service';
+import { CommentService } from '../../core/services/comment.service';
+import { ExploreService } from '../../core/services/explore.service';
+import { ToastService } from '../../core/services/toast.service';
+
+@Component({
+  selector: 'app-post-detail',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './post-detail.html',
+  styleUrls: ['./post-detail.css']
+})
+export class PostDetail implements OnInit, OnDestroy {
+  post: ExplorePost | null = null;
+  comments: Comment[] = [];
+  newCommentText = '';
+  replyingToComment: Comment | null = null;
+  currentUserPhoto = '';
+  isLoading = true;
+  commentsLoading = false;
+
+  @ViewChild('videoPlayer') videoRef?: ElementRef<HTMLVideoElement>;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private exploreService: ExploreService,
+    private commentService: CommentService,
+    private authService: AuthService,
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
+    this.route.paramMap.subscribe(params => {
+      const postId = params.get('id');
+      if (!postId) {
+        this.router.navigate(['/explore']);
+        return;
+      }
+      this.loadPost(postId);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.videoRef?.nativeElement.pause();
+  }
+
+  loadPost(postId: string): void {
+    this.isLoading = true;
+    this.exploreService.getPostById(postId).subscribe({
+      next: post => {
+        this.post = {
+          ...post,
+          currentTime: post.startTime || 0,
+          duration: post.duration || 0
+        };
+        this.isLoading = false;
+        this.loadComments(post.id);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.post = null;
+        this.isLoading = false;
+        this.toast.error('This post is unavailable or no longer public.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closePost(): void {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    this.router.navigate(['/explore']);
+  }
+
+  loadComments(postId: string): void {
+    this.commentsLoading = true;
+    this.commentService.getCommentsByPostId(postId).subscribe({
+      next: comments => {
+        this.comments = comments || [];
+        if (this.post) {
+          this.post.comments = this.comments.length;
+        }
+        this.commentsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.comments = [];
+        this.commentsLoading = false;
+        this.toast.error('Could not load comments.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  togglePostLike(): void {
+    if (!this.post) return;
+
+    const userId = this.authService.getCurrentUserId();
+    if (this.post.isLiked) {
+      this.post.isLiked = false;
+      this.post.likes--;
+      this.exploreService.unlikePost(this.post.id, userId).subscribe({
+        error: () => {
+          if (!this.post) return;
+          this.post.isLiked = true;
+          this.post.likes++;
+          this.toast.error('Could not update like.');
+        }
+      });
+      return;
+    }
+
+    this.post.isLiked = true;
+    this.post.likes++;
+    this.exploreService.likePost(this.post.id, userId).subscribe({
+      error: () => {
+        if (!this.post) return;
+        this.post.isLiked = false;
+        this.post.likes--;
+        this.toast.error('Could not update like.');
+      }
+    });
+  }
+
+  postComment(): void {
+    if (!this.post || !this.newCommentText.trim()) return;
+
+    const content = this.newCommentText.trim();
+    const parentCommentId = this.replyingToComment?.id;
+    this.commentService.addComment(
+      this.post.id,
+      this.authService.getCurrentUserId(),
+      content,
+      parentCommentId
+    ).subscribe({
+      next: () => {
+        this.newCommentText = '';
+        this.replyingToComment = null;
+        this.loadComments(this.post!.id);
+      },
+      error: () => this.toast.error('Could not post comment.')
+    });
+  }
+
+  setReplyTo(comment: Comment): void {
+    this.replyingToComment = comment;
+    this.newCommentText = `@${comment.username} `;
+  }
+
+  cancelReply(): void {
+    this.replyingToComment = null;
+    this.newCommentText = '';
+  }
+
+  deleteComment(comment: Comment): void {
+    if (!this.post) return;
+    this.commentService.removeComment(comment.id).subscribe({
+      next: () => this.loadComments(this.post!.id),
+      error: () => this.toast.error('Could not delete comment.')
+    });
+  }
+
+  canEditComment(comment: Comment): boolean {
+    return comment.userId === this.authService.getCurrentUserId() || this.authService.isAdmin();
+  }
+
+  onTogglePlay(event?: Event): void {
+    event?.stopPropagation();
+    const video = this.videoRef?.nativeElement;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }
+
+  onToggleMute(event: Event): void {
+    event.stopPropagation();
+    const video = this.videoRef?.nativeElement;
+    if (!video) return;
+    video.muted = !video.muted;
+  }
+
+  onVolumeChange(event: Event): void {
+    event.stopPropagation();
+    const video = this.videoRef?.nativeElement;
+    const input = event.target as HTMLInputElement;
+    if (!video) return;
+
+    video.volume = Number(input.value);
+    video.muted = video.volume === 0;
+  }
+
+  onSeekTo(event: MouseEvent): void {
+    event.stopPropagation();
+    if (!this.videoRef || !this.post) return;
+
+    const video = this.videoRef.nativeElement;
+    const progressContainer = event.currentTarget as HTMLElement;
+    const rect = progressContainer.getBoundingClientRect();
+    const clickRatio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const start = this.post.startTime || 0;
+    const end = this.post.endTime || this.post.duration || video.duration || 1;
+    const newTime = start + clickRatio * (end - start);
+
+    video.currentTime = newTime;
+    this.post.currentTime = newTime;
+  }
+
+  onMetadataLoaded(): void {
+    if (!this.videoRef || !this.post) return;
+
+    const video = this.videoRef.nativeElement;
+    video.currentTime = this.post.startTime || 0;
+    this.post.duration = video.duration;
+    video.play().catch(() => {});
+  }
+
+  onTimeUpdate(): void {
+    if (!this.videoRef || !this.post) return;
+
+    const video = this.videoRef.nativeElement;
+    this.post.currentTime = video.currentTime;
+    const start = this.post.startTime || 0;
+    let end = this.post.endTime;
+    if (end === undefined || end === null || end === 0) {
+      end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
+    }
+
+    if ((end - start) > 0.1 && video.currentTime >= end) {
+      video.currentTime = start;
+      video.play().catch(() => {});
+    }
+  }
+
+  formatTime(seconds: number | undefined): string {
+    if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  formatTimeAgo(dateInput: Date | string | undefined): string {
+    if (!dateInput) return '';
+    const date = new Date(dateInput);
+    const now = new Date();
+    const diffSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+
+    if (diffSeconds < 60) return `${diffSeconds}s ago`;
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays}d ago`;
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `${diffMonths}mo ago`;
+    return `${Math.floor(diffDays / 365)}y ago`;
+  }
+}

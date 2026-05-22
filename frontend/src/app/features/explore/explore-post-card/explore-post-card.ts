@@ -5,6 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../../core/models/explore-post';
 import { AuthService } from '../../../core/services/auth.service';
 import { ExploreService } from '../../../core/services/explore.service';
+import { ProfileService } from '../../../core/services/profile.service';
+import { MessageService } from '../../../core/services/message.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-explore-post-card',
@@ -22,11 +25,19 @@ export class ExplorePostCard {
   isEditingTitle = false;
   editedTitle = '';
   isFullscreen = false;
+  isSharePanelOpen = false;
+  shareUsers: any[] = [];
+  shareMessage = '';
+  isLoadingShareUsers = false;
+  sendingToUserId: number | null = null;
   private fsAnimationFrameId: number | null = null;
 
   constructor(
     public authService: AuthService,
     private exploreService: ExploreService,
+    private profileService: ProfileService,
+    private messageService: MessageService,
+    private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -196,6 +207,99 @@ export class ExplorePostCard {
 
   onOpenComments() {
     this.openCommentsEvent.emit(this.post);
+  }
+
+  toggleSharePanel(event: MouseEvent) {
+    event.stopPropagation();
+    this.isSharePanelOpen = !this.isSharePanelOpen;
+    if (this.isSharePanelOpen && this.shareUsers.length === 0) {
+      this.loadShareUsers();
+    }
+  }
+
+  shareExternal(event: MouseEvent) {
+    event.stopPropagation();
+    this.copyPostLink(event);
+  }
+
+  openShareTarget(event: MouseEvent, target: 'whatsapp' | 'x' | 'facebook' | 'email') {
+    event.stopPropagation();
+    const url = encodeURIComponent(this.postShareUrl());
+    const text = encodeURIComponent(`Check out "${this.post.title || 'this clip'}" from ${this.post.author.username}`);
+    let shareUrl = '';
+
+    switch (target) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case 'x':
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent('Vibe Vault clip')}&body=${text}%0A%0A${url}`;
+        break;
+    }
+
+    if (shareUrl.startsWith('mailto:')) {
+      window.location.href = shareUrl;
+      return;
+    }
+
+    window.open(shareUrl, '_blank', 'noopener,noreferrer,width=760,height=620');
+  }
+
+  async copyPostLink(event: MouseEvent) {
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(this.postShareUrl());
+      this.toast.success('Post link copied.');
+    } catch {
+      this.toast.error('Could not copy post link.');
+    }
+  }
+
+  sendPostToUser(event: MouseEvent, user: any) {
+    event.stopPropagation();
+    this.sendingToUserId = user.id;
+    const message = this.shareMessage.trim() || 'Shared a post';
+    this.messageService.sendPost(user.id, this.post.id, message).subscribe({
+      next: () => {
+        this.toast.success(`Sent to ${user.username}.`);
+        this.sendingToUserId = null;
+      },
+      error: () => {
+        this.toast.error('Could not send post.');
+        this.sendingToUserId = null;
+      }
+    });
+  }
+
+  private loadShareUsers() {
+    const currentUserId = this.authService.getCurrentUserId();
+    this.isLoadingShareUsers = true;
+    this.profileService.getFollowing(currentUserId.toString()).subscribe({
+      next: users => {
+        this.shareUsers = users || [];
+        this.isLoadingShareUsers = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isLoadingShareUsers = false;
+        this.toast.error('Could not load people to share with.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private postShareUrl(): string {
+    return `${window.location.origin}/post/${this.post.id}`;
+  }
+
+  get shareUrl(): string {
+    return this.postShareUrl();
   }
 
   onToggleMute(event: MouseEvent, video: HTMLVideoElement) {

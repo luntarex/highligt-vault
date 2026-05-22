@@ -107,11 +107,17 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id BIGINT NOT NULL,
     receiver_id BIGINT NOT NULL,
     content TEXT NOT NULL,
+    shared_post_id BIGINT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id),
-    FOREIGN KEY (receiver_id) REFERENCES users(id)
+    FOREIGN KEY (receiver_id) REFERENCES users(id),
+    FOREIGN KEY (shared_post_id) REFERENCES posts(id) ON DELETE SET NULL
 );
+
+ALTER TABLE messages ADD COLUMN shared_post_id BIGINT NULL;
+CREATE INDEX idx_messages_shared_post_id ON messages(shared_post_id);
+ALTER TABLE messages ADD CONSTRAINT fk_messages_shared_post FOREIGN KEY (shared_post_id) REFERENCES posts(id) ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS playlists (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

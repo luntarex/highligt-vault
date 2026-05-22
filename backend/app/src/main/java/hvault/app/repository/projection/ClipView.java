@@ -12,7 +12,7 @@ public interface ClipView {
     Double getEndTime();
     String getNotes();
     String getGame();
-    Boolean getIsDeleted();
+    Number getIsDeleted();
     LocalDateTime getDateCreated();
     Long getUploaderId();
     String getModerationStatus();
