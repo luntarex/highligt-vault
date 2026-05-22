@@ -1,9 +1,12 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.SendMessageRequest;
+import hvault.app.security.SecurityUtil;
 import hvault.app.service.MessageService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,21 +23,22 @@ public class MessageController {
     }
 
     @GetMapping("/conversations")
-    public ResponseEntity<?> getConversations(@RequestParam Long userId) {
-        return ResponseEntity.ok(messageService.getConversations(userId));
+    public ResponseEntity<?> getConversations(@RequestParam(required = false) Long userId, Authentication authentication) {
+        return ResponseEntity.ok(messageService.getConversations(SecurityUtil.requireCurrentUserId(authentication)));
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getConversation(
             @PathVariable Long userId,
-            @RequestParam Long currentUserId) {
-        return ResponseEntity.ok(messageService.getConversation(currentUserId, userId));
+            @RequestParam(required = false) Long currentUserId,
+            Authentication authentication) {
+        return ResponseEntity.ok(messageService.getConversation(SecurityUtil.requireCurrentUserId(authentication), userId));
     }
 
     @PostMapping
-    public ResponseEntity<?> sendMessage(@Valid @RequestBody SendMessageRequest request) {
-        messageService.sendMessage(request.getSenderId(), request.getReceiverId(), request.getContent());
-        return ResponseEntity.ok(Map.of("message", "Message sent successfully"));
+    public ResponseEntity<ApiMessageResponse> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication authentication) {
+        messageService.sendMessage(SecurityUtil.requireCurrentUserId(authentication), request.getReceiverId(), request.getContent());
+        return ResponseEntity.ok(new ApiMessageResponse("Message sent successfully"));
     }
 
     @PutMapping("/{id}/read")

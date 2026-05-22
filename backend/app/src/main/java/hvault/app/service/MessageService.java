@@ -2,20 +2,27 @@ package hvault.app.service;
 
 import hvault.app.dto.MessageConversationResponse;
 import hvault.app.entity.Message;
+import hvault.app.entity.User;
 import hvault.app.repository.MessageRepository;
+import hvault.app.repository.UserRepository;
 import hvault.app.repository.projection.MessageConversationView;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
 
-    public MessageService(MessageRepository messageRepository) {
+    public MessageService(MessageRepository messageRepository, UserRepository userRepository) {
         this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
     }
 
     public void sendMessage(Long senderId, Long receiverId, String content) {
@@ -33,7 +40,19 @@ public class MessageService {
     }
 
     public List<MessageConversationResponse> getConversations(Long userId) {
-        return messageRepository.getConversations(userId).stream().map(this::toConversationResponse).toList();
+        Map<Long, Message> latestByOtherUser = new LinkedHashMap<>();
+        for (Message message : messageRepository.findMessagesForUser(userId)) {
+            Long otherUserId = userId.equals(message.getSenderId())
+                ? message.getReceiverId()
+                : message.getSenderId();
+            latestByOtherUser.putIfAbsent(otherUserId, message);
+        }
+
+        List<MessageConversationResponse> conversations = new ArrayList<>();
+        for (Map.Entry<Long, Message> entry : latestByOtherUser.entrySet()) {
+            conversations.add(toConversationResponse(userId, entry.getKey(), entry.getValue()));
+        }
+        return conversations;
     }
 
     public void markAsRead(Long messageId) {
@@ -63,6 +82,19 @@ public class MessageService {
         response.setSenderId(conversation.getSenderId());
         response.setUsername(conversation.getUsername());
         response.setProfilePhotoUrl(conversation.getProfilePhotoUrl());
+        return response;
+    }
+
+    private MessageConversationResponse toConversationResponse(Long currentUserId, Long otherUserId, Message latestMessage) {
+        User otherUser = userRepository.findById(otherUserId).orElse(null);
+        MessageConversationResponse response = new MessageConversationResponse();
+        response.setOtherUserId(otherUserId);
+        response.setContent(latestMessage.getContent());
+        response.setCreatedAt(latestMessage.getCreatedAt());
+        response.setIsRead(Boolean.TRUE.equals(latestMessage.getIsRead()));
+        response.setSenderId(latestMessage.getSenderId());
+        response.setUsername(otherUser != null ? otherUser.getUsername() : "Unknown user");
+        response.setProfilePhotoUrl(otherUser != null ? otherUser.getProfilePhotoUrl() : null);
         return response;
     }
 }

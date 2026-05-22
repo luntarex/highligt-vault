@@ -43,7 +43,7 @@
               <svg *ngIf="isFollowing" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="22" y2="12"></line><line x1="22" y1="8" x2="18" y2="12"></line></svg>
               {{ isFollowing ? 'Unfollow' : 'Follow' }}
             </button>
-            <button class="message-action-btn" *ngIf="currentProfileId" [routerLink]="['/messages', { userId: currentProfileId }]">
+            <button class="message-action-btn" *ngIf="currentProfileId" [routerLink]="['/messages', currentProfileId]">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               Message
             </button>

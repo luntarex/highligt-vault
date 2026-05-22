@@ -58,10 +58,18 @@ export class MessagesComponent implements OnInit {
 
   loadConversations(): void {
     this.messageService.getConversations(this.currentUserId).subscribe(convs => {
-      this.conversations = convs.map(c => ({
-        ...c,
-        created_at: this.fixDate(c.created_at).toISOString()
-      }));
+      this.conversations = convs.map((c: any) => {
+        const createdAt = c.created_at ?? c.createdAt;
+        return {
+          other_user_id: Number(c.other_user_id ?? c.otherUserId),
+          username: c.username || '',
+          profile_photo_url: c.profile_photo_url ?? c.profilePhotoUrl ?? '',
+          content: c.content || '',
+          created_at: this.fixDate(createdAt).toISOString(),
+          is_read: Boolean(c.is_read ?? c.isRead),
+          sender_id: Number(c.sender_id ?? c.senderId)
+        };
+      });
       this.filteredConversations = this.conversations;
       this.loadFollowing();
       this.cdr.detectChanges();
