@@ -9,7 +9,6 @@ public class CreateCommentRequest {
     @NotNull
     private Long postId;
 
-    @NotNull
     private Long userId;
 
     @NotBlank

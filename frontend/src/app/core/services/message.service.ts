@@ -12,11 +12,11 @@ export class MessageService {
   constructor(private http: HttpClient) { }
 
   getConversations(userId: number): Observable<Conversation[]> {
-    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations?userId=${userId}`);
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`);
   }
 
   getConversation(currentUserId: number, otherUserId: number): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/${otherUserId}?currentUserId=${currentUserId}`);
+    return this.http.get<Message[]>(`${this.apiUrl}/${otherUserId}`);
   }
 
   sendMessage(senderId: number, receiverId: number, content: string): Observable<any> {
@@ -28,7 +28,7 @@ export class MessageService {
   }
 
   deleteConversation(userId1: number, userId2: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/conversation?userId1=${userId1}&userId2=${userId2}`);
+    return this.http.delete(`${this.apiUrl}/conversation?userId2=${userId2}`);
   }
 
   deleteMessage(messageId: number): Observable<any> {

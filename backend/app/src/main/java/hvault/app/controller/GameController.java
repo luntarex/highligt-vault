@@ -4,8 +4,11 @@ import hvault.app.dto.CreateGameRequest;
 import hvault.app.dto.GameResponse;
 import hvault.app.entity.Game;
 import hvault.app.repository.GameRepository;
+import hvault.app.security.SecurityUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -28,7 +31,10 @@ public class GameController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addGame(@Valid @RequestBody CreateGameRequest request) {
+    public ResponseEntity<?> addGame(@Valid @RequestBody CreateGameRequest request, Authentication authentication) {
+        if (!SecurityUtil.isAdmin(authentication)) {
+            throw new AccessDeniedException("Only admins can add games.");
+        }
         String name = request.getName().trim();
         if (gameRepository.findByName(name).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Game already exists"));

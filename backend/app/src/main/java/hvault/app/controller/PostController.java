@@ -22,16 +22,13 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllPosts(@RequestParam(required = false) Long userId) {
-        if (userId != null) {
-            return ResponseEntity.ok(postService.getAllPostsForUser(userId));
-        }
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<?> getAllPosts(@RequestParam(required = false) Long userId, Authentication authentication) {
+        return ResponseEntity.ok(postService.getAllPostsForUser(SecurityUtil.requireCurrentUserId(authentication)));
     }
 
     @GetMapping("/following")
-    public ResponseEntity<?> getFollowingFeed(@RequestParam Long userId) {
-        return ResponseEntity.ok(postService.getFollowingFeed(userId));
+    public ResponseEntity<?> getFollowingFeed(@RequestParam(required = false) Long userId, Authentication authentication) {
+        return ResponseEntity.ok(postService.getFollowingFeed(SecurityUtil.requireCurrentUserId(authentication)));
     }
 
     @GetMapping("/{id}")
@@ -93,8 +90,12 @@ public class PostController {
     }
 
     @GetMapping("/clip/{clipId}")
-    public ResponseEntity<?> getPostByClipId(@PathVariable Long clipId, @RequestParam(required = false) Long userId) {
-        PostFeedResponse post = postService.getPostByClipId(clipId, userId);
+    public ResponseEntity<?> getPostByClipId(
+        @PathVariable Long clipId,
+        @RequestParam(required = false) Long userId,
+        Authentication authentication
+    ) {
+        PostFeedResponse post = postService.getPostByClipId(clipId, SecurityUtil.currentUserId(authentication));
         if (post == null) {
             return ResponseEntity.notFound().build();
         }

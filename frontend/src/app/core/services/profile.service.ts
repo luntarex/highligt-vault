@@ -38,18 +38,15 @@ export class ProfileService {
   }
 
   followUser(targetUserId: string): Observable<any> {
-    const currentUserId = this.authService.getCurrentUserId();
-    return this.http.post(`${this.apiFollowsUrl}/${targetUserId}?followerId=${currentUserId}`, {});
+    return this.http.post(`${this.apiFollowsUrl}/${targetUserId}`, {});
   }
 
   unfollowUser(targetUserId: string): Observable<any> {
-    const currentUserId = this.authService.getCurrentUserId();
-    return this.http.delete(`${this.apiFollowsUrl}/${targetUserId}?followerId=${currentUserId}`);
+    return this.http.delete(`${this.apiFollowsUrl}/${targetUserId}`);
   }
 
   isFollowing(targetUserId: string): Observable<{isFollowing: boolean}> {
-    const currentUserId = this.authService.getCurrentUserId();
-    return this.http.get<{isFollowing: boolean}>(`${this.apiFollowsUrl}/${targetUserId}/is-following?followerId=${currentUserId}`);
+    return this.http.get<{isFollowing: boolean}>(`${this.apiFollowsUrl}/${targetUserId}/is-following`);
   }
 
   getFollowers(userId: string): Observable<any[]> {

@@ -22,9 +22,9 @@ public class ReportService {
         this.reportRepository = reportRepository;
     }
 
-    public Long createReport(CreateReportRequest request) {
+    public Long createReport(CreateReportRequest request, Long reporterId) {
         ContentReport report = new ContentReport();
-        report.setReporterId(request.getReporterId());
+        report.setReporterId(reporterId);
         report.setTargetType(request.getTargetType());
         report.setTargetId(request.getTargetId());
         report.setReason(request.getReason());

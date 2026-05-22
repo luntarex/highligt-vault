@@ -81,12 +81,13 @@
   <main class="chat-area">
     <div *ngIf="selectedUserId; else noSelection" class="chat-content">
       <header class="chat-header">
-        <div class="chat-header-left">
+        <a class="chat-header-left chat-profile-link" [routerLink]="['/profile', selectedUserId]">
           <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar">
           <div class="header-user-info">
             <h3>{{ selectedUsername }}</h3>
+            <span>View profile</span>
           </div>
-        </div>
+        </a>
 
         <!-- Selection Controls (Header Right) -->
         <div class="header-selection-controls" *ngIf="selectedMessageIds.size > 0">
@@ -108,10 +109,13 @@
 
       <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
         <div class="chat-start-notice" *ngIf="currentConversation.length > 0">
-          <div class="start-avatar">
+          <a class="start-avatar" [routerLink]="['/profile', selectedUserId]">
             <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="">
-          </div>
-          <p>This is the beginning of your conversation with <strong>{{ selectedUsername }}</strong></p>
+          </a>
+          <p>
+            This is the beginning of your conversation with
+            <a [routerLink]="['/profile', selectedUserId]">{{ selectedUsername }}</a>
+          </p>
         </div>
         <div *ngFor="let msg of currentConversation"
              class="message-wrapper"
@@ -121,7 +125,15 @@
                (click)="toggleMessageSelection(msg.id)"
                [class.selected]="selectedMessageIds.has(msg.id)">
             <p>{{ msg.content }}</p>
-            <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
+            <span class="message-meta">
+              <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
+              <span
+                *ngIf="msg.senderId === currentUserId"
+                class="read-receipt"
+                [class.seen]="msg.isRead">
+                {{ msg.isRead ? 'Seen' : 'Sent' }}
+              </span>
+            </span>
           </div>
         </div>
       </div>
