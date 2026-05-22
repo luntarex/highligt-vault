@@ -10,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -42,28 +41,29 @@ public class MessageController {
     }
 
     @PutMapping("/{id}/read")
-    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
-        messageService.markAsRead(id);
-        return ResponseEntity.ok(Map.of("message", "Message marked as read"));
+    public ResponseEntity<ApiMessageResponse> markAsRead(@PathVariable Long id, Authentication authentication) {
+        messageService.markAsRead(id, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Message marked as read"));
     }
 
     @DeleteMapping("/conversation")
-    public ResponseEntity<?> deleteConversation(
-            @RequestParam Long userId1,
-            @RequestParam Long userId2) {
-        messageService.deleteConversation(userId1, userId2);
-        return ResponseEntity.ok(Map.of("message", "Conversation deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deleteConversation(
+            @RequestParam(required = false) Long userId1,
+            @RequestParam Long userId2,
+            Authentication authentication) {
+        messageService.deleteConversation(SecurityUtil.requireCurrentUserId(authentication), userId2);
+        return ResponseEntity.ok(new ApiMessageResponse("Conversation deleted successfully"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
-        messageService.deleteMessage(id);
-        return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deleteMessage(@PathVariable Long id, Authentication authentication) {
+        messageService.deleteMessage(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Message deleted successfully"));
     }
 
     @DeleteMapping("/batch")
-    public ResponseEntity<?> deleteMessages(@RequestParam List<Long> ids) {
-        messageService.deleteMessages(ids);
-        return ResponseEntity.ok(Map.of("message", "Messages deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deleteMessages(@RequestParam List<Long> ids, Authentication authentication) {
+        messageService.deleteMessages(ids, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
+        return ResponseEntity.ok(new ApiMessageResponse("Messages deleted successfully"));
     }
 }

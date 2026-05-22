@@ -1,8 +1,9 @@
 package hvault.app.controller;
 
-import java.util.Map;
-
+import hvault.app.dto.IdMessageResponse;
+import hvault.app.security.SecurityUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,13 +25,13 @@ public class ReportController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createReport(@Valid @RequestBody CreateReportRequest request) {
-        Long id = reportService.createReport(request);
-        return ResponseEntity.ok(Map.of("message", "Report created successfully", "id", id));
+    public ResponseEntity<IdMessageResponse> createReport(@Valid @RequestBody CreateReportRequest request, Authentication authentication) {
+        Long id = reportService.createReport(request, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(new IdMessageResponse("Report created successfully", id));
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> getMyReports(@RequestParam Long reporterId) {
-        return ResponseEntity.ok(reportService.getReportsByUser(reporterId));
+    public ResponseEntity<?> getMyReports(@RequestParam(required = false) Long reporterId, Authentication authentication) {
+        return ResponseEntity.ok(reportService.getReportsByUser(SecurityUtil.requireCurrentUserId(authentication)));
     }
 }

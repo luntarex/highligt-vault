@@ -13,15 +13,11 @@ export class ExploreService {
   constructor(private http: HttpClient) {}
 
   getFeed(userId?: number): Observable<ExplorePost[]> {
-    let url = this.apiUrl;
-    if (userId) {
-      url += `?userId=${userId}`;
-    }
-    return this.http.get<ExplorePost[]>(url);
+    return this.http.get<ExplorePost[]>(this.apiUrl);
   }
 
   getFollowingFeed(userId: number): Observable<ExplorePost[]> {
-    return this.http.get<ExplorePost[]>(`${this.apiUrl}/following?userId=${userId}`);
+    return this.http.get<ExplorePost[]>(`${this.apiUrl}/following`);
   }
   
   addPost(post: any): Observable<any> {
@@ -41,28 +37,24 @@ export class ExploreService {
   }
 
   getPostByClipId(clipId: number, userId?: number): Observable<ExplorePost> {
-    let url = `${this.apiUrl}/clip/${clipId}`;
-    if (userId) {
-      url += `?userId=${userId}`;
-    }
-    return this.http.get<ExplorePost>(url);
+    return this.http.get<ExplorePost>(`${this.apiUrl}/clip/${clipId}`);
   }
 
   likePost(postId: string, userId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${postId}/like?userId=${userId}`, {});
+    return this.http.post(`${this.apiUrl}/${postId}/like`, {});
   }
 
   unlikePost(postId: string, userId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${postId}/like?userId=${userId}`);
+    return this.http.delete(`${this.apiUrl}/${postId}/like`);
   }
 
   favoriteClip(clipId: string, userId: number): Observable<any> {
     const clipsApi = 'http://localhost:8080/api/clips';
-    return this.http.post(`${clipsApi}/${clipId}/favorite?userId=${userId}`, {});
+    return this.http.post(`${clipsApi}/${clipId}/favorite`, {});
   }
 
   unfavoriteClip(clipId: string, userId: number): Observable<any> {
     const clipsApi = 'http://localhost:8080/api/clips';
-    return this.http.delete(`${clipsApi}/${clipId}/favorite?userId=${userId}`);
+    return this.http.delete(`${clipsApi}/${clipId}/favorite`);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -17,7 +17,7 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
   templateUrl: './messages.html',
   styleUrls: ['./messages.css']
 })
-export class MessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit, OnDestroy {
   conversations: Conversation[] = [];
   filteredConversations: Conversation[] = [];
   followingUsers: any[] = [];
@@ -35,6 +35,7 @@ export class MessagesComponent implements OnInit {
   showDeleteModal: boolean = false;
   selectedConversationToDelete: number | null = null;
   selectedMessageIds: Set<number> = new Set<number>();
+  private refreshTimerId: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -54,6 +55,19 @@ export class MessagesComponent implements OnInit {
         this.selectUser(Number(params['userId']));
       }
     });
+    this.refreshTimerId = setInterval(() => {
+      if (this.selectedUserId && this.selectedMessageIds.size === 0) {
+        this.refreshSelectedConversation(true);
+      } else {
+        this.loadConversations();
+      }
+    }, 8000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimerId) {
+      clearInterval(this.refreshTimerId);
+    }
   }
 
   loadConversations(): void {
@@ -103,6 +117,7 @@ export class MessagesComponent implements OnInit {
 
   selectUser(userId: number): void {
     this.selectedUserId = userId;
+    this.selectedMessageIds.clear();
     const conversation = this.conversations.find(c => c.other_user_id === userId);
 
     if (conversation) {
@@ -119,17 +134,40 @@ export class MessagesComponent implements OnInit {
       });
     }
 
-    this.messageService.getConversation(this.currentUserId, userId).subscribe(msgs => {
+    this.refreshSelectedConversation(false);
+  }
+
+  refreshSelectedConversation(silent: boolean = false): void {
+    if (!this.selectedUserId) return;
+
+    this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe(msgs => {
       this.currentConversation = msgs.map(m => ({
         ...m,
         createdAt: this.fixDate(m.createdAt).toISOString()
       }));
       this.loading = false;
-      this.cdr.detectChanges();
-      // Mark as read
-      this.currentConversation.forEach(m => {
-        if (m.receiverId === this.currentUserId && !m.isRead) {
-          this.messageService.markAsRead(m.id).subscribe();
+      this.markReceivedMessagesAsRead();
+      if (!silent) {
+        this.cdr.detectChanges();
+      } else {
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  markReceivedMessagesAsRead(): void {
+    const unreadReceived = this.currentConversation.filter(m =>
+      m.receiverId === this.currentUserId && !m.isRead
+    );
+
+    if (unreadReceived.length === 0) return;
+
+    unreadReceived.forEach(m => {
+      this.messageService.markAsRead(m.id).subscribe({
+        next: () => {
+          m.isRead = true;
+          this.loadConversations();
+          this.cdr.detectChanges();
         }
       });
     });

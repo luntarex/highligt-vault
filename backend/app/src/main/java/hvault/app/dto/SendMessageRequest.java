@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class SendMessageRequest {
-    @NotNull
     private Long senderId;
 
     @NotNull

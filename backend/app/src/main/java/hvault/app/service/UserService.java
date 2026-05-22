@@ -13,6 +13,7 @@ import hvault.app.repository.projection.UserProfileView;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class UserService {
@@ -44,10 +45,19 @@ public class UserService {
     }
 
     public void followUser(Long followerId, Long followedId) {
+        if (followerId.equals(followedId)) {
+            throw new IllegalArgumentException("You cannot follow yourself.");
+        }
+        if (!userRepository.existsById(followedId)) {
+            throw new NoSuchElementException("User not found.");
+        }
         userRepository.followUser(followerId, followedId);
     }
 
     public void unfollowUser(Long followerId, Long followedId) {
+        if (followerId.equals(followedId)) {
+            throw new IllegalArgumentException("You cannot unfollow yourself.");
+        }
         userRepository.unfollowUser(followerId, followedId);
     }
 

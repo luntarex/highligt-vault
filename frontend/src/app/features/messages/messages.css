@@ -321,6 +321,25 @@
   gap: 14px;
 }
 
+.chat-profile-link {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 14px;
+  padding: 6px 10px 6px 6px;
+  margin-left: -6px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chat-profile-link:hover {
+  background: rgba(168, 85, 247, 0.12);
+  transform: translateY(-1px);
+}
+
+.chat-profile-link:hover .header-avatar {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.16);
+}
+
 .header-avatar {
   width: 40px;
   height: 40px;
@@ -334,6 +353,21 @@
   font-size: 1.05rem;
   color: white;
   font-weight: 600;
+}
+
+.header-user-info span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: hsl(var(--muted-foreground));
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chat-profile-link:hover .header-user-info span {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Message History */
@@ -355,6 +389,17 @@
   gap: 12px;
 }
 
+.start-avatar {
+  display: inline-flex;
+  border-radius: 50%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.start-avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
+}
+
 .start-avatar img {
   width: 64px;
   height: 64px;
@@ -371,6 +416,16 @@
 
 .chat-start-notice p strong {
   color: white;
+}
+
+.chat-start-notice p a {
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.chat-start-notice p a:hover {
+  color: #c084fc;
 }
 
 /* Messages */
@@ -413,12 +468,32 @@
   border-bottom-left-radius: 6px;
 }
 
-.sent .msg-time {
-  text-align: right;
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  line-height: 1;
+  opacity: 0.84;
 }
 
-.received .msg-time {
-  text-align: left;
+.sent .message-meta {
+  justify-content: flex-end;
+}
+
+.received .message-meta {
+  justify-content: flex-start;
+}
+
+.read-receipt {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.read-receipt.seen {
+  color: #d8b4fe;
 }
 
 /* ════════════════════════════════════════

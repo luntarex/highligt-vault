@@ -1,9 +1,11 @@
 package hvault.app.controller;
 
+import hvault.app.dto.ApiMessageResponse;
+import hvault.app.security.SecurityUtil;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,9 +23,13 @@ public class FollowController {
      * Follow a user.
      */
     @PostMapping("/{userId}")
-    public ResponseEntity<?> followUser(@PathVariable Long userId, @RequestParam Long followerId) {
-        userService.followUser(followerId, userId);
-        return ResponseEntity.ok(Map.of("message", "Followed user successfully"));
+    public ResponseEntity<ApiMessageResponse> followUser(
+        @PathVariable Long userId,
+        @RequestParam(required = false) Long followerId,
+        Authentication authentication
+    ) {
+        userService.followUser(SecurityUtil.requireCurrentUserId(authentication), userId);
+        return ResponseEntity.ok(new ApiMessageResponse("Followed user successfully"));
     }
 
     /**
@@ -31,9 +37,13 @@ public class FollowController {
      * Unfollow a user.
      */
     @DeleteMapping("/{userId}")
-    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, @RequestParam Long followerId) {
-        userService.unfollowUser(followerId, userId);
-        return ResponseEntity.ok(Map.of("message", "Unfollowed user successfully"));
+    public ResponseEntity<ApiMessageResponse> unfollowUser(
+        @PathVariable Long userId,
+        @RequestParam(required = false) Long followerId,
+        Authentication authentication
+    ) {
+        userService.unfollowUser(SecurityUtil.requireCurrentUserId(authentication), userId);
+        return ResponseEntity.ok(new ApiMessageResponse("Unfollowed user successfully"));
     }
 
     /**
@@ -41,8 +51,12 @@ public class FollowController {
      * Check if a user is following another user.
      */
     @GetMapping("/{userId}/is-following")
-    public ResponseEntity<Map<String, Boolean>> isFollowing(@PathVariable Long userId, @RequestParam Long followerId) {
-        boolean following = userService.isFollowing(followerId, userId);
+    public ResponseEntity<Map<String, Boolean>> isFollowing(
+        @PathVariable Long userId,
+        @RequestParam(required = false) Long followerId,
+        Authentication authentication
+    ) {
+        boolean following = userService.isFollowing(SecurityUtil.requireCurrentUserId(authentication), userId);
         return ResponseEntity.ok(Map.of("isFollowing", following));
     }
 
@@ -69,7 +83,7 @@ public class FollowController {
      * Get suggested users to follow based on who your friends follow.
      */
     @GetMapping("/{userId}/suggestions")
-    public ResponseEntity<?> getSuggestedUsers(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getSuggestedUsers(userId));
+    public ResponseEntity<?> getSuggestedUsers(@PathVariable Long userId, Authentication authentication) {
+        return ResponseEntity.ok(userService.getSuggestedUsers(SecurityUtil.requireCurrentUserId(authentication)));
     }
 }

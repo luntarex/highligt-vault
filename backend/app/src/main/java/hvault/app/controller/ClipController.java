@@ -46,9 +46,11 @@ public class ClipController {
      * Get all clips for the current user.
      */
     @GetMapping
-    public ResponseEntity<?> getAllClips(@RequestParam(required = false) Long uploaderId) {
+    public ResponseEntity<?> getAllClips(@RequestParam(required = false) Long uploaderId, Authentication authentication) {
         if (uploaderId != null) {
-            return ResponseEntity.ok(clipService.getClipsByUserId(uploaderId));
+            Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+            Long targetUserId = SecurityUtil.isAdmin(authentication) ? uploaderId : currentUserId;
+            return ResponseEntity.ok(clipService.getClipsByUserId(targetUserId));
         }
         return ResponseEntity.ok(clipService.getAllClips());
     }
@@ -81,8 +83,10 @@ public class ClipController {
      * List all clips a user has marked as favorite.
      */
     @GetMapping("/favorites/{userId}")
-    public ResponseEntity<?> getFavoritesByUserId(@PathVariable Long userId) {
-        List<ClipResponse> clips = clipService.getFavoritesByUserId(userId);
+    public ResponseEntity<?> getFavoritesByUserId(@PathVariable Long userId, Authentication authentication) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        Long targetUserId = SecurityUtil.isAdmin(authentication) ? userId : currentUserId;
+        List<ClipResponse> clips = clipService.getFavoritesByUserId(targetUserId);
         return ResponseEntity.ok(clips);
     }
 

@@ -7,7 +7,6 @@ import lombok.Data;
 
 @Data
 public class CreateReportRequest {
-    @NotNull
     private Long reporterId;
 
     @NotNull
