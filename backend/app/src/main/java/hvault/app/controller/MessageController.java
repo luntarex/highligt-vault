@@ -36,7 +36,12 @@ public class MessageController {
 
     @PostMapping
     public ResponseEntity<ApiMessageResponse> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication authentication) {
-        messageService.sendMessage(SecurityUtil.requireCurrentUserId(authentication), request.getReceiverId(), request.getContent());
+        messageService.sendMessage(
+            SecurityUtil.requireCurrentUserId(authentication),
+            request.getReceiverId(),
+            request.getContent(),
+            request.getSharedPostId()
+        );
         return ResponseEntity.ok(new ApiMessageResponse("Message sent successfully"));
     }
 

@@ -228,7 +228,7 @@ public class ClipService {
         response.setEndTime(clip.getEndTime());
         response.setNotes(clip.getNotes());
         response.setGame(clip.getGame());
-        response.setIsDeleted(Boolean.TRUE.equals(clip.getIsDeleted()));
+        response.setIsDeleted(toBoolean(clip.getIsDeleted()));
         response.setDateCreated(clip.getDateCreated());
         response.setUploaderId(clip.getUploaderId());
         response.setTags(getTagsSafely(clip.getId()));
@@ -294,6 +294,10 @@ public class ClipService {
 
     private Double toDouble(Float value) {
         return value == null ? null : value.doubleValue();
+    }
+
+    private boolean toBoolean(Number value) {
+        return value != null && value.intValue() != 0;
     }
 
     private List<String> getTagsSafely(Long clipId) {

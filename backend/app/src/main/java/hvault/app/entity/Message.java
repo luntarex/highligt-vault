@@ -27,6 +27,9 @@ public class Message {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "shared_post_id")
+    private Long sharedPostId;
+
     @Column(name = "is_read")
     private Boolean isRead;
 

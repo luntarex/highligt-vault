@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class MessageConversationResponse {
-    private Long otherUserId;
-    private String content;
-    private LocalDateTime createdAt;
-    private Boolean isRead;
+public class MessageResponse {
+    private Long id;
     private Long senderId;
-    private String username;
-    private String profilePhotoUrl;
+    private Long receiverId;
+    private String content;
+    private Boolean isRead;
+    private LocalDateTime createdAt;
     private Long sharedPostId;
     private PostFeedResponse sharedPost;
 }

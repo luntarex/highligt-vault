@@ -19,6 +19,7 @@ import { AboutUs } from './features/about-us/about-us';
 import { Feed } from './features/feed/feed';
 import { AddPostPage } from './features/add-post/add-post';
 import { Moderation } from './features/moderation/moderation';
+import { PostDetail } from './features/post-detail/post-detail';
 
 export const routes: Routes = [
   { path: '', component: Feed, canActivate: [AuthGuard] },
@@ -35,6 +36,7 @@ export const routes: Routes = [
   { path : 'profile/:id', component : ProfilePage, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfilePage, canActivate: [AuthGuard] },
   { path: 'explore', component: Explore, canActivate: [AuthGuard] },
+  { path: 'post/:id', component: PostDetail, canActivate: [AuthGuard] },
   { path: 'user-comments/:userId', component: UserComments, canActivate: [AuthGuard] },
   { path: 'users', component: UsersListPage, canActivate: [AdminGuard] },
   { path: 'moderation', component: Moderation, canActivate: [AdminGuard] },

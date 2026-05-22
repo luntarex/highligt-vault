@@ -1,6 +1,8 @@
 package hvault.app.service;
 
 import hvault.app.dto.MessageConversationResponse;
+import hvault.app.dto.MessageResponse;
+import hvault.app.dto.PostFeedResponse;
 import hvault.app.entity.Message;
 import hvault.app.entity.User;
 import hvault.app.repository.MessageRepository;
@@ -20,24 +22,40 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final PostService postService;
 
-    public MessageService(MessageRepository messageRepository, UserRepository userRepository) {
+    public MessageService(MessageRepository messageRepository, UserRepository userRepository, PostService postService) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
+        this.postService = postService;
     }
 
-    public void sendMessage(Long senderId, Long receiverId, String content) {
+    public void sendMessage(Long senderId, Long receiverId, String content, Long sharedPostId) {
+        String cleanContent = content == null ? "" : content.trim();
+        if (cleanContent.isBlank() && sharedPostId == null) {
+            throw new IllegalArgumentException("Message content or shared post is required.");
+        }
+        if (senderId.equals(receiverId)) {
+            throw new IllegalArgumentException("You cannot send a message to yourself.");
+        }
+        if (sharedPostId != null && postService.getPostById(sharedPostId, senderId) == null) {
+            throw new NoSuchElementException("Shared post not found.");
+        }
+
         Message message = new Message();
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
-        message.setContent(content);
+        message.setContent(cleanContent.isBlank() ? "Shared a post" : cleanContent);
+        message.setSharedPostId(sharedPostId);
         message.setIsRead(false);
         message.setCreatedAt(LocalDateTime.now());
         messageRepository.save(message);
     }
 
-    public List<Message> getConversation(Long userId1, Long userId2) {
-        return messageRepository.getConversation(userId1, userId2);
+    public List<MessageResponse> getConversation(Long userId1, Long userId2) {
+        return messageRepository.getConversation(userId1, userId2).stream()
+            .map(message -> toMessageResponse(message, userId1))
+            .toList();
     }
 
     public List<MessageConversationResponse> getConversations(Long userId) {
@@ -51,7 +69,7 @@ public class MessageService {
 
         List<MessageConversationResponse> conversations = new ArrayList<>();
         for (Map.Entry<Long, Message> entry : latestByOtherUser.entrySet()) {
-            conversations.add(toConversationResponse(entry.getKey(), entry.getValue()));
+            conversations.add(toConversationResponse(userId, entry.getKey(), entry.getValue()));
         }
         return conversations;
     }
@@ -89,7 +107,7 @@ public class MessageService {
         }
     }
 
-    private MessageConversationResponse toConversationResponse(Long otherUserId, Message latestMessage) {
+    private MessageConversationResponse toConversationResponse(Long currentUserId, Long otherUserId, Message latestMessage) {
         User otherUser = userRepository.findById(otherUserId).orElse(null);
         MessageConversationResponse response = new MessageConversationResponse();
         response.setOtherUserId(otherUserId);
@@ -99,7 +117,26 @@ public class MessageService {
         response.setSenderId(latestMessage.getSenderId());
         response.setUsername(otherUser != null ? otherUser.getUsername() : "Unknown user");
         response.setProfilePhotoUrl(otherUser != null ? otherUser.getProfilePhotoUrl() : null);
+        response.setSharedPostId(latestMessage.getSharedPostId());
+        response.setSharedPost(resolveSharedPost(latestMessage.getSharedPostId(), currentUserId));
         return response;
+    }
+
+    private MessageResponse toMessageResponse(Message message, Long currentUserId) {
+        MessageResponse response = new MessageResponse();
+        response.setId(message.getId());
+        response.setSenderId(message.getSenderId());
+        response.setReceiverId(message.getReceiverId());
+        response.setContent(message.getContent());
+        response.setIsRead(Boolean.TRUE.equals(message.getIsRead()));
+        response.setCreatedAt(message.getCreatedAt());
+        response.setSharedPostId(message.getSharedPostId());
+        response.setSharedPost(resolveSharedPost(message.getSharedPostId(), currentUserId));
+        return response;
+    }
+
+    private PostFeedResponse resolveSharedPost(Long sharedPostId, Long currentUserId) {
+        return sharedPostId == null ? null : postService.getPostById(sharedPostId, currentUserId);
     }
 
     private void requireMessageParticipantOrAdmin(Message message, Long currentUserId, boolean admin) {

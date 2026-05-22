@@ -1,3 +1,5 @@
+import { ExplorePost } from './explore-post';
+
 export interface Message {
     id: number;
     senderId: number;
@@ -5,6 +7,8 @@ export interface Message {
     content: string;
     isRead: boolean;
     createdAt: string;
+    sharedPostId?: number;
+    sharedPost?: ExplorePost | null;
 }
 
 export interface Conversation {
@@ -15,4 +19,6 @@ export interface Conversation {
     created_at: string;
     is_read: boolean;
     sender_id: number;
+    shared_post_id?: number;
+    sharedPost?: ExplorePost | null;
 }

@@ -23,6 +23,10 @@ export class MessageService {
     return this.http.post(this.apiUrl, { senderId, receiverId, content });
   }
 
+  sendPost(receiverId: number, postId: string | number, content: string = 'Shared a post'): Observable<any> {
+    return this.http.post(this.apiUrl, { receiverId, content, sharedPostId: Number(postId) });
+  }
+
   markAsRead(messageId: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${messageId}/read`, {});
   }

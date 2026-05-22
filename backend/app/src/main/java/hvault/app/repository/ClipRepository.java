@@ -57,8 +57,12 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,
                c.start_time AS startTime, c.end_time AS endTime, c.notes, g.name AS game,
-               c.is_deleted AS isDeleted,
-               c.moderation_status AS moderationStatus, c.visibility_status AS visibilityStatus
+               c.uploader_id AS uploaderId, c.is_deleted AS isDeleted, c.created_at AS dateCreated,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.moderation_checked_at AS moderationCheckedAt,
+               c.reviewed_by AS reviewedBy, c.reviewed_at AS reviewedAt,
+               c.removed_reason AS removedReason, c.removed_at AS removedAt,
+               c.visibility_status AS visibilityStatus
         FROM user_favorites uf
         JOIN clips c ON uf.clip_id = c.id
         LEFT JOIN games g ON c.game_id = g.id
