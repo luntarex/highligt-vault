@@ -31,11 +31,19 @@ export class MessageRealtimeService implements OnDestroy {
     }
 
     this.manuallyStopped = false;
-    this.socket = new WebSocket(this.websocketUrl(token));
+    const url = this.websocketUrl(token);
+    this.socket = new WebSocket(url);
 
+    this.socket.onopen = () => console.info('[realtime] message socket connected');
     this.socket.onmessage = event => this.handleMessage(event);
-    this.socket.onclose = () => this.scheduleReconnect();
-    this.socket.onerror = () => this.socket?.close();
+    this.socket.onclose = event => {
+      console.warn('[realtime] message socket closed', { code: event.code, reason: event.reason });
+      this.scheduleReconnect();
+    };
+    this.socket.onerror = () => {
+      console.warn('[realtime] message socket error');
+      this.socket?.close();
+    };
   }
 
   disconnect(): void {
