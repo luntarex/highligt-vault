@@ -29,6 +29,12 @@ jobs:
             cd /opt/highligt-vault
             git pull --ff-only origin main
             cd backend/app
+            docker build -t vibe-vault-backend .
             docker rm -f vibe-vault-backend 2>/dev/null || true
-            docker compose up -d --build
+            docker run -d \
+              --name vibe-vault-backend \
+              --env-file .env \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              vibe-vault-backend
             docker image prune -f
