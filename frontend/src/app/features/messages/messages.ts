@@ -145,10 +145,13 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe(msgs => {
       this.currentConversation = msgs.map(m => ({
         ...m,
+        senderId: Number((m as any).senderId ?? (m as any).sender_id),
+        receiverId: Number((m as any).receiverId ?? (m as any).receiver_id),
+        isRead: this.toBoolean((m as any).isRead ?? (m as any).is_read ?? (m as any).read),
         sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
         sharedPost: (m as any).sharedPost ?? null,
         createdAt: this.fixDate(m.createdAt).toISOString()
-      }));
+      })).sort((a, b) => this.compareMessages(a, b));
       this.loading = false;
       this.markReceivedMessagesAsRead();
       if (!silent) {
@@ -285,5 +288,15 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
     
     return new Date(s + 'Z');
+  }
+
+  private compareMessages(a: Message, b: Message): number {
+    const idDiff = Number(a.id) - Number(b.id);
+    if (Number.isFinite(idDiff) && idDiff !== 0) return idDiff;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  }
+
+  private toBoolean(value: unknown): boolean {
+    return value === true || value === 1 || value === '1' || value === 'true';
   }
 }

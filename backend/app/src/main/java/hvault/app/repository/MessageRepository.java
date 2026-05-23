@@ -16,7 +16,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
         SELECT * FROM messages
         WHERE (sender_id = :userId1 AND receiver_id = :userId2)
            OR (sender_id = :userId2 AND receiver_id = :userId1)
-        ORDER BY created_at ASC
+        ORDER BY created_at ASC, id ASC
         """, nativeQuery = true)
     List<Message> getConversation(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
@@ -29,8 +29,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Transactional
     @Modifying
-    @Query(value = "UPDATE messages SET is_read = TRUE WHERE id = :messageId", nativeQuery = true)
-    void markAsRead(@Param("messageId") Long messageId);
+    @Query(value = "UPDATE messages SET is_read = TRUE WHERE id = :messageId AND receiver_id = :receiverId", nativeQuery = true)
+    int markAsReadForReceiver(@Param("messageId") Long messageId, @Param("receiverId") Long receiverId);
 
     @Transactional
     @Modifying
