@@ -321,6 +321,18 @@ export class MessagesComponent implements OnInit, OnDestroy {
     return ['/post', postId];
   }
 
+  trackConversation(_index: number, conversation: Conversation): number {
+    return conversation.other_user_id;
+  }
+
+  trackFollowingUser(_index: number, user: any): number {
+    return Number(user.id);
+  }
+
+  trackMessage(_index: number, message: Message): number {
+    return message.id;
+  }
+
   private fixDate(val: any): Date {
     if (!val) return new Date();
     
