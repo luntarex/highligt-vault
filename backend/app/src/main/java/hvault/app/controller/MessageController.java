@@ -1,8 +1,11 @@
 package hvault.app.controller;
 
 import hvault.app.dto.ApiMessageResponse;
+import hvault.app.dto.MessageResponse;
 import hvault.app.dto.SendMessageRequest;
+import hvault.app.entity.Message;
 import hvault.app.security.SecurityUtil;
+import hvault.app.service.MessageRealtimeService;
 import hvault.app.service.MessageService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +19,11 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final MessageRealtimeService realtimeService;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, MessageRealtimeService realtimeService) {
         this.messageService = messageService;
+        this.realtimeService = realtimeService;
     }
 
     @GetMapping("/conversations")
@@ -35,14 +40,29 @@ public class MessageController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiMessageResponse> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication authentication) {
-        messageService.sendMessage(
-            SecurityUtil.requireCurrentUserId(authentication),
+    public ResponseEntity<MessageResponse> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication authentication) {
+        Long senderId = SecurityUtil.requireCurrentUserId(authentication);
+        Message message = messageService.sendMessage(
+            senderId,
             request.getReceiverId(),
             request.getContent(),
             request.getSharedPostId()
         );
-        return ResponseEntity.ok(new ApiMessageResponse("Message sent successfully"));
+        MessageResponse senderMessage = messageService.toMessageResponseForUser(message, senderId);
+        MessageResponse receiverMessage = messageService.toMessageResponseForUser(message, message.getReceiverId());
+
+        realtimeService.sendMessageEvent(
+            senderId,
+            senderMessage,
+            messageService.toConversationResponseForUser(senderId, message.getReceiverId(), message)
+        );
+        realtimeService.sendMessageEvent(
+            message.getReceiverId(),
+            receiverMessage,
+            messageService.toConversationResponseForUser(message.getReceiverId(), senderId, message)
+        );
+
+        return ResponseEntity.ok(senderMessage);
     }
 
     @PutMapping("/{id}/read")

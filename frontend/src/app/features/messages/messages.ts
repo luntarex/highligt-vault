@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, ElementRef, ViewChild 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MessageService } from '../../core/services/message.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { MessageRealtimeEvent, MessageRealtimeService } from '../../core/services/message-realtime.service';
 import { Message, Conversation } from '../../core/models/message.model';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
@@ -38,6 +40,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   selectedMessageIds: Set<number> = new Set<number>();
   private refreshTimerId: ReturnType<typeof setInterval> | null = null;
   private tempMessageId = -1;
+  private realtimeSubscription = new Subscription();
 
   @ViewChild('scrollMe') private messageHistory?: ElementRef<HTMLElement>;
 
@@ -47,12 +50,18 @@ export class MessagesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private userService: UserService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private realtime: MessageRealtimeService
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
 
   ngOnInit(): void {
+    this.realtime.connect();
+    this.realtimeSubscription.add(
+      this.realtime.events$.subscribe(event => this.handleRealtimeMessage(event))
+    );
+
     this.loadConversations(true);
     this.route.params.subscribe(params => {
       if (params['userId']) {
@@ -72,6 +81,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     if (this.refreshTimerId) {
       clearInterval(this.refreshTimerId);
     }
+    this.realtimeSubscription.unsubscribe();
   }
 
   loadConversations(showLoading = false): void {
@@ -81,20 +91,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
     this.messageService.getConversations(this.currentUserId).subscribe({
       next: convs => {
-        this.conversations = convs.map((c: any) => {
-          const createdAt = c.created_at ?? c.createdAt;
-          return {
-            other_user_id: Number(c.other_user_id ?? c.otherUserId),
-            username: c.username || '',
-            profile_photo_url: c.profile_photo_url ?? c.profilePhotoUrl ?? '',
-            content: c.content || '',
-            created_at: this.fixDate(createdAt).toISOString(),
-            is_read: Boolean(c.is_read ?? c.isRead),
-            sender_id: Number(c.sender_id ?? c.senderId),
-            shared_post_id: c.shared_post_id ?? c.sharedPostId,
-            sharedPost: c.sharedPost ?? null
-          };
-        });
+        this.conversations = convs.map(c => this.normalizeConversation(c));
         this.applyConversationFilter();
         this.loadFollowing();
         this.isLoadingConversations = false;
@@ -245,9 +242,11 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
     this.messageService.sendMessage(this.currentUserId, receiverId, content)
       .subscribe(
-        () => {
+        message => {
           this.isSending = false;
-          this.refreshSelectedConversation(true);
+          this.currentConversation = this.currentConversation
+            .map(existing => existing.id === tempMessage.id ? this.normalizeMessage(message) : existing)
+            .sort((a, b) => this.compareMessages(a, b));
           this.loadConversations(false);
           this.cdr.detectChanges();
         },
@@ -321,16 +320,55 @@ export class MessagesComponent implements OnInit, OnDestroy {
     return ['/post', postId];
   }
 
-  trackConversation(_index: number, conversation: Conversation): number {
-    return conversation.other_user_id;
+  private handleRealtimeMessage(event: MessageRealtimeEvent): void {
+    const message = this.normalizeMessage(event.message);
+    const otherUserId = message.senderId === this.currentUserId ? message.receiverId : message.senderId;
+    const wasNewMessage = !this.currentConversation.some(existing => existing.id === message.id);
+
+    this.upsertConversation(this.normalizeConversation(event.conversation));
+
+    if (this.selectedUserId === otherUserId) {
+      this.upsertMessage(message);
+      if (message.receiverId === this.currentUserId && !message.isRead) {
+        this.messageService.markAsRead(message.id).subscribe({
+          next: () => {
+            message.isRead = true;
+            this.upsertMessage(message);
+            this.cdr.detectChanges();
+          }
+        });
+      }
+      this.cdr.detectChanges();
+      if (wasNewMessage) {
+        this.scrollToBottom();
+      }
+    } else {
+      this.cdr.detectChanges();
+    }
   }
 
-  trackFollowingUser(_index: number, user: any): number {
-    return Number(user.id);
+  private upsertConversation(conversation: Conversation): void {
+    const existingIndex = this.conversations.findIndex(item => item.other_user_id === conversation.other_user_id);
+    if (existingIndex >= 0) {
+      this.conversations = [
+        conversation,
+        ...this.conversations.filter((_, index) => index !== existingIndex)
+      ];
+    } else {
+      this.conversations = [conversation, ...this.conversations];
+      this.followingUsers = this.followingUsers.filter((user: any) => Number(user.id) !== conversation.other_user_id);
+    }
+    this.applyConversationFilter();
   }
 
-  trackMessage(_index: number, message: Message): number {
-    return message.id;
+  private upsertMessage(message: Message): void {
+    const existingIndex = this.currentConversation.findIndex(item => item.id === message.id);
+    if (existingIndex >= 0) {
+      this.currentConversation = this.currentConversation.map(item => item.id === message.id ? message : item);
+    } else {
+      this.currentConversation = [...this.currentConversation, message];
+    }
+    this.currentConversation = this.currentConversation.sort((a, b) => this.compareMessages(a, b));
   }
 
   private fixDate(val: any): Date {
@@ -369,6 +407,20 @@ export class MessagesComponent implements OnInit, OnDestroy {
       sharedPostId: m.sharedPostId ?? m.shared_post_id,
       sharedPost: m.sharedPost ?? null,
       createdAt: this.fixDate(m.createdAt ?? m.created_at).toISOString()
+    };
+  }
+
+  private normalizeConversation(conversation: any): Conversation {
+    return {
+      other_user_id: Number(conversation.other_user_id ?? conversation.otherUserId),
+      username: conversation.username || '',
+      profile_photo_url: conversation.profile_photo_url ?? conversation.profilePhotoUrl ?? '',
+      content: conversation.content || '',
+      created_at: this.fixDate(conversation.created_at ?? conversation.createdAt).toISOString(),
+      is_read: this.toBoolean(conversation.is_read ?? conversation.isRead ?? conversation.read),
+      sender_id: Number(conversation.sender_id ?? conversation.senderId),
+      shared_post_id: conversation.shared_post_id ?? conversation.sharedPostId,
+      sharedPost: conversation.sharedPost ?? null
     };
   }
 
