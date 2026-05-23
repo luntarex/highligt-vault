@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { User } from '../models/user';
 import { Clip } from '../models/clip';
 import { AuthService } from './auth.service';
@@ -11,10 +12,10 @@ import { AuthService } from './auth.service';
 })
 export class ProfileService {
 
-  private apiUsersUrl = 'http://localhost:8080/api/users';
-  private apiClipsUrl = 'http://localhost:8080/api/clips';
+  private apiUsersUrl = `${API_BASE_URL}/users`;
+  private apiClipsUrl = `${API_BASE_URL}/clips`;
 
-  private apiFollowsUrl = 'http://localhost:8080/api/follows';
+  private apiFollowsUrl = `${API_BASE_URL}/follows`;
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
@@ -61,4 +62,5 @@ export class ProfileService {
     return this.http.get<any[]>(`${this.apiFollowsUrl}/${userId}/suggestions`);
   }
 }
+
 

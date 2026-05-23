@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/api/users';
+  private apiUrl = `${API_BASE_URL}/users`;
 
   constructor(private http: HttpClient) {}
 
@@ -29,3 +30,4 @@ export class UserService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }
+

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { Playlist } from '../models/playlist';
 
@@ -8,7 +9,7 @@ import { Playlist } from '../models/playlist';
 })
 export class PlaylistService {
 
-  private apiUrl = 'http://localhost:8080/api/playlists';
+  private apiUrl = `${API_BASE_URL}/playlists`;
 
   constructor(private http: HttpClient) { }
 
@@ -40,3 +41,4 @@ export class PlaylistService {
     return this.http.delete<{message: string}>(`${this.apiUrl}/${playlistId}/clips/${clipId}`);
   }
 }
+

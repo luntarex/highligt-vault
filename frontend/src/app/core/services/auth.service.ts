@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { RegisterRequest, LoginRequest } from '../models/user';
 import { Observable } from 'rxjs';
 import { tap, shareReplay } from 'rxjs/operators';
@@ -10,7 +11,7 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = `${API_BASE_URL}/auth`;
   private userPhotoSubject = new BehaviorSubject<string>(localStorage.getItem('profile_photo_url') || '');
   public userPhoto$ = this.userPhotoSubject.asObservable();
 
@@ -94,3 +95,4 @@ export class AuthService {
     }
   }
 }
+

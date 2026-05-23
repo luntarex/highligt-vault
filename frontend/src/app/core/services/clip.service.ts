@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { Clip } from '../models/clip';
 
@@ -31,8 +32,8 @@ export interface ClipModerationResponse {
 })
 export class ClipService {
 
-  private apiUrl = 'http://localhost:8080/api/clips';
-  private uploadApiUrl = 'http://localhost:8080/api/uploads';
+  private apiUrl = `${API_BASE_URL}/clips`;
+  private uploadApiUrl = `${API_BASE_URL}/uploads`;
 
   constructor(private http: HttpClient) { }
 
@@ -105,3 +106,4 @@ export class ClipService {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 }
+

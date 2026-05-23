@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { API_BASE_URL } from "../config/api.config";
 import { ExplorePost } from "../models/explore-post";
 import { Observable } from "rxjs";
 
@@ -8,7 +9,7 @@ import { Observable } from "rxjs";
 })
 export class ExploreService {
 
-  private apiUrl = 'http://localhost:8080/api/posts';
+  private apiUrl = `${API_BASE_URL}/posts`;
 
   constructor(private http: HttpClient) {}
 
@@ -49,12 +50,13 @@ export class ExploreService {
   }
 
   favoriteClip(clipId: string, userId: number): Observable<any> {
-    const clipsApi = 'http://localhost:8080/api/clips';
+    const clipsApi = `${API_BASE_URL}/clips`;
     return this.http.post(`${clipsApi}/${clipId}/favorite`, {});
   }
 
   unfavoriteClip(clipId: string, userId: number): Observable<any> {
-    const clipsApi = 'http://localhost:8080/api/clips';
+    const clipsApi = `${API_BASE_URL}/clips`;
     return this.http.delete(`${clipsApi}/${clipId}/favorite`);
   }
 }
+

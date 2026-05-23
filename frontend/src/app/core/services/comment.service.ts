@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Comment } from '../models/comment';
 
 @Injectable({
@@ -8,7 +9,7 @@ import { Comment } from '../models/comment';
 })
 export class CommentService {
 
-  private apiUrl = 'http://localhost:8080/api/comments';
+  private apiUrl = `${API_BASE_URL}/comments`;
 
   constructor(private http: HttpClient) {}
 
@@ -55,3 +56,4 @@ export class CommentService {
     return this.http.delete(`${this.apiUrl}/${id}/violation`);
   }
 }
+
