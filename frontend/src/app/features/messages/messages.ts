@@ -74,7 +74,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
       } else {
         this.loadConversations(false);
       }
-    }, 8000);
+    }, 3000);
   }
 
   ngOnDestroy(): void {

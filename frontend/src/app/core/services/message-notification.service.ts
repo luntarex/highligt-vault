@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
+import { MessageService } from './message.service';
 import { MessageRealtimeService } from './message-realtime.service';
 import { ToastService } from './toast.service';
 import { Conversation } from '../models/message.model';
@@ -9,11 +10,17 @@ import { Conversation } from '../models/message.model';
   providedIn: 'root'
 })
 export class MessageNotificationService implements OnDestroy {
+  private readonly pollIntervalMs = 5000;
   private subscription = new Subscription();
+  private knownLatestByUser = new Map<number, string>();
+  private timerId: ReturnType<typeof setInterval> | null = null;
   private started = false;
+  private hasBaseline = false;
+  private inFlight = false;
 
   constructor(
     private authService: AuthService,
+    private messageService: MessageService,
     private realtime: MessageRealtimeService,
     private toast: ToastService
   ) {}
@@ -28,22 +35,105 @@ export class MessageNotificationService implements OnDestroy {
     this.subscription.add(
       this.realtime.events$.subscribe(event => {
         const currentUserId = this.authService.getCurrentUserId();
+        this.rememberConversation(event.conversation);
+
         if (event.message.receiverId === currentUserId) {
           this.toast.info(this.notificationText(event.conversation), 4500);
         }
       })
     );
+
+    this.poll();
+    this.timerId = setInterval(() => this.poll(), this.pollIntervalMs);
   }
 
   stop(): void {
     this.subscription.unsubscribe();
     this.subscription = new Subscription();
     this.started = false;
+    this.hasBaseline = false;
+    this.knownLatestByUser.clear();
+
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+
     this.realtime.disconnect();
   }
 
   ngOnDestroy(): void {
     this.stop();
+  }
+
+  private poll(): void {
+    if (this.inFlight) return;
+
+    const currentUserId = this.authService.getCurrentUserId();
+    if (!this.authService.isLoggedIn() || !currentUserId) {
+      this.hasBaseline = false;
+      this.knownLatestByUser.clear();
+      return;
+    }
+
+    this.inFlight = true;
+    this.messageService.getConversations(currentUserId).subscribe({
+      next: conversations => {
+        this.handlePolledConversations(conversations, currentUserId);
+        this.inFlight = false;
+      },
+      error: () => {
+        this.inFlight = false;
+      }
+    });
+  }
+
+  private handlePolledConversations(conversations: Conversation[], currentUserId: number): void {
+    conversations
+      .map(conversation => this.normalizeConversation(conversation))
+      .forEach(conversation => {
+        const signature = this.conversationSignature(conversation);
+        const previousSignature = this.knownLatestByUser.get(conversation.other_user_id);
+
+        if (this.hasBaseline
+          && previousSignature !== signature
+          && conversation.sender_id !== currentUserId) {
+          this.toast.info(this.notificationText(conversation), 4500);
+        }
+
+        this.knownLatestByUser.set(conversation.other_user_id, signature);
+      });
+
+    this.hasBaseline = true;
+  }
+
+  private rememberConversation(conversation: Conversation): void {
+    const normalized = this.normalizeConversation(conversation);
+    this.knownLatestByUser.set(normalized.other_user_id, this.conversationSignature(normalized));
+    this.hasBaseline = true;
+  }
+
+  private normalizeConversation(conversation: any): Conversation {
+    return {
+      other_user_id: Number(conversation.other_user_id ?? conversation.otherUserId),
+      username: conversation.username || 'Someone',
+      profile_photo_url: conversation.profile_photo_url ?? conversation.profilePhotoUrl ?? '',
+      content: conversation.content || '',
+      created_at: String(conversation.created_at ?? conversation.createdAt ?? ''),
+      is_read: this.toBoolean(conversation.is_read ?? conversation.isRead ?? conversation.read),
+      sender_id: Number(conversation.sender_id ?? conversation.senderId),
+      shared_post_id: conversation.shared_post_id ?? conversation.sharedPostId,
+      sharedPost: conversation.sharedPost ?? null
+    };
+  }
+
+  private conversationSignature(conversation: Conversation): string {
+    return [
+      conversation.sender_id,
+      conversation.created_at,
+      conversation.content,
+      conversation.shared_post_id ?? ''
+    ].join('|');
   }
 
   private notificationText(conversation: Conversation): string {
@@ -56,5 +146,9 @@ export class MessageNotificationService implements OnDestroy {
 
   private truncate(value: string): string {
     return value.length > 72 ? `${value.slice(0, 69)}...` : value;
+  }
+
+  private toBoolean(value: unknown): boolean {
+    return value === true || value === 1 || value === '1' || value === 'true';
   }
 }

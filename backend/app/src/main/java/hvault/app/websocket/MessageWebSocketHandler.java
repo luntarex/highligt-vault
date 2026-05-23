@@ -2,6 +2,8 @@ package hvault.app.websocket;
 
 import hvault.app.security.JwtService;
 import hvault.app.service.MessageRealtimeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
@@ -10,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class MessageWebSocketHandler extends TextWebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(MessageWebSocketHandler.class);
     private static final String USER_ID_ATTRIBUTE = "userId";
 
     private final JwtService jwtService;
@@ -24,6 +27,7 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         JwtService.JwtClaims claims = validateSession(session);
         if (claims == null) {
+            logger.warn("Rejected realtime message socket with missing or invalid token from {}", session.getRemoteAddress());
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Invalid token"));
             return;
         }
