@@ -18,8 +18,8 @@ public class MessageRealtimeService {
     private final ObjectMapper objectMapper;
     private final ConcurrentHashMap<Long, Set<WebSocketSession>> sessionsByUser = new ConcurrentHashMap<>();
 
-    public MessageRealtimeService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public MessageRealtimeService() {
+        this.objectMapper = new ObjectMapper();
     }
 
     public void register(Long userId, WebSocketSession session) {

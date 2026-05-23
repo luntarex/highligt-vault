@@ -15,7 +15,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import hvault.app.security.JwtAuthenticationFilter;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -77,9 +76,6 @@ public class SecurityConfig {
     }
 
     private List<String> parseAllowedOrigins() {
-        return Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(origin -> !origin.isBlank())
-            .toList();
+        return CorsOriginParser.parse(allowedOrigins);
     }
 }
