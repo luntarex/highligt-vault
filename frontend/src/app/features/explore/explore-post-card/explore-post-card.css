@@ -674,6 +674,11 @@
   color: var(--accent-purple);
 }
 
+.fullscreen-button.hidden-by-share {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 /* === FULLSCREEN OVERLAY === */
 .fullscreen-overlay {
   position: fixed;
