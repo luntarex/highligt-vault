@@ -20,8 +20,8 @@ export class MessageService {
     return this.http.get<Message[]>(`${this.apiUrl}/${otherUserId}`);
   }
 
-  sendMessage(senderId: number, receiverId: number, content: string): Observable<any> {
-    return this.http.post(this.apiUrl, { senderId, receiverId, content });
+  sendMessage(senderId: number, receiverId: number, content: string): Observable<Message> {
+    return this.http.post<Message>(this.apiUrl, { senderId, receiverId, content });
   }
 
   sendPost(receiverId: number, postId: string | number, content: string = 'Shared a post'): Observable<any> {

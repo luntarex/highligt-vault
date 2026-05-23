@@ -30,7 +30,7 @@ public class MessageService {
         this.postService = postService;
     }
 
-    public void sendMessage(Long senderId, Long receiverId, String content, Long sharedPostId) {
+    public Message sendMessage(Long senderId, Long receiverId, String content, Long sharedPostId) {
         String cleanContent = content == null ? "" : content.trim();
         if (cleanContent.isBlank() && sharedPostId == null) {
             throw new IllegalArgumentException("Message content or shared post is required.");
@@ -49,7 +49,15 @@ public class MessageService {
         message.setSharedPostId(sharedPostId);
         message.setIsRead(false);
         message.setCreatedAt(LocalDateTime.now());
-        messageRepository.save(message);
+        return messageRepository.save(message);
+    }
+
+    public MessageResponse toMessageResponseForUser(Message message, Long currentUserId) {
+        return toMessageResponse(message, currentUserId);
+    }
+
+    public MessageConversationResponse toConversationResponseForUser(Long currentUserId, Long otherUserId, Message latestMessage) {
+        return toConversationResponse(currentUserId, otherUserId, latestMessage);
     }
 
     public List<MessageResponse> getConversation(Long userId1, Long userId2) {
