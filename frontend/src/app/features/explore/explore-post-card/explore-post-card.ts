@@ -263,18 +263,23 @@ export class ExplorePostCard {
 
   sendPostToUser(event: MouseEvent, user: any) {
     event.stopPropagation();
-    this.sendingToUserId = user.id;
+    this.sendingToUserId = Number(user.id);
     const message = this.shareMessage.trim() || 'Shared a post';
     this.messageService.sendPost(user.id, this.post.id, message).subscribe({
       next: () => {
         this.toast.success(`Sent to ${user.username}.`);
-        this.sendingToUserId = null;
+        this.resetSharePanelAfterSend();
       },
       error: () => {
         this.toast.error('Could not send post.');
         this.sendingToUserId = null;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  isSendingTo(user: any): boolean {
+    return this.sendingToUserId !== null && this.sendingToUserId === Number(user.id);
   }
 
   private loadShareUsers() {
@@ -300,6 +305,13 @@ export class ExplorePostCard {
 
   get shareUrl(): string {
     return this.postShareUrl();
+  }
+
+  private resetSharePanelAfterSend() {
+    this.sendingToUserId = null;
+    this.shareMessage = '';
+    this.isSharePanelOpen = false;
+    this.cdr.detectChanges();
   }
 
   onToggleMute(event: MouseEvent, video: HTMLVideoElement) {
