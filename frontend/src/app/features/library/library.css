@@ -193,3 +193,281 @@
   opacity: 0.6;
 }
 
+/* Tabs & Group UI additions */
+.library-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.tab-btn.active {
+  color: hsl(265, 40%, 68%);
+  border-bottom: 2px solid hsl(265, 40%, 68%);
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+  padding-bottom: 40px;
+}
+
+.group-card {
+  position: relative;
+  background-color: hsla(var(--muted), 0.3);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 220px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-card:hover {
+  transform: translateY(-4px);
+  background-color: hsla(265, 40%, 68%, 0.1);
+  border-color: hsl(265, 40%, 68%);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.group-thumbnail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  transition: transform 0.3s ease;
+}
+
+.group-card:hover .group-thumbnail {
+  transform: scale(1.05);
+}
+
+.group-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%);
+  z-index: 1;
+}
+
+.group-info {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+}
+
+.group-info h3 {
+  margin: 0 0 4px 0;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.group-info p {
+  margin: 0;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+}
+
+.group-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.group-card:hover .group-actions {
+  opacity: 1;
+}
+
+.group-action-btn {
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s;
+}
+
+.group-action-btn:hover {
+  background: #a855f7;
+  transform: scale(1.1);
+}
+
+.group-action-btn.delete:hover {
+  background: #ef4444;
+}
+
+.create-group-btn {
+  background-color: hsl(265, 40%, 68%);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-group-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.3);
+}
+
+.group-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: hsla(265, 40%, 68%, 0.2);
+  border-color: hsl(265, 40%, 68%);
+}
+
+.group-title {
+  margin: 0;
+  font-size: 1.5rem;
+  color: hsl(var(--foreground));
+}
+
+/* Dialog styling for Add to Group inline modal */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.dialog-content {
+  background: hsl(var(--card));
+  padding: 24px;
+  border-radius: var(--radius);
+  width: 400px;
+  max-width: 90vw;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.dialog-title {
+  color: hsl(var(--foreground));
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+}
+
+.dialog-input {
+  width: 100%;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.dialog-input:focus {
+  outline: none;
+  border-color: hsl(265, 40%, 68%);
+  box-shadow: 0 0 0 2px hsla(265, 40%, 68%, 0.2);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cancel-btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.save-btn {
+  background: hsl(265, 40%, 68%);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.3);
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

@@ -94,6 +94,10 @@ export class ClipService {
     return this.http.get<Clip[]>(`${this.apiUrl}/favorites/${userId}`);
   }
 
+  addFavorite(clipId: number, userId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${clipId}/favorite?userId=${userId}`, {});
+  }
+
   removeFavorite(clipId: number, userId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${clipId}/favorite?userId=${userId}`);
   }

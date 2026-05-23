@@ -2,16 +2,20 @@ import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListen
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ClipService } from '../../core/services/clip.service';
+import { ClipGroupService } from '../../core/services/clip-group.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Clip } from '../../core/models/clip';
+import { ClipGroup } from '../../core/models/clip-group';
 import { ClipCard } from '../library/clip-card/clip-card';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { GroupDialog } from '../library/group-dialog/group-dialog';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-favorites',
   standalone: true,
-  imports: [CommonModule, ClipCard, RouterLink, BackLink, ConfirmDialog],
+  imports: [CommonModule, ClipCard, RouterLink, BackLink, ConfirmDialog, FormsModule, GroupDialog],
   templateUrl: './favorites.html',
   styleUrls: ['./favorites.css']
 })
@@ -24,6 +28,20 @@ export class Favorites implements OnInit, OnDestroy {
   playingClip: Clip | null = null;
   fsAnimationFrameId: number | null = null;
 
+  activeTab: 'clips' | 'groups' = 'clips';
+  selectedGroup: ClipGroup | null = null;
+
+  // Add to Group properties
+  groups: ClipGroup[] = [];
+  showAddToGroupDialog = false;
+  clipToAddToGroup: number | null = null;
+  selectedGroupIdToAdd: number | null = null;
+  
+  // Create Group dialog
+  showGroupDialog = false;
+  groupDialogMode: 'create' | 'edit' = 'create';
+  editingGroup: ClipGroup | null = null;
+
   @ViewChild('fullscreenVideo') fullscreenVideoRef!: ElementRef<HTMLVideoElement>;
 
   @HostListener('window:keydown.escape', ['$event'])
@@ -35,12 +53,14 @@ export class Favorites implements OnInit, OnDestroy {
 
   constructor(
     private clipService: ClipService,
+    private clipGroupService: ClipGroupService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadFavorites();
+    this.loadGroups();
   }
 
   ngOnDestroy(): void {
@@ -64,6 +84,113 @@ export class Favorites implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  loadGroups(): void {
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      this.clipGroupService.getUserGroups(userId, 'FAVORITES').subscribe({
+        next: (groups) => {
+          this.groups = groups;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  setTab(tab: 'clips' | 'groups') {
+    this.activeTab = tab;
+    this.selectedGroup = null;
+  }
+
+  openGroup(group: ClipGroup) {
+    this.selectedGroup = group;
+    if (!group.clips) {
+      this.clipGroupService.getGroup(group.id).subscribe(g => {
+        this.selectedGroup = g;
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  backToGroups() {
+    this.selectedGroup = null;
+  }
+
+  createGroup() {
+    this.groupDialogMode = 'create';
+    this.editingGroup = null;
+    this.showGroupDialog = true;
+  }
+
+  editGroup(group: ClipGroup) {
+    this.groupDialogMode = 'edit';
+    this.editingGroup = group;
+    this.showGroupDialog = true;
+  }
+
+  onGroupDialogSave(data: {name: string, description: string}) {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) return;
+
+    if (this.groupDialogMode === 'create') {
+      this.clipGroupService.createGroup(userId, data.name, data.description, 'FAVORITES').subscribe(() => {
+        this.loadGroups();
+        this.showGroupDialog = false;
+      });
+    } else if (this.editingGroup) {
+      this.clipGroupService.updateGroup(this.editingGroup.id, data.name, data.description).subscribe(() => {
+        this.loadGroups();
+        this.showGroupDialog = false;
+        if (this.selectedGroup && this.selectedGroup.id === this.editingGroup?.id) {
+          this.openGroup(this.editingGroup);
+        }
+      });
+    }
+  }
+
+  onGroupDialogCancel() {
+    this.showGroupDialog = false;
+  }
+
+  deleteSelectedGroup() {
+    if (this.selectedGroup) {
+      this.clipGroupService.deleteGroup(this.selectedGroup.id).subscribe(() => {
+        this.selectedGroup = null;
+        this.loadGroups();
+      });
+    }
+  }
+
+  removeClipFromGroup(clipId: number) {
+    if (this.selectedGroup) {
+      this.clipGroupService.removeClipFromGroup(this.selectedGroup.id, clipId).subscribe(() => {
+        if (this.selectedGroup) {
+          this.selectedGroup.clips = this.selectedGroup.clips?.filter(c => c.id !== clipId);
+        }
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  handleAddToGroup(clipId: number) {
+     this.clipToAddToGroup = clipId;
+     this.selectedGroupIdToAdd = this.groups.length > 0 ? this.groups[0].id : null;
+     this.showAddToGroupDialog = true;
+  }
+
+  confirmAddToGroup() {
+     if (this.clipToAddToGroup && this.selectedGroupIdToAdd) {
+        this.clipGroupService.addClipToGroup(this.selectedGroupIdToAdd, this.clipToAddToGroup).subscribe(() => {
+           this.showAddToGroupDialog = false;
+           this.clipToAddToGroup = null;
+        });
+     }
+  }
+
+  cancelAddToGroup() {
+     this.showAddToGroupDialog = false;
+     this.clipToAddToGroup = null;
   }
 
   handleRemoveFavorite(clipId: number): void {

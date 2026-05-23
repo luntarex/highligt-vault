@@ -5,11 +5,13 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class PlaylistResponse {
+public class ClipGroupResponse {
     private Long id;
     private String name;
     private String description;
     private Long userId;
     private LocalDateTime createdAt;
-    private List<PlaylistClipResponse> clips;
+    private String type;
+    private String thumbnailUrl;
+    private List<ClipGroupClipResponse> clips;
 }

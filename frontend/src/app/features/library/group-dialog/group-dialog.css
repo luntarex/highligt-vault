@@ -1,0 +1,105 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.dialog-content {
+  background: hsl(var(--card));
+  padding: 24px;
+  border-radius: var(--radius);
+  width: 400px;
+  max-width: 90vw;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.dialog-title {
+  color: hsl(var(--foreground));
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.dialog-input, .dialog-textarea {
+  width: 100%;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.dialog-input:focus, .dialog-textarea:focus {
+  outline: none;
+  border-color: hsl(265, 40%, 68%);
+  box-shadow: 0 0 0 2px hsla(265, 40%, 68%, 0.2);
+}
+
+.dialog-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.cancel-btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.save-btn {
+  background: hsl(265, 40%, 68%);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.3);
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

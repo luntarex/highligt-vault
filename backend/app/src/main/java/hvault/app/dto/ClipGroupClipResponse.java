@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class PlaylistClipResponse {
+public class ClipGroupClipResponse {
     private Long id;
     private String title;
     private String url;

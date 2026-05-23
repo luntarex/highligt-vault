@@ -1,9 +1,17 @@
 <div class="favorites-container">
   <header class="favorites-header">
-     <div class="header-content">
-       <h1 class="favorites-title">Favorites</h1>
-       <p class="favorites-subtitle">Your saved highlights, all in one place.</p>
-     </div>
+      <div class="header-content">
+        <div class="library-tabs">
+          <button class="tab-btn" [class.active]="activeTab === 'clips' && !selectedGroup" (click)="setTab('clips')">Favorites</button>
+          <button class="tab-btn" [class.active]="activeTab === 'groups' || selectedGroup" (click)="setTab('groups')">Groups</button>
+        </div>
+      </div>
+      <div class="group-header-actions" *ngIf="selectedGroup">
+        <button class="back-btn" (click)="backToGroups()">
+          &larr; Back to Groups
+        </button>
+        <h3 class="group-title">{{ selectedGroup.name }}</h3>
+      </div>
      <app-back-link></app-back-link>
   </header>
 
@@ -13,7 +21,7 @@
       <p>Loading favorites...</p>
     </div>
 
-    <div *ngIf="!isLoading && favoriteClips.length === 0" class="empty-state">
+    <div *ngIf="activeTab === 'clips' && !isLoading && favoriteClips.length === 0" class="empty-state">
       <div class="empty-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -24,12 +32,59 @@
       <a routerLink="/explore" class="btn-primary">Explore Clips</a>
     </div>
 
-    <div *ngIf="!isLoading && favoriteClips.length > 0" class="clips-grid">
+    <div *ngIf="activeTab === 'groups' && !selectedGroup && groups.length === 0" class="empty-groups-state">
+      <p>Create your first group to organize favorites</p>
+    </div>
+
+    <div *ngIf="activeTab === 'clips' && !selectedGroup && !isLoading && favoriteClips.length > 0" class="clips-grid">
       <app-clip-card
         *ngFor="let clip of favoriteClips"
         [clip]="clip"
         mode="favorites"
         (removeClip)="handleRemoveFavorite($event)"
+        (playClip)="openClip($event)"
+        (addToGroup)="handleAddToGroup($event)">
+      </app-clip-card>
+    </div>
+
+    <!-- Groups Grid -->
+    <div class="groups-grid" *ngIf="activeTab === 'groups' && !selectedGroup">
+      <div class="upload-card" (click)="createGroup()">
+        <div class="plus-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="group-card" *ngFor="let group of groups" (click)="openGroup(group)">
+        <img *ngIf="group.thumbnailUrl" [src]="group.thumbnailUrl" class="group-thumbnail" alt="">
+        <div class="group-overlay"></div>
+        <div class="group-info">
+          <h3>{{ group.name }}</h3>
+          <p>{{ group.description || 'Favorite Clips' }}</p>
+        </div>
+        <div class="group-actions">
+           <button class="group-action-btn" (click)="editGroup(group); $event.stopPropagation()" title="Edit">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+           </button>
+           <button class="group-action-btn delete" (click)="selectedGroup = group; deleteSelectedGroup(); $event.stopPropagation()" title="Delete">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Group Clips -->
+    <div class="clips-grid" *ngIf="selectedGroup">
+      <div *ngIf="selectedGroup.clips?.length === 0" class="empty-state">
+         <p>No clips in this group yet.</p>
+      </div>
+      <app-clip-card *ngFor="let clip of selectedGroup.clips"
+        [clip]="clip"
+        mode="favorites"
+        (removeClip)="removeClipFromGroup($event)"
         (playClip)="openClip($event)">
       </app-clip-card>
     </div>
@@ -45,6 +100,36 @@
     (confirmed)="onConfirmRemove()"
     (cancelled)="onCancelRemove()">
   </app-confirm-dialog>
+
+  <div class="dialog-overlay" *ngIf="showAddToGroupDialog" (click)="cancelAddToGroup()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <h3 class="dialog-title">Add to Group</h3>
+      <div *ngIf="groups.length > 0; else noGroups">
+         <select [(ngModel)]="selectedGroupIdToAdd" class="dialog-input">
+            <option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</option>
+         </select>
+         <div class="dialog-actions">
+           <button class="cancel-btn" (click)="cancelAddToGroup()">Cancel</button>
+           <button class="save-btn" (click)="confirmAddToGroup()">Add</button>
+         </div>
+      </div>
+      <ng-template #noGroups>
+         <p>You have no groups. Create a group first.</p>
+         <div class="dialog-actions">
+           <button class="cancel-btn" (click)="cancelAddToGroup()">Close</button>
+         </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <app-group-dialog
+    *ngIf="showGroupDialog"
+    [mode]="groupDialogMode"
+    [initialName]="editingGroup?.name || ''"
+    [initialDescription]="editingGroup?.description || ''"
+    (saved)="onGroupDialogSave($event)"
+    (cancelled)="onGroupDialogCancel()">
+  </app-group-dialog>
 
   <!-- Fullscreen Overlay -->
   @if (playingClip) {

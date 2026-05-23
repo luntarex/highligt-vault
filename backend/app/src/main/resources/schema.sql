@@ -119,7 +119,7 @@ ALTER TABLE messages ADD COLUMN shared_post_id BIGINT NULL;
 CREATE INDEX idx_messages_shared_post_id ON messages(shared_post_id);
 ALTER TABLE messages ADD CONSTRAINT fk_messages_shared_post FOREIGN KEY (shared_post_id) REFERENCES posts(id) ON DELETE SET NULL;
 
-CREATE TABLE IF NOT EXISTS playlists (
+CREATE TABLE IF NOT EXISTS clip_groups (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -128,12 +128,12 @@ CREATE TABLE IF NOT EXISTS playlists (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS playlist_items (
-    playlist_id BIGINT,
+CREATE TABLE IF NOT EXISTS clip_group_items (
+    group_id BIGINT,
     clip_id BIGINT,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (playlist_id, clip_id),
-    FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+    PRIMARY KEY (group_id, clip_id),
+    FOREIGN KEY (group_id) REFERENCES clip_groups(id) ON DELETE CASCADE,
     FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
 );
 
@@ -216,3 +216,5 @@ SET visibility_status = CASE
     ELSE visibility_status
 END;
 ALTER TABLE clips DROP COLUMN is_public;
+
+ALTER TABLE clip_groups ADD COLUMN type VARCHAR(20) DEFAULT 'LIBRARY';

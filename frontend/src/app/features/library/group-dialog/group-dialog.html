@@ -1,0 +1,22 @@
+<div class="dialog-overlay" (click)="onCancel()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <h3 class="dialog-title">{{ mode === 'create' ? 'Create Group' : 'Edit Group' }}</h3>
+    
+    <div class="input-group">
+      <label>Name</label>
+      <input type="text" [(ngModel)]="name" placeholder="Enter group name" class="dialog-input" maxlength="100">
+    </div>
+
+    <div class="input-group">
+      <label>Description</label>
+      <textarea [(ngModel)]="description" placeholder="Optional description" class="dialog-textarea"></textarea>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+      <button class="save-btn" [disabled]="!name.trim()" (click)="onSave()">
+        {{ mode === 'create' ? 'Create' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>

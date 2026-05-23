@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreatePlaylistRequest {
+public class CreateClipGroupRequest {
     @NotNull
     private Long userId;
 
@@ -13,4 +13,6 @@ public class CreatePlaylistRequest {
     private String name;
 
     private String description;
+    
+    private String type;
 }

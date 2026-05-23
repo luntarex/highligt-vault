@@ -2,7 +2,7 @@ package hvault.app.repository.projection;
 
 import java.time.LocalDateTime;
 
-public interface PlaylistClipView {
+public interface ClipGroupClipView {
     Long getId();
     String getTitle();
     String getUrl();

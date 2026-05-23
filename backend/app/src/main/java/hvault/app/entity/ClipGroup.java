@@ -15,8 +15,8 @@ import lombok.ToString;
 
 @Data
 @Entity
-@Table(name = "playlists")
-public class Playlist {
+@Table(name = "clip_groups")
+public class ClipGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,6 +32,9 @@ public class Playlist {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "type", length = 20)
+    private String type = "LIBRARY";
 
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)

@@ -173,8 +173,8 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
 
     @Transactional
     @Modifying
-    @Query(value = "DELETE FROM playlist_items WHERE clip_id = :clipId", nativeQuery = true)
-    void deletePlaylistItemsByClipId(@Param("clipId") Long clipId);
+    @Query(value = "DELETE FROM clipGroup_items WHERE clip_id = :clipId", nativeQuery = true)
+    void deleteClipGroupItemsByClipId(@Param("clipId") Long clipId);
 
     @Transactional
     @Modifying
@@ -194,7 +194,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         }
         deletePostsByClipId(id);
         deleteClipTags(id);
-        deletePlaylistItemsByClipId(id);
+        deleteClipGroupItemsByClipId(id);
         deleteFavoritesByClipId(id);
         deleteClipRow(id);
     }

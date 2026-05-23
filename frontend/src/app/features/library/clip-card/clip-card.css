@@ -76,6 +76,42 @@
   z-index: 2;
 }
 
+.favorite-btn {
+  position: absolute;
+  top: 6px;
+  right: 36px;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.add-group-btn {
+  position: absolute;
+  top: 6px;
+  right: 66px;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 .action-btn {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
@@ -188,7 +224,9 @@
   color: #a855f7;
 }
 
-.card-container:hover .delete-btn {
+.card-container:hover .delete-btn,
+.card-container:hover .favorite-btn,
+.card-container:hover .add-group-btn {
   opacity: 1;
 }
 
@@ -198,7 +236,19 @@
   border-color: #ff4d4d;
 }
 
-.delete-btn svg { width: 14px; height: 14px; }
+.favorite-btn:hover {
+  background: rgba(236, 72, 153, 0.2);
+  color: #ec4899;
+  border-color: #ec4899;
+}
+
+.add-group-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+  border-color: #a855f7;
+}
+
+.delete-btn svg, .favorite-btn svg, .add-group-btn svg { width: 14px; height: 14px; }
 
 /* Unfavorite button */
 .unfav-btn {

@@ -17,8 +17,20 @@ export class ClipCard {
   @Output() hardDeleteClip = new EventEmitter<number>();
   @Output() playClip = new EventEmitter<Clip>();
   @Output() appealClip = new EventEmitter<number>();
+  @Output() toggleFavorite = new EventEmitter<number>();
+  @Output() addToGroup = new EventEmitter<number>();
 
   constructor(private router: Router) {}
+
+  onFavorite(event: Event) {
+    event.stopPropagation();
+    this.toggleFavorite.emit(this.clip.id);
+  }
+
+  onAddToGroup(event: Event) {
+    event.stopPropagation();
+    this.addToGroup.emit(this.clip.id);
+  }
 
   onDelete(event: Event) {
     event.stopPropagation();

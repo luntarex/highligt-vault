@@ -12,7 +12,6 @@ export class AboutUs {
     'Murat Kazancıoğlu',
     'Efe Şahin',
     'Barış Parlak',
-    'Kaan Beşe',
-    'Veli Doğan'
+    'Kaan Beşe'
   ];
 }
