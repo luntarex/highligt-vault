@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.Arrays;
+import hvault.app.config.CorsOriginParser;
 
 @Configuration
 public class CorsConfig {
@@ -33,9 +33,6 @@ public class CorsConfig {
     }
 
     private String[] parseAllowedOrigins() {
-        return Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(origin -> !origin.isBlank())
-                .toArray(String[]::new);
+        return CorsOriginParser.parseArray(allowedOrigins);
     }
 }

@@ -7,8 +7,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import java.util.Arrays;
-
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
@@ -28,9 +26,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
     private String[] parseAllowedOrigins() {
-        return Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(origin -> !origin.isBlank())
-            .toArray(String[]::new);
+        return CorsOriginParser.parseArray(allowedOrigins);
     }
 }
