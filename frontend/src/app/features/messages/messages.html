@@ -121,7 +121,7 @@
         </div>
       </header>
 
-      <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+      <div class="message-history" #scrollMe>
         <div *ngIf="loading" class="chat-loading-state">
           <div class="chat-skeleton received"></div>
           <div class="chat-skeleton sent"></div>
