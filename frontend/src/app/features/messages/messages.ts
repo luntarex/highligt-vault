@@ -148,7 +148,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
         sharedPost: (m as any).sharedPost ?? null,
         createdAt: this.fixDate(m.createdAt).toISOString()
-      }));
+      })).sort((a, b) => this.compareMessages(a, b));
       this.loading = false;
       this.markReceivedMessagesAsRead();
       if (!silent) {
@@ -285,5 +285,11 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
     
     return new Date(s + 'Z');
+  }
+
+  private compareMessages(a: Message, b: Message): number {
+    const idDiff = Number(a.id) - Number(b.id);
+    if (Number.isFinite(idDiff) && idDiff !== 0) return idDiff;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   }
 }
