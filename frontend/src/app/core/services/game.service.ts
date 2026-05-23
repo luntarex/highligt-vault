@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -13,7 +14,7 @@ export interface Game {
   providedIn: 'root'
 })
 export class GameService {
-  private apiUrl = 'http://localhost:8080/api/games';
+  private apiUrl = `${API_BASE_URL}/games`;
 
   constructor(private http: HttpClient) {}
 
@@ -31,3 +32,4 @@ export class GameService {
     return this.http.post<any>(this.apiUrl, { name });
   }
 }
+

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 
@@ -36,7 +37,7 @@ export interface ModerationDecisionRequest {
   providedIn: 'root'
 })
 export class ModerationService {
-  private apiUrl = 'http://localhost:8080/api/moderation';
+  private apiUrl = `${API_BASE_URL}/moderation`;
 
   constructor(private http: HttpClient) {}
 
@@ -55,3 +56,4 @@ export class ModerationService {
     return this.http.post(`${this.apiUrl}/clips/${clipId}/decision`, request);
   }
 }
+

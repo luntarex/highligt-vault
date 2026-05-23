@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { Message, Conversation } from '../models/message.model';
 
@@ -7,7 +8,7 @@ import { Message, Conversation } from '../models/message.model';
   providedIn: 'root'
 })
 export class MessageService {
-  private apiUrl = 'http://localhost:8080/api/messages';
+  private apiUrl = `${API_BASE_URL}/messages`;
 
   constructor(private http: HttpClient) { }
 
@@ -43,3 +44,4 @@ export class MessageService {
     return this.http.delete(`${this.apiUrl}/batch?ids=${ids.join(',')}`);
   }
 }
+
