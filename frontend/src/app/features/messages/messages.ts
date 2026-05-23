@@ -145,6 +145,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe(msgs => {
       this.currentConversation = msgs.map(m => ({
         ...m,
+        senderId: Number((m as any).senderId ?? (m as any).sender_id),
+        receiverId: Number((m as any).receiverId ?? (m as any).receiver_id),
+        isRead: this.toBoolean((m as any).isRead ?? (m as any).is_read ?? (m as any).read),
         sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
         sharedPost: (m as any).sharedPost ?? null,
         createdAt: this.fixDate(m.createdAt).toISOString()

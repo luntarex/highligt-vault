@@ -80,7 +80,7 @@ public class MessageService {
         if (!currentUserId.equals(message.getReceiverId())) {
             throw new AccessDeniedException("Only the receiver can mark this message as read.");
         }
-        messageRepository.markAsRead(messageId);
+        messageRepository.markAsReadForReceiver(messageId, currentUserId);
     }
 
     public void deleteConversation(Long currentUserId, Long otherUserId) {
