@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "highlight-vault",
+  "name": "vibe-vault",
   "compatibility_date": "2026-05-23",
   "assets": {
     "directory": "./dist/highlight-vault/browser",
