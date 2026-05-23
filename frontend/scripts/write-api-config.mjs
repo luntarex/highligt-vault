@@ -2,7 +2,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const localApiBaseUrl = 'http://localhost:8080/api';
-const productionApiBaseUrl = (process.env.API_BASE_URL || 'https://highlight-vault.onrender.com/api').trim();
+const productionApiBaseUrl = (
+  process.env.API_BASE_URL || 'https://api.vibevault.muratkazancioglu.tech/api'
+).trim();
 const outputPath = resolve('src/app/core/config/api.generated.ts');
 
 mkdirSync(dirname(outputPath), { recursive: true });
