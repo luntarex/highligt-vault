@@ -63,6 +63,7 @@
              class="post-video"
              muted
              playsinline
+             preload="metadata"
              disablePictureInPicture
              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
              [attr.data-post-id]="post.id"
@@ -250,6 +251,7 @@
         <video #fullscreenVideo
                [src]="post.videoUrl"
                class="fullscreen-video"
+               preload="metadata"
                disablePictureInPicture
                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                (timeupdate)="onTimeUpdate(fullscreenVideo)"

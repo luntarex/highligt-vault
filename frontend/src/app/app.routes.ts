@@ -1,47 +1,106 @@
 import { Routes } from '@angular/router';
-import { Library } from './features/library/library';
-import { ClipEditor } from './features/clip-editor/clip-editor';
-import { Register } from './features/auth/register/register';
-import { Login } from './features/auth/login/login';
-import { ProfilePage } from './features/profile/profile-page';
-import { ProfileEdit } from './features/profile/profile-edit/profile-edit';
-import { CompleteProfile } from './features/auth/complete-profile/complete-profile';
-import { Welcome } from './features/welcome/welcome';
-import { Explore } from './features/explore/explore';
-import { UserComments } from './features/user-comments/user-comments';
-import { UsersListPage } from './features/users-list-page/users-list-page';
-import { Favorites } from './features/favorites/favorites';
 import { AdminGuard } from './core/guards/admin.guard';
 import { AuthGuard } from './core/guards/auth.guard';
-import { PlaylistView } from './features/playlist-view/playlist-view';
-import { MessagesComponent } from './features/messages/messages';
-import { AboutUs } from './features/about-us/about-us';
-import { Feed } from './features/feed/feed';
-import { AddPostPage } from './features/add-post/add-post';
-import { Moderation } from './features/moderation/moderation';
-import { PostDetail } from './features/post-detail/post-detail';
 
 export const routes: Routes = [
-  { path: '', component: Feed, canActivate: [AuthGuard] },
-  { path: 'add-post/:id', component: AddPostPage, canActivate: [AuthGuard] },
-  { path: 'library', component: Library, canActivate: [AuthGuard] },
-  { path: 'playlist/:id', component: PlaylistView, canActivate: [AuthGuard] },
-  { path: 'welcome', component: Welcome },
-  { path: 'favorites', component: Favorites, canActivate: [AuthGuard] },
-  { path: 'clip-editor/:id', component: ClipEditor, canActivate: [AuthGuard] },
-  { path: 'register', component: Register },
-  { path: 'login', component: Login },
-  { path: 'complete-profile', component: CompleteProfile },
-  { path : 'profile/edit', component : ProfileEdit, canActivate: [AuthGuard] },
-  { path : 'profile/:id', component : ProfilePage, canActivate: [AuthGuard] },
-  { path: 'profile', component: ProfilePage, canActivate: [AuthGuard] },
-  { path: 'explore', component: Explore, canActivate: [AuthGuard] },
-  { path: 'post/:id', component: PostDetail, canActivate: [AuthGuard] },
-  { path: 'user-comments/:userId', component: UserComments, canActivate: [AuthGuard] },
-  { path: 'users', component: UsersListPage, canActivate: [AdminGuard] },
-  { path: 'moderation', component: Moderation, canActivate: [AdminGuard] },
-  { path: 'messages', component: MessagesComponent, canActivate: [AuthGuard] },
-  { path: 'messages/:userId', component: MessagesComponent, canActivate: [AuthGuard] },
-  { path: 'about-us', component: AboutUs }
-
+  {
+    path: '',
+    loadComponent: () => import('./features/feed/feed').then(m => m.Feed),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'add-post/:id',
+    loadComponent: () => import('./features/add-post/add-post').then(m => m.AddPostPage),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'library',
+    loadComponent: () => import('./features/library/library').then(m => m.Library),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'playlist/:id',
+    loadComponent: () => import('./features/playlist-view/playlist-view').then(m => m.PlaylistView),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'welcome',
+    loadComponent: () => import('./features/welcome/welcome').then(m => m.Welcome)
+  },
+  {
+    path: 'favorites',
+    loadComponent: () => import('./features/favorites/favorites').then(m => m.Favorites),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'clip-editor/:id',
+    loadComponent: () => import('./features/clip-editor/clip-editor').then(m => m.ClipEditor),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./features/auth/register/register').then(m => m.Register)
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login/login').then(m => m.Login)
+  },
+  {
+    path: 'complete-profile',
+    loadComponent: () => import('./features/auth/complete-profile/complete-profile').then(m => m.CompleteProfile)
+  },
+  {
+    path: 'profile/edit',
+    loadComponent: () => import('./features/profile/profile-edit/profile-edit').then(m => m.ProfileEdit),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'profile/:id',
+    loadComponent: () => import('./features/profile/profile-page').then(m => m.ProfilePage),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile-page').then(m => m.ProfilePage),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'explore',
+    loadComponent: () => import('./features/explore/explore').then(m => m.Explore),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'post/:id',
+    loadComponent: () => import('./features/post-detail/post-detail').then(m => m.PostDetail),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'user-comments/:userId',
+    loadComponent: () => import('./features/user-comments/user-comments').then(m => m.UserComments),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'users',
+    loadComponent: () => import('./features/users-list-page/users-list-page').then(m => m.UsersListPage),
+    canActivate: [AdminGuard]
+  },
+  {
+    path: 'moderation',
+    loadComponent: () => import('./features/moderation/moderation').then(m => m.Moderation),
+    canActivate: [AdminGuard]
+  },
+  {
+    path: 'messages',
+    loadComponent: () => import('./features/messages/messages').then(m => m.MessagesComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'messages/:userId',
+    loadComponent: () => import('./features/messages/messages').then(m => m.MessagesComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'about-us',
+    loadComponent: () => import('./features/about-us/about-us').then(m => m.AboutUs)
+  }
 ];
