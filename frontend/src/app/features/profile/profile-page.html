@@ -10,7 +10,7 @@
       <aside class="profile-sidebar">
         <div class="profile-card">
           <div class="avatar-box">
-            <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar">
+            <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" decoding="async">
           </div>
           
           <div class="user-meta">
@@ -63,7 +63,7 @@
             @for (clip of favoriteClips; track clip.id) {
             <div class="clip-premium-card" (click)="openClipDetailModal(clip.id)">
               <div class="clip-thumb-wrapper">
-                <img [src]="clip.thumbnailUrl" alt="{{clip.title}}">
+                <img [src]="clip.thumbnailUrl" alt="{{clip.title}}" loading="lazy" decoding="async">
                 <div class="clip-overlay">
                   <div class="play-ring">▶</div>
                 </div>
@@ -115,6 +115,7 @@
                [src]="activePost.videoUrl" 
                autoplay
                muted
+               preload="metadata"
                class="detailed-video"
                (timeupdate)="onTimeUpdate()"
                (loadedmetadata)="onMetadataLoaded()">
@@ -162,7 +163,7 @@
         <!-- Author Info -->
         <div class="social-header">
            <div class="author-info" [routerLink]="['/profile', activePost.author.id]" (click)="closeClipModal()">
-              <img [src]="activePost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+              <img [src]="activePost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="" loading="lazy" decoding="async">
               <div class="name-box">
                 <span class="author-name">{{activePost.author.username}}</span>
                 <span class="post-time">{{ formatTimeAgo(fixDate(activePost.createdAt || activePost.timeAgo)) }}</span>
@@ -193,7 +194,7 @@
           <div class="comments-scroll">
             @for (comment of comments; track comment.id) {
               <div class="comment-item">
-                <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
+                <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="" loading="lazy" decoding="async">
                 <div class="comment-content">
                   <div class="comment-header">
                     <span class="comment-user">{{comment.username}}</span>
@@ -219,7 +220,7 @@
                <button (click)="cancelReply()">✕</button>
              </div>
              <div class="input-row">
-               <img [src]="currentUserPhoto || 'assets/icons/default-avatar.png'" alt="">
+               <img [src]="currentUserPhoto || 'assets/icons/default-avatar.png'" alt="" decoding="async">
                <input type="text" 
                       [(ngModel)]="newCommentText" 
                       [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
@@ -259,7 +260,7 @@
       <div class="user-list-container" *ngIf="!modalLoading">
         <div class="user-entry" *ngFor="let u of userList">
           <div class="user-core" [routerLink]="['/profile', u.id]" (click)="closeUserListModal()">
-            <img [src]="u.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+            <img [src]="u.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="" loading="lazy" decoding="async">
             <span class="user-name">{{u.username}}</span>
           </div>
           <button class="list-message-btn" (click)="sendMessage(u.id); $event.stopPropagation()">

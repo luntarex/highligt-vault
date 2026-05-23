@@ -20,14 +20,24 @@
       </div>
     </div>
     <div class="conversation-list">
-      <div *ngIf="filteredConversations.length > 0" class="section-title">Recent</div>
+      <div *ngIf="isLoadingConversations" class="conversation-loading">
+        <div class="conversation-skeleton" *ngFor="let i of [1,2,3,4]">
+          <div class="skeleton-avatar"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingConversations && filteredConversations.length > 0" class="section-title">Recent</div>
       <div *ngFor="let conv of filteredConversations"
            class="conversation-item"
            [class.active]="conv.other_user_id === selectedUserId"
            [class.unread]="!conv.is_read && conv.sender_id !== currentUserId"
            (click)="selectUser(conv.other_user_id)">
         <div class="avatar-wrapper">
-          <img [src]="conv.profile_photo_url || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar">
+          <img [src]="conv.profile_photo_url || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar" loading="lazy" decoding="async">
         </div>
         <div class="conversation-info">
           <div class="conv-header">
@@ -52,13 +62,13 @@
         </button>
       </div>
 
-      <div *ngIf="filteredFollowing.length > 0" class="section-title">Following</div>
+      <div *ngIf="!isLoadingConversations && filteredFollowing.length > 0" class="section-title">Following</div>
       <div *ngFor="let fUser of filteredFollowing"
            class="conversation-item"
            [class.active]="fUser.id === selectedUserId"
            (click)="selectUser(fUser.id)">
         <div class="avatar-wrapper">
-          <img [src]="fUser.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar">
+          <img [src]="fUser.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" class="avatar" loading="lazy" decoding="async">
         </div>
         <div class="conversation-info">
           <div class="conv-header">
@@ -68,10 +78,10 @@
         </div>
       </div>
 
-      <div *ngIf="filteredConversations.length === 0 && filteredFollowing.length === 0 && (conversations.length > 0 || followingUsers.length > 0)" class="no-results">
+      <div *ngIf="!isLoadingConversations && filteredConversations.length === 0 && filteredFollowing.length === 0 && (conversations.length > 0 || followingUsers.length > 0)" class="no-results">
         <p>No matches found.</p>
       </div>
-      <div *ngIf="conversations.length === 0 && followingUsers.length === 0" class="no-messages">
+      <div *ngIf="!isLoadingConversations && conversations.length === 0 && followingUsers.length === 0" class="no-messages">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
@@ -86,7 +96,7 @@
     <div *ngIf="selectedUserId; else noSelection" class="chat-content">
       <header class="chat-header">
         <a class="chat-header-left chat-profile-link" [routerLink]="['/profile', selectedUserId]">
-          <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar">
+          <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar" decoding="async">
           <div class="header-user-info">
             <h3>{{ selectedUsername }}</h3>
             <span>View profile</span>
@@ -112,9 +122,16 @@
       </header>
 
       <div class="message-history" #scrollMe [scrollTop]="scrollMe.scrollHeight">
+        <div *ngIf="loading" class="chat-loading-state">
+          <div class="chat-skeleton received"></div>
+          <div class="chat-skeleton sent"></div>
+          <div class="chat-skeleton received small"></div>
+        </div>
+
+        <ng-container *ngIf="!loading">
         <div class="chat-start-notice" *ngIf="currentConversation.length > 0">
           <a class="start-avatar" [routerLink]="['/profile', selectedUserId]">
-            <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="">
+            <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="" decoding="async">
           </a>
           <p>
             This is the beginning of your conversation with
@@ -160,6 +177,7 @@
             </span>
           </div>
         </div>
+        </ng-container>
       </div>
 
       <footer class="chat-input">

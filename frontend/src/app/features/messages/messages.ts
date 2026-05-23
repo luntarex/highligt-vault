@@ -31,6 +31,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   currentUserId: number;
   isSending: boolean = false;
   loading: boolean = false;
+  isLoadingConversations: boolean = true;
 
   showDeleteModal: boolean = false;
   selectedConversationToDelete: number | null = null;
@@ -71,24 +72,34 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   loadConversations(): void {
-    this.messageService.getConversations(this.currentUserId).subscribe(convs => {
-      this.conversations = convs.map((c: any) => {
-        const createdAt = c.created_at ?? c.createdAt;
-        return {
-          other_user_id: Number(c.other_user_id ?? c.otherUserId),
-          username: c.username || '',
-          profile_photo_url: c.profile_photo_url ?? c.profilePhotoUrl ?? '',
-          content: c.content || '',
-          created_at: this.fixDate(createdAt).toISOString(),
-          is_read: Boolean(c.is_read ?? c.isRead),
-          sender_id: Number(c.sender_id ?? c.senderId),
-          shared_post_id: c.shared_post_id ?? c.sharedPostId,
-          sharedPost: c.sharedPost ?? null
-        };
-      });
-      this.filteredConversations = this.conversations;
-      this.loadFollowing();
-      this.cdr.detectChanges();
+    this.isLoadingConversations = true;
+    this.messageService.getConversations(this.currentUserId).subscribe({
+      next: convs => {
+        this.conversations = convs.map((c: any) => {
+          const createdAt = c.created_at ?? c.createdAt;
+          return {
+            other_user_id: Number(c.other_user_id ?? c.otherUserId),
+            username: c.username || '',
+            profile_photo_url: c.profile_photo_url ?? c.profilePhotoUrl ?? '',
+            content: c.content || '',
+            created_at: this.fixDate(createdAt).toISOString(),
+            is_read: Boolean(c.is_read ?? c.isRead),
+            sender_id: Number(c.sender_id ?? c.senderId),
+            shared_post_id: c.shared_post_id ?? c.sharedPostId,
+            sharedPost: c.sharedPost ?? null
+          };
+        });
+        this.filteredConversations = this.conversations;
+        this.loadFollowing();
+        this.isLoadingConversations = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.conversations = [];
+        this.filteredConversations = [];
+        this.isLoadingConversations = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -141,22 +152,28 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   refreshSelectedConversation(silent: boolean = false): void {
     if (!this.selectedUserId) return;
+    if (!silent) {
+      this.loading = true;
+      this.cdr.detectChanges();
+    }
 
-    this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe(msgs => {
-      this.currentConversation = msgs.map(m => ({
-        ...m,
-        senderId: Number((m as any).senderId ?? (m as any).sender_id),
-        receiverId: Number((m as any).receiverId ?? (m as any).receiver_id),
-        isRead: this.toBoolean((m as any).isRead ?? (m as any).is_read ?? (m as any).read),
-        sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
-        sharedPost: (m as any).sharedPost ?? null,
-        createdAt: this.fixDate(m.createdAt).toISOString()
-      })).sort((a, b) => this.compareMessages(a, b));
-      this.loading = false;
-      this.markReceivedMessagesAsRead();
-      if (!silent) {
+    this.messageService.getConversation(this.currentUserId, this.selectedUserId).subscribe({
+      next: msgs => {
+        this.currentConversation = msgs.map(m => ({
+          ...m,
+          senderId: Number((m as any).senderId ?? (m as any).sender_id),
+          receiverId: Number((m as any).receiverId ?? (m as any).receiver_id),
+          isRead: this.toBoolean((m as any).isRead ?? (m as any).is_read ?? (m as any).read),
+          sharedPostId: (m as any).sharedPostId ?? (m as any).shared_post_id,
+          sharedPost: (m as any).sharedPost ?? null,
+          createdAt: this.fixDate(m.createdAt).toISOString()
+        })).sort((a, b) => this.compareMessages(a, b));
+        this.loading = false;
+        this.markReceivedMessagesAsRead();
         this.cdr.detectChanges();
-      } else {
+      },
+      error: () => {
+        this.loading = false;
         this.cdr.detectChanges();
       }
     });
@@ -294,5 +311,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     const idDiff = Number(a.id) - Number(b.id);
     if (Number.isFinite(idDiff) && idDiff !== 0) return idDiff;
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  }
+
+  private toBoolean(value: unknown): boolean {
+    return value === true || value === 1 || value === '1' || value === 'true';
   }
 }

@@ -216,3 +216,27 @@ SET visibility_status = CASE
     ELSE visibility_status
 END;
 ALTER TABLE clips DROP COLUMN is_public;
+
+-- Runtime query indexes. These speed up feed, profile favorites, comments,
+-- moderation queue, and direct message screens as the dataset grows.
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_posts_user_created ON posts(user_id, created_at);
+CREATE INDEX idx_posts_clip ON posts(clip_id);
+
+CREATE INDEX idx_clips_public_feed ON clips(visibility_status, moderation_status, is_deleted, created_at);
+CREATE INDEX idx_clips_uploader_active ON clips(uploader_id, is_deleted, created_at);
+CREATE INDEX idx_clips_moderation_queue ON clips(moderation_status, is_deleted, created_at);
+
+CREATE INDEX idx_comments_post_created ON comments(post_id, created_at);
+CREATE INDEX idx_comments_user_created ON comments(user_id, created_at);
+
+CREATE INDEX idx_messages_sender_receiver_created ON messages(sender_id, receiver_id, created_at);
+CREATE INDEX idx_messages_receiver_sender_created ON messages(receiver_id, sender_id, created_at);
+CREATE INDEX idx_messages_user_latest_sender ON messages(sender_id, created_at);
+CREATE INDEX idx_messages_user_latest_receiver ON messages(receiver_id, created_at);
+
+CREATE INDEX idx_favorites_user_created ON user_favorites(user_id, created_at);
+CREATE INDEX idx_favorites_clip ON user_favorites(clip_id);
+
+CREATE INDEX idx_follows_followed ON follows(followed_id, follower_id);
+CREATE INDEX idx_moderation_results_target_created ON moderation_results(target_type, target_id, created_at);
