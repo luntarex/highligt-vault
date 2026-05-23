@@ -179,15 +179,27 @@
             WhatsApp
           </button>
           <button type="button" class="share-target x" (click)="openShareTarget($event, 'x')">
-            <span>X</span>
+            <span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.24 2H21.6l-7.34 8.39L22.9 22h-6.77l-5.3-6.93L4.77 22H1.4l7.85-8.97L.96 2h6.94l4.79 6.33L18.24 2Zm-1.18 17.95h1.86L6.88 3.94h-2L17.06 19.95Z"></path>
+              </svg>
+            </span>
             X
           </button>
           <button type="button" class="share-target facebook" (click)="openShareTarget($event, 'facebook')">
-            <span>f</span>
+            <span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.2 8.38V6.83c0-.75.5-.93.85-.93h2.17V2.17L14.23 2.16c-3.32 0-4.07 2.49-4.07 4.08v2.14H7.44v3.85h2.72V22h4.04v-9.77h3.43l.16-1.51.25-2.34H14.2Z"></path>
+              </svg>
+            </span>
             Facebook
           </button>
           <button type="button" class="share-target email" (click)="openShareTarget($event, 'email')">
-            <span>@</span>
+            <span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 2v.28l8 5.15 8-5.15V7H4Zm0 2.66V17h16V9.66l-7.46 4.8a1 1 0 0 1-1.08 0L4 9.66Z"></path>
+              </svg>
+            </span>
             Email
           </button>
         </div>
@@ -210,7 +222,7 @@
               <button type="button" class="share-user-row" (click)="sendPostToUser($event, user)">
                 <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
                 <span>{{ user.username }}</span>
-                <small>{{ sendingToUserId === user.id ? 'Sending...' : 'Send' }}</small>
+                <small>{{ isSendingTo(user) ? 'Sending...' : 'Send' }}</small>
               </button>
             }
           </div>
