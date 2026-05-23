@@ -295,4 +295,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
     if (Number.isFinite(idDiff) && idDiff !== 0) return idDiff;
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   }
+
+  private toBoolean(value: unknown): boolean {
+    return value === true || value === 1 || value === '1' || value === 'true';
+  }
 }
