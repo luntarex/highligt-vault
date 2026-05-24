@@ -21,7 +21,6 @@ import { MessageAlert, MessageAlertService } from '../../core/services/message-a
             <div class="message-alert-copy">
               <div class="message-alert-topline">
                 <span class="message-alert-label">New message</span>
-                <span class="message-alert-dot"></span>
               </div>
               <strong>{{ alert.username }}</strong>
               <p>{{ alert.message }}</p>
