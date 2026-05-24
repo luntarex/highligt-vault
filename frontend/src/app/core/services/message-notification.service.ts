@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
 import { MessageService } from './message.service';
 import { MessageRealtimeService } from './message-realtime.service';
-import { ToastService } from './toast.service';
+import { MessageAlertService } from './message-alert.service';
 import { Conversation } from '../models/message.model';
 
 @Injectable({
@@ -22,7 +22,7 @@ export class MessageNotificationService implements OnDestroy {
     private authService: AuthService,
     private messageService: MessageService,
     private realtime: MessageRealtimeService,
-    private toast: ToastService
+    private alerts: MessageAlertService
   ) {}
 
   start(): void {
@@ -38,7 +38,7 @@ export class MessageNotificationService implements OnDestroy {
         this.rememberConversation(event.conversation);
 
         if (event.message.receiverId === currentUserId) {
-          this.toast.info(this.notificationText(event.conversation), 4500);
+          this.showMessageAlert(event.conversation);
         }
       })
     );
@@ -98,7 +98,7 @@ export class MessageNotificationService implements OnDestroy {
         if (this.hasBaseline
           && previousSignature !== signature
           && conversation.sender_id !== currentUserId) {
-          this.toast.info(this.notificationText(conversation), 4500);
+          this.showMessageAlert(conversation);
         }
 
         this.knownLatestByUser.set(conversation.other_user_id, signature);
@@ -136,12 +136,21 @@ export class MessageNotificationService implements OnDestroy {
     ].join('|');
   }
 
+  private showMessageAlert(conversation: Conversation): void {
+    this.alerts.show({
+      username: conversation.username,
+      profilePhotoUrl: conversation.profile_photo_url,
+      message: this.notificationText(conversation),
+      duration: 5000
+    });
+  }
+
   private notificationText(conversation: Conversation): string {
     const preview = conversation.shared_post_id || conversation.sharedPost
       ? 'sent you a post'
       : this.truncate(conversation.content || 'sent you a message');
 
-    return `${conversation.username}: ${preview}`;
+    return preview;
   }
 
   private truncate(value: string): string {
