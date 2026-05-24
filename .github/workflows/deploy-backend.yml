@@ -29,12 +29,49 @@ jobs:
             cd /opt/highligt-vault
             git pull --ff-only origin main
             cd backend/app
-            docker build -t vibe-vault-backend .
-            docker rm -f vibe-vault-backend 2>/dev/null || true
+
+            IMAGE_TAG="vibe-vault-backend:$(date +%Y%m%d%H%M%S)"
+            NGINX_SITE="$(readlink -f /etc/nginx/sites-enabled/vibe-vault-backend)"
+
+            CURRENT_PORT="$(grep -Eo '127\.0\.0\.1:[0-9]+' "$NGINX_SITE" | head -n1 | cut -d: -f2 || true)"
+            if [ "$CURRENT_PORT" = "8081" ]; then
+              NEXT_PORT="8080"
+            else
+              NEXT_PORT="8081"
+            fi
+
+            ACTIVE_CONTAINER="vibe-vault-backend"
+            NEW_CONTAINER="vibe-vault-backend-$NEXT_PORT"
+
+            docker build -t "$IMAGE_TAG" .
+            docker rm -f "$NEW_CONTAINER" 2>/dev/null || true
             docker run -d \
-              --name vibe-vault-backend \
+              --name "$NEW_CONTAINER" \
               --env-file .env \
               --restart unless-stopped \
-              -p 8080:8080 \
-              vibe-vault-backend
+              -p "$NEXT_PORT:8080" \
+              "$IMAGE_TAG"
+
+            for i in $(seq 1 90); do
+              if curl -fsS "http://127.0.0.1:$NEXT_PORT/healthz" >/dev/null; then
+                break
+              fi
+              sleep 2
+            done
+
+            if ! curl -fsS "http://127.0.0.1:$NEXT_PORT/healthz" >/dev/null; then
+              docker logs --tail 150 "$NEW_CONTAINER"
+              exit 1
+            fi
+
+            cp "$NGINX_SITE" "/tmp/vibe-vault-backend.nginx.bak"
+            sed -i -E "s#proxy_pass http://127\.0\.0\.1:[0-9]+;#proxy_pass http://127.0.0.1:$NEXT_PORT;#g" "$NGINX_SITE"
+            nginx -t
+            systemctl reload nginx
+
+            docker ps -a --format '{{.Names}}' \
+              | grep '^vibe-vault-backend' \
+              | grep -v "^$NEW_CONTAINER$" \
+              | xargs -r docker rm -f
+            docker rename "$NEW_CONTAINER" "$ACTIVE_CONTAINER"
             docker image prune -f
