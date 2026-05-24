@@ -116,6 +116,9 @@ export class MessageNotificationService implements OnDestroy {
   }
 
   private normalizeConversation(conversation: any): Conversation {
+    const sharedPostId = conversation.shared_post_id ?? conversation.sharedPostId;
+    const sharedPost = conversation.sharedPost ?? null;
+
     return {
       other_user_id: Number(conversation.other_user_id ?? conversation.otherUserId),
       username: conversation.username || 'Someone',
@@ -124,8 +127,10 @@ export class MessageNotificationService implements OnDestroy {
       created_at: String(conversation.created_at ?? conversation.createdAt ?? ''),
       is_read: this.toBoolean(conversation.is_read ?? conversation.isRead ?? conversation.read),
       sender_id: Number(conversation.sender_id ?? conversation.senderId),
-      shared_post_id: conversation.shared_post_id ?? conversation.sharedPostId,
-      sharedPost: conversation.sharedPost ?? null
+      shared_post_id: sharedPostId,
+      sharedPost,
+      sharedPostUnavailable: this.toBoolean(conversation.sharedPostUnavailable ?? conversation.shared_post_unavailable)
+        || Boolean(sharedPostId && !sharedPost)
     };
   }
 
@@ -133,8 +138,7 @@ export class MessageNotificationService implements OnDestroy {
     return [
       conversation.sender_id,
       conversation.created_at,
-      conversation.content,
-      conversation.shared_post_id ?? ''
+      conversation.content
     ].join('|');
   }
 
@@ -157,6 +161,10 @@ export class MessageNotificationService implements OnDestroy {
   }
 
   private notificationText(conversation: Conversation): string {
+    if (this.isConversationPostUnavailable(conversation)) {
+      return 'sent you an unavailable post';
+    }
+
     const preview = conversation.shared_post_id || conversation.sharedPost
       ? 'sent you a post'
       : this.truncate(conversation.content || 'sent you a message');
@@ -169,8 +177,13 @@ export class MessageNotificationService implements OnDestroy {
       conversation.other_user_id,
       conversation.sender_id,
       conversation.content,
-      conversation.shared_post_id ?? ''
+      conversation.shared_post_id ?? '',
+      conversation.sharedPostUnavailable ? 'unavailable' : ''
     ].join('|');
+  }
+
+  private isConversationPostUnavailable(conversation: Conversation): boolean {
+    return Boolean(conversation.sharedPostUnavailable || (conversation.shared_post_id && !conversation.sharedPost));
   }
 
   private truncate(value: string): string {

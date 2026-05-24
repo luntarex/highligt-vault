@@ -30,6 +30,9 @@ public class Message {
     @Column(name = "shared_post_id")
     private Long sharedPostId;
 
+    @Column(name = "shared_post_unavailable")
+    private Boolean sharedPostUnavailable;
+
     @Column(name = "is_read")
     private Boolean isRead;
 

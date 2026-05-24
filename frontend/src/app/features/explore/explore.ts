@@ -170,8 +170,15 @@ export class Explore implements OnInit, OnDestroy, AfterViewInit {
   }
 
   deletePost(post: ExplorePost) {
-    this.exploreService.deletePost(post.id);
-    this.feed = this.feed.filter(p => p.id !== post.id);
+    this.exploreService.deletePost(post.id).subscribe({
+      next: () => {
+        this.feed = this.feed.filter(p => p.id !== post.id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to delete post:', err);
+      }
+    });
   }
 
   onTimeUpdate(data: { post: ExplorePost; video: HTMLVideoElement }) {

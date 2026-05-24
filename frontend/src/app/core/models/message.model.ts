@@ -9,6 +9,7 @@ export interface Message {
     createdAt: string;
     sharedPostId?: number;
     sharedPost?: ExplorePost | null;
+    sharedPostUnavailable?: boolean;
     canDeleteForEveryone?: boolean;
 }
 
@@ -22,4 +23,5 @@ export interface Conversation {
     sender_id: number;
     shared_post_id?: number;
     sharedPost?: ExplorePost | null;
+    sharedPostUnavailable?: boolean;
 }

@@ -14,4 +14,5 @@ public class MessageConversationResponse {
     private String profilePhotoUrl;
     private Long sharedPostId;
     private PostFeedResponse sharedPost;
+    private Boolean sharedPostUnavailable;
 }

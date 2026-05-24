@@ -101,12 +101,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Transactional
     @Modifying
+    @Query(value = """
+        UPDATE messages
+        SET shared_post_unavailable = TRUE,
+            shared_post_id = NULL
+        WHERE shared_post_id = :postId
+        """, nativeQuery = true)
+    void markSharedPostUnavailableByPostId(@Param("postId") Long postId);
+
+    @Transactional
+    @Modifying
     @Query(value = "DELETE FROM posts WHERE clip_id = :clipId", nativeQuery = true)
     void deletePostRowsByClipId(@Param("clipId") Long clipId);
 
     @Transactional
     default void deleteByClipId(Long clipId) {
         for (Long postId : findPostIdsByClipId(clipId)) {
+            markSharedPostUnavailableByPostId(postId);
             deleteCommentsByPostId(postId);
             deletePostLikesByPostId(postId);
         }
@@ -128,6 +139,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Transactional
     default void deletePost(Long postId) {
+        markSharedPostUnavailableByPostId(postId);
         deleteCommentsByPostId(postId);
         deletePostLikesByPostId(postId);
         deletePostRow(postId);
