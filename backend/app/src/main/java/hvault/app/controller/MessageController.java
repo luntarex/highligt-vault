@@ -3,10 +3,12 @@ package hvault.app.controller;
 import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.MessageResponse;
 import hvault.app.dto.SendMessageRequest;
+import hvault.app.dto.WebSocketTicketResponse;
 import hvault.app.entity.Message;
 import hvault.app.security.SecurityUtil;
 import hvault.app.service.MessageRealtimeService;
 import hvault.app.service.MessageService;
+import hvault.app.service.WebSocketTicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,10 +22,15 @@ public class MessageController {
 
     private final MessageService messageService;
     private final MessageRealtimeService realtimeService;
+    private final WebSocketTicketService webSocketTicketService;
 
-    public MessageController(MessageService messageService, MessageRealtimeService realtimeService) {
+    public MessageController(
+            MessageService messageService,
+            MessageRealtimeService realtimeService,
+            WebSocketTicketService webSocketTicketService) {
         this.messageService = messageService;
         this.realtimeService = realtimeService;
+        this.webSocketTicketService = webSocketTicketService;
     }
 
     @GetMapping("/conversations")
@@ -37,6 +44,12 @@ public class MessageController {
             @RequestParam(required = false) Long currentUserId,
             Authentication authentication) {
         return ResponseEntity.ok(messageService.getConversation(SecurityUtil.requireCurrentUserId(authentication), userId));
+    }
+
+    @PostMapping("/ws-ticket")
+    public ResponseEntity<WebSocketTicketResponse> issueWebSocketTicket(Authentication authentication) {
+        Long userId = SecurityUtil.requireCurrentUserId(authentication);
+        return ResponseEntity.ok(new WebSocketTicketResponse(webSocketTicketService.issueTicket(userId)));
     }
 
     @PostMapping

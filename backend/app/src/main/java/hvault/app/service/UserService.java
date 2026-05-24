@@ -29,9 +29,18 @@ public class UserService {
             .toList();
     }
 
-    public UserProfileResponse getUserById(Long id) {
+    public UserProfileResponse getUserById(Long id, Long currentUserId, boolean admin) {
         UserProfileView user = userRepository.findProfileById(id);
-        return user == null ? null : toUserProfileResponse(user);
+        if (user == null) {
+            return null;
+        }
+
+        UserProfileResponse response = toUserProfileResponse(user);
+        if (!admin && !id.equals(currentUserId)) {
+            response.setEmail(null);
+            response.setIsAdmin(null);
+        }
+        return response;
     }
 
     public boolean updateProfile(Long id, String username, String description, String profilePhotoUrl) {

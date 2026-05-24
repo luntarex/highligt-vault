@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { Conversation, Message } from '../models/message.model';
@@ -16,13 +17,16 @@ export class MessageRealtimeService implements OnDestroy {
   private socket: WebSocket | null = null;
   private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
   private manuallyStopped = false;
+  private connecting = false;
   private readonly recentMessageIds = new Map<number, number>();
   private readonly eventsSubject = new Subject<MessageRealtimeEvent>();
 
   readonly events$ = this.eventsSubject.asObservable();
 
+  constructor(private http: HttpClient) {}
+
   connect(): void {
-    if (this.socket && this.socket.readyState <= WebSocket.OPEN) {
+    if (this.connecting || (this.socket && this.socket.readyState <= WebSocket.OPEN)) {
       return;
     }
 
@@ -32,9 +36,25 @@ export class MessageRealtimeService implements OnDestroy {
     }
 
     this.manuallyStopped = false;
-    const url = this.websocketUrl(token);
-    this.socket = new WebSocket(url);
+    this.connecting = true;
+    this.http.post<{ ticket: string }>(`${API_BASE_URL}/messages/ws-ticket`, {}).subscribe({
+      next: response => {
+        this.connecting = false;
+        if (this.manuallyStopped || !response.ticket) {
+          return;
+        }
+        this.openSocket(response.ticket);
+      },
+      error: () => {
+        this.connecting = false;
+        this.scheduleReconnect();
+      }
+    });
+  }
 
+  private openSocket(ticket: string): void {
+    const url = this.websocketUrl(ticket);
+    this.socket = new WebSocket(url);
     this.socket.onopen = () => console.info('[realtime] message socket connected');
     this.socket.onmessage = event => this.handleMessage(event);
     this.socket.onclose = event => {
@@ -93,10 +113,10 @@ export class MessageRealtimeService implements OnDestroy {
     }, 3000);
   }
 
-  private websocketUrl(token: string): string {
+  private websocketUrl(ticket: string): string {
     const apiRoot = API_BASE_URL.replace(/\/api\/?$/, '');
     const wsRoot = apiRoot.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
-    return `${wsRoot}/ws/messages?token=${encodeURIComponent(token)}`;
+    return `${wsRoot}/ws/messages?ticket=${encodeURIComponent(ticket)}`;
   }
 
   private wasRecentlyEmitted(messageId: number): boolean {

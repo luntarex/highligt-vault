@@ -56,9 +56,17 @@ public class ClipService {
             .toList();
     }
 
+    public List<ClipResponse> getClipsByUserId(Long uploaderId, Long currentUserId, boolean admin) {
+        boolean ownerOrAdmin = admin || uploaderId.equals(currentUserId);
+        return clipRepository.findActiveEntitiesByUploaderId(uploaderId).stream()
+            .filter(clip -> ownerOrAdmin ? isVisibleInLibrary(clip) : isPubliclyReadable(clip))
+            .map(clip -> ownerOrAdmin ? toClipResponse(clip) : toPublicClipResponse(clip))
+            .toList();
+    }
+
     public List<ClipResponse> getFavoritesByUserId(Long userId) {
         return clipRepository.findFavoritesByUserId(userId).stream()
-            .map(this::toClipResponse)
+            .map(this::toPublicClipResponse)
             .toList();
     }
 
@@ -76,10 +84,22 @@ public class ClipService {
             .toList();
     }
 
-    public ClipResponse getClipById(Long id) {
-        return clipRepository.findActiveEntityById(id)
-            .map(this::toClipResponse)
-            .orElse(null);
+    public List<ClipResponse> getPublicClips() {
+        return clipRepository.findAllActiveEntities().stream()
+            .filter(this::isPubliclyReadable)
+            .map(this::toPublicClipResponse)
+            .toList();
+    }
+
+    public ClipResponse getClipById(Long id, Long currentUserId, boolean admin) {
+        Clip clip = clipRepository.findById(id).orElse(null);
+        if (clip == null) {
+            return null;
+        }
+        if (admin || currentUserId.equals(clip.getUploaderId())) {
+            return toClipResponse(clip);
+        }
+        return isPubliclyReadable(clip) ? toPublicClipResponse(clip) : null;
     }
 
     public Long createClip(ClipCreateRequest clipData, Long currentUserId) {
@@ -240,6 +260,22 @@ public class ClipService {
         return response;
     }
 
+    private ClipResponse toPublicClipResponse(ClipView clip) {
+        ClipResponse response = new ClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(clip.getDuration());
+        response.setStartTime(clip.getStartTime());
+        response.setEndTime(clip.getEndTime());
+        response.setGame(clip.getGame());
+        response.setDateCreated(clip.getDateCreated());
+        response.setUploaderId(clip.getUploaderId());
+        response.setTags(getTagsSafely(clip.getId()));
+        return response;
+    }
+
     private ClipResponse toClipResponse(Clip clip) {
         ClipResponse response = new ClipResponse();
         response.setId(clip.getId());
@@ -260,6 +296,22 @@ public class ClipService {
         response.setModerationReason(clip.getModerationReason());
         response.setVisibilityStatus(clip.getVisibilityStatus());
         response.setRemovedReason(clip.getRemovedReason());
+        return response;
+    }
+
+    private ClipResponse toPublicClipResponse(Clip clip) {
+        ClipResponse response = new ClipResponse();
+        response.setId(clip.getId());
+        response.setTitle(clip.getTitle());
+        response.setUrl(clip.getVideoUrl());
+        response.setThumbnailUrl(clip.getThumbnailUrl());
+        response.setDuration(toDouble(clip.getDuration()));
+        response.setStartTime(toDouble(clip.getStartTime()));
+        response.setEndTime(toDouble(clip.getEndTime()));
+        response.setGame(clip.getGame() != null ? clip.getGame().getName() : null);
+        response.setDateCreated(clip.getCreatedAt());
+        response.setUploaderId(clip.getUploaderId());
+        response.setTags(getTagsSafely(clip.getId()));
         return response;
     }
 
@@ -318,6 +370,13 @@ public class ClipService {
     private boolean isVisibleInLibrary(Clip clip) {
         return clip.getVisibilityStatus() != VisibilityStatus.HIDDEN
             && clip.getVisibilityStatus() != VisibilityStatus.REMOVED;
+    }
+
+    private boolean isPubliclyReadable(Clip clip) {
+        return !Boolean.TRUE.equals(clip.getIsDeleted())
+            && clip.getVisibilityStatus() == VisibilityStatus.PUBLIC
+            && (clip.getModerationStatus() == ModerationStatus.APPROVED
+                || clip.getModerationStatus() == ModerationStatus.AUTO_APPROVED);
     }
 
     private boolean isModerationRemoved(Clip clip) {
