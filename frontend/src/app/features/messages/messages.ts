@@ -229,7 +229,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
       content,
       isRead: false,
       createdAt: new Date().toISOString(),
-      sharedPost: null
+      sharedPost: null,
+      sharedPostUnavailable: false
     };
 
     // Optimistic update: show the message immediately without reloading the chat.
@@ -330,6 +331,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
     return ['/post', postId];
   }
 
+  isMessagePostUnavailable(message: Message): boolean {
+    return Boolean(message.sharedPostUnavailable || (message.sharedPostId && !message.sharedPost));
+  }
+
+  isConversationPostUnavailable(conversation: Conversation): boolean {
+    return Boolean(conversation.sharedPostUnavailable || (conversation.shared_post_id && !conversation.sharedPost));
+  }
+
   private handleRealtimeMessage(event: MessageRealtimeEvent): void {
     const message = this.normalizeMessage(event.message);
     const otherUserId = message.senderId === this.currentUserId ? message.receiverId : message.senderId;
@@ -418,6 +427,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   private normalizeMessage(m: any): Message {
+    const sharedPostId = m.sharedPostId ?? m.shared_post_id;
+    const sharedPost = m.sharedPost ?? null;
+
     return {
       ...m,
       id: Number(m.id),
@@ -425,14 +437,19 @@ export class MessagesComponent implements OnInit, OnDestroy {
       receiverId: Number(m.receiverId ?? m.receiver_id),
       content: m.content ?? '',
       isRead: this.toBoolean(m.isRead ?? m.is_read ?? m.read),
-      sharedPostId: m.sharedPostId ?? m.shared_post_id,
-      sharedPost: m.sharedPost ?? null,
+      sharedPostId,
+      sharedPost,
+      sharedPostUnavailable: this.toBoolean(m.sharedPostUnavailable ?? m.shared_post_unavailable)
+        || Boolean(sharedPostId && !sharedPost),
       canDeleteForEveryone: this.toBoolean(m.canDeleteForEveryone ?? m.can_delete_for_everyone),
       createdAt: this.fixDate(m.createdAt ?? m.created_at).toISOString()
     };
   }
 
   private normalizeConversation(conversation: any): Conversation {
+    const sharedPostId = conversation.shared_post_id ?? conversation.sharedPostId;
+    const sharedPost = conversation.sharedPost ?? null;
+
     return {
       other_user_id: Number(conversation.other_user_id ?? conversation.otherUserId),
       username: conversation.username || '',
@@ -441,8 +458,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
       created_at: this.fixDate(conversation.created_at ?? conversation.createdAt).toISOString(),
       is_read: this.toBoolean(conversation.is_read ?? conversation.isRead ?? conversation.read),
       sender_id: Number(conversation.sender_id ?? conversation.senderId),
-      shared_post_id: conversation.shared_post_id ?? conversation.sharedPostId,
-      sharedPost: conversation.sharedPost ?? null
+      shared_post_id: sharedPostId,
+      sharedPost,
+      sharedPostUnavailable: this.toBoolean(conversation.sharedPostUnavailable ?? conversation.shared_post_unavailable)
+        || Boolean(sharedPostId && !sharedPost)
     };
   }
 
@@ -469,7 +488,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
         && message.content === nextMessage.content
         && message.isRead === nextMessage.isRead
         && message.createdAt === nextMessage.createdAt
-        && message.sharedPostId === nextMessage.sharedPostId;
+        && message.sharedPostId === nextMessage.sharedPostId
+        && (message.sharedPost?.id ?? null) === (nextMessage.sharedPost?.id ?? null)
+        && (message.sharedPostUnavailable ?? false) === (nextMessage.sharedPostUnavailable ?? false);
     });
   }
 

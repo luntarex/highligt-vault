@@ -138,6 +138,9 @@ export class MessageRealtimeService implements OnDestroy {
   }
 
   private normalizeMessage(message: any): Message {
+    const sharedPostId = message.sharedPostId ?? message.shared_post_id;
+    const sharedPost = message.sharedPost ?? null;
+
     return {
       ...message,
       id: Number(message.id),
@@ -146,13 +149,18 @@ export class MessageRealtimeService implements OnDestroy {
       content: message.content ?? '',
       isRead: this.toBoolean(message.isRead ?? message.is_read ?? message.read),
       createdAt: String(message.createdAt ?? message.created_at ?? new Date().toISOString()),
-      sharedPostId: message.sharedPostId ?? message.shared_post_id,
-      sharedPost: message.sharedPost ?? null,
+      sharedPostId,
+      sharedPost,
+      sharedPostUnavailable: this.toBoolean(message.sharedPostUnavailable ?? message.shared_post_unavailable)
+        || Boolean(sharedPostId && !sharedPost),
       canDeleteForEveryone: this.toBoolean(message.canDeleteForEveryone ?? message.can_delete_for_everyone)
     };
   }
 
   private normalizeConversation(conversation: any): Conversation {
+    const sharedPostId = conversation.shared_post_id ?? conversation.sharedPostId;
+    const sharedPost = conversation.sharedPost ?? null;
+
     return {
       other_user_id: Number(conversation.other_user_id ?? conversation.otherUserId),
       username: conversation.username || '',
@@ -161,8 +169,10 @@ export class MessageRealtimeService implements OnDestroy {
       created_at: String(conversation.created_at ?? conversation.createdAt ?? new Date().toISOString()),
       is_read: this.toBoolean(conversation.is_read ?? conversation.isRead ?? conversation.read),
       sender_id: Number(conversation.sender_id ?? conversation.senderId),
-      shared_post_id: conversation.shared_post_id ?? conversation.sharedPostId,
-      sharedPost: conversation.sharedPost ?? null
+      shared_post_id: sharedPostId,
+      sharedPost,
+      sharedPostUnavailable: this.toBoolean(conversation.sharedPostUnavailable ?? conversation.shared_post_unavailable)
+        || Boolean(sharedPostId && !sharedPost)
     };
   }
 

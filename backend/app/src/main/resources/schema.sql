@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS messages (
     receiver_id BIGINT NOT NULL,
     content TEXT NOT NULL,
     shared_post_id BIGINT NULL,
+    shared_post_unavailable BOOLEAN DEFAULT FALSE,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id),
@@ -116,6 +117,7 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 ALTER TABLE messages ADD COLUMN shared_post_id BIGINT NULL;
+ALTER TABLE messages ADD COLUMN shared_post_unavailable BOOLEAN DEFAULT FALSE;
 CREATE INDEX idx_messages_shared_post_id ON messages(shared_post_id);
 ALTER TABLE messages ADD CONSTRAINT fk_messages_shared_post FOREIGN KEY (shared_post_id) REFERENCES posts(id) ON DELETE SET NULL;
 ALTER TABLE messages ADD COLUMN deleted_for_sender BOOLEAN DEFAULT FALSE;

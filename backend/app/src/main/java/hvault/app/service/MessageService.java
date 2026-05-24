@@ -47,6 +47,7 @@ public class MessageService {
         message.setReceiverId(receiverId);
         message.setContent(cleanContent.isBlank() ? "Shared a post" : cleanContent);
         message.setSharedPostId(sharedPostId);
+        message.setSharedPostUnavailable(false);
         message.setIsRead(false);
         message.setDeletedForSender(false);
         message.setDeletedForReceiver(false);
@@ -143,6 +144,7 @@ public class MessageService {
         response.setProfilePhotoUrl(otherUser != null ? otherUser.getProfilePhotoUrl() : null);
         response.setSharedPostId(latestMessage.getSharedPostId());
         response.setSharedPost(resolveSharedPost(latestMessage.getSharedPostId(), currentUserId));
+        response.setSharedPostUnavailable(Boolean.TRUE.equals(latestMessage.getSharedPostUnavailable()));
         return response;
     }
 
@@ -156,6 +158,7 @@ public class MessageService {
         response.setCreatedAt(message.getCreatedAt());
         response.setSharedPostId(message.getSharedPostId());
         response.setSharedPost(resolveSharedPost(message.getSharedPostId(), currentUserId));
+        response.setSharedPostUnavailable(Boolean.TRUE.equals(message.getSharedPostUnavailable()));
         response.setCanDeleteForEveryone(canDeleteForEveryone(message, currentUserId));
         return response;
     }

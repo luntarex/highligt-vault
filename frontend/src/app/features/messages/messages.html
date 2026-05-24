@@ -49,10 +49,11 @@
           </div>
           <p class="last-message" [class.unread-text]="!conv.is_read && conv.sender_id !== currentUserId">
             <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">You: </span>
-            <span *ngIf="conv.shared_post_id || conv.sharedPost">
+            <span *ngIf="isConversationPostUnavailable(conv)">Gönderiye ulaşılamıyor</span>
+            <span *ngIf="!isConversationPostUnavailable(conv) && (conv.shared_post_id || conv.sharedPost)">
               {{ conv.content && conv.content !== 'Shared a post' ? conv.content : 'Shared a post' }}
             </span>
-            <span *ngIf="!conv.shared_post_id && !conv.sharedPost">{{ conv.content }}</span>
+            <span *ngIf="!isConversationPostUnavailable(conv) && !conv.shared_post_id && !conv.sharedPost">{{ conv.content }}</span>
           </p>
         </div>
         <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
@@ -159,7 +160,7 @@
           <div class="message-bubble"
                (click)="toggleMessageSelection(msg.id)"
                [class.selected]="selectedMessageIds.has(msg.id)">
-            <p>{{ msg.content }}</p>
+            <p *ngIf="msg.content && !(isMessagePostUnavailable(msg) && msg.content === 'Shared a post')">{{ msg.content }}</p>
             <a
               *ngIf="msg.sharedPost"
               class="shared-post-card"
@@ -180,6 +181,23 @@
                 <span>{{ msg.sharedPost.author.username }} · {{ msg.sharedPost.game }}</span>
               </div>
             </a>
+            <div
+              *ngIf="!msg.sharedPost && isMessagePostUnavailable(msg)"
+              class="shared-post-card shared-post-unavailable"
+              (click)="$event.stopPropagation()">
+              <div class="shared-post-thumb unavailable-thumb">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <div class="shared-post-info">
+                <span class="shared-eyebrow">Shared post</span>
+                <strong>Gönderiye ulaşılamıyor</strong>
+                <span>Bu gönderi silinmiş veya artık erişilemiyor.</span>
+              </div>
+            </div>
             <span class="message-meta">
               <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
               <span

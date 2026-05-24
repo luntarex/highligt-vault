@@ -552,6 +552,19 @@
   background: rgba(168, 85, 247, 0.16);
 }
 
+.shared-post-card.shared-post-unavailable {
+  cursor: default;
+  border-style: dashed;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shared-post-card.shared-post-unavailable:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .shared-post-thumb {
   width: 92px;
   height: 58px;
@@ -565,6 +578,19 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+}
+
+.unavailable-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.unavailable-thumb svg {
+  width: 24px;
+  height: 24px;
 }
 
 .shared-post-info {

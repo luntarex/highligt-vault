@@ -163,6 +163,16 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
 
     @Transactional
     @Modifying
+    @Query(value = """
+        UPDATE messages
+        SET shared_post_unavailable = TRUE,
+            shared_post_id = NULL
+        WHERE shared_post_id = :postId
+        """, nativeQuery = true)
+    void markSharedPostUnavailableByPostId(@Param("postId") Long postId);
+
+    @Transactional
+    @Modifying
     @Query(value = "DELETE FROM posts WHERE clip_id = :clipId", nativeQuery = true)
     void deletePostsByClipId(@Param("clipId") Long clipId);
 
@@ -189,6 +199,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     @Transactional
     default void hardDeleteClip(Long id) {
         for (Long postId : findPostIdsByClipId(id)) {
+            markSharedPostUnavailableByPostId(postId);
             deleteCommentsByPostId(postId);
             deletePostLikesByPostId(postId);
         }
