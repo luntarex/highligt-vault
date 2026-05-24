@@ -23,36 +23,26 @@ public class ModerationScannerService {
     private final ModerationResultRepository moderationResultRepository;
     private final OpenAiVisualModerationService openAiVisualModerationService;
     private final FfmpegFrameExtractionService ffmpegFrameExtractionService;
-<<<<<<< Updated upstream
-=======
     private final FfmpegAudioExtractionService ffmpegAudioExtractionService;
     private final OpenAiAudioTranscriptionService openAiAudioTranscriptionService;
     private final ModerationFeedbackService moderationFeedbackService;
->>>>>>> Stashed changes
 
     public ModerationScannerService(
         ClipRepository clipRepository,
         ModerationResultRepository moderationResultRepository,
         OpenAiVisualModerationService openAiVisualModerationService,
-<<<<<<< Updated upstream
-        FfmpegFrameExtractionService ffmpegFrameExtractionService
-=======
         FfmpegFrameExtractionService ffmpegFrameExtractionService,
         FfmpegAudioExtractionService ffmpegAudioExtractionService,
         OpenAiAudioTranscriptionService openAiAudioTranscriptionService,
         ModerationFeedbackService moderationFeedbackService
->>>>>>> Stashed changes
     ) {
         this.clipRepository = clipRepository;
         this.moderationResultRepository = moderationResultRepository;
         this.openAiVisualModerationService = openAiVisualModerationService;
         this.ffmpegFrameExtractionService = ffmpegFrameExtractionService;
-<<<<<<< Updated upstream
-=======
         this.ffmpegAudioExtractionService = ffmpegAudioExtractionService;
         this.openAiAudioTranscriptionService = openAiAudioTranscriptionService;
         this.moderationFeedbackService = moderationFeedbackService;
->>>>>>> Stashed changes
     }
 
     public ModerationScanResult scanClipForPublishing(Long clipId, String caption) {
@@ -71,13 +61,9 @@ public class ModerationScannerService {
         saveResult(clipId, "METADATA_PRECHECK", metadataResult.category(), metadataResult.score(), metadataResult.flagged(), metadataResult.reason());
 
         ModerationScanResult finalResult = metadataResult;
-<<<<<<< Updated upstream
-        String aiContext = buildAiContext(clip, caption);
-=======
         String audioTranscript = extractAudioTranscript(clip);
         String moderatorFeedback = moderationFeedbackService.buildFeedbackContext();
         String aiContext = buildAiContext(clip, caption, audioTranscript, moderatorFeedback);
->>>>>>> Stashed changes
         List<String> frameDataUrls = ffmpegFrameExtractionService.extractFrameDataUrls(clip.getVideoUrl());
         if (!frameDataUrls.isEmpty()) {
             Optional<VisualModerationSignal> clipSignal = openAiVisualModerationService.scanClip(frameDataUrls, aiContext);
@@ -226,9 +212,6 @@ public class ModerationScannerService {
         }
     }
 
-<<<<<<< Updated upstream
-    private String buildAiContext(Clip clip, String caption) {
-=======
     private String extractAudioTranscript(Clip clip) {
         List<AudioModerationSample> audioSamples = ffmpegAudioExtractionService.extractAudioSamples(clip.getVideoUrl());
         if (audioSamples.isEmpty()) {
@@ -255,16 +238,12 @@ public class ModerationScannerService {
     }
 
     private String buildAiContext(Clip clip, String caption, String audioTranscript, String moderatorFeedback) {
->>>>>>> Stashed changes
         return String.join(" | ", nonNullValues(
             "title=" + safeValue(clip.getTitle()),
             "notes=" + safeValue(clip.getNotes()),
             "caption=" + safeValue(caption),
-<<<<<<< Updated upstream
-=======
             "audioTranscript=" + safeValue(audioTranscript),
             "moderatorFeedback=" + safeValue(moderatorFeedback),
->>>>>>> Stashed changes
             "tags=" + String.join(",", clipRepository.getTagsForClip(clip.getId())),
             "videoUrl=" + safeValue(clip.getVideoUrl())
         ));
@@ -284,6 +263,15 @@ public class ModerationScannerService {
             .replace("\r", "\\r")
             .replace("\t", "\\t");
         return "{\"message\":\"" + escaped + "\"}";
+    }
+
+    private String escapeForJson(String value) {
+        return safeValue(value)
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
 
     private String limit(String value, int maxLength) {
