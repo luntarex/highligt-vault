@@ -48,6 +48,9 @@ public class MessageService {
         message.setContent(cleanContent.isBlank() ? "Shared a post" : cleanContent);
         message.setSharedPostId(sharedPostId);
         message.setIsRead(false);
+        message.setDeletedForSender(false);
+        message.setDeletedForReceiver(false);
+        message.setDeletedForEveryone(false);
         message.setCreatedAt(LocalDateTime.now());
         return messageRepository.save(message);
     }
@@ -92,17 +95,22 @@ public class MessageService {
     }
 
     public void deleteConversation(Long currentUserId, Long otherUserId) {
-        messageRepository.deleteConversation(currentUserId, otherUserId);
+        messageRepository.deleteConversationForUser(currentUserId, otherUserId);
     }
 
-    public void deleteMessage(Long id, Long currentUserId, boolean admin) {
+    public void deleteMessage(Long id, Long currentUserId, boolean admin, String scope) {
         Message message = messageRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("Message not found."));
         requireMessageParticipantOrAdmin(message, currentUserId, admin);
-        messageRepository.deleteById(id);
+        if (isDeleteForEveryone(scope)) {
+            requireCanDeleteForEveryone(message, currentUserId, admin);
+            messageRepository.deleteByIdsForEveryone(List.of(id), currentUserId);
+        } else {
+            messageRepository.deleteByIdsForUser(List.of(id), currentUserId);
+        }
     }
 
-    public void deleteMessages(List<Long> ids, Long currentUserId, boolean admin) {
+    public void deleteMessages(List<Long> ids, Long currentUserId, boolean admin, String scope) {
         if (ids != null && !ids.isEmpty()) {
             List<Message> messages = messageRepository.findAllById(ids);
             if (messages.size() != ids.size()) {
@@ -110,8 +118,16 @@ public class MessageService {
             }
             for (Message message : messages) {
                 requireMessageParticipantOrAdmin(message, currentUserId, admin);
+                if (isDeleteForEveryone(scope)) {
+                    requireCanDeleteForEveryone(message, currentUserId, admin);
+                }
             }
-            messageRepository.deleteByIds(ids);
+
+            if (isDeleteForEveryone(scope)) {
+                messageRepository.deleteByIdsForEveryone(ids, currentUserId);
+            } else {
+                messageRepository.deleteByIdsForUser(ids, currentUserId);
+            }
         }
     }
 
@@ -140,6 +156,7 @@ public class MessageService {
         response.setCreatedAt(message.getCreatedAt());
         response.setSharedPostId(message.getSharedPostId());
         response.setSharedPost(resolveSharedPost(message.getSharedPostId(), currentUserId));
+        response.setCanDeleteForEveryone(canDeleteForEveryone(message, currentUserId));
         return response;
     }
 
@@ -153,6 +170,30 @@ public class MessageService {
         }
         if (!currentUserId.equals(message.getSenderId()) && !currentUserId.equals(message.getReceiverId())) {
             throw new AccessDeniedException("You do not have permission to modify this message.");
+        }
+    }
+
+    private boolean isDeleteForEveryone(String scope) {
+        return "everyone".equalsIgnoreCase(scope);
+    }
+
+    private boolean canDeleteForEveryone(Message message, Long currentUserId) {
+        if (message.getCreatedAt() == null) {
+            return false;
+        }
+        return currentUserId.equals(message.getSenderId())
+            && !message.getCreatedAt().isBefore(LocalDateTime.now().minusMinutes(10));
+    }
+
+    private void requireCanDeleteForEveryone(Message message, Long currentUserId, boolean admin) {
+        if (admin) {
+            return;
+        }
+        if (!currentUserId.equals(message.getSenderId())) {
+            throw new AccessDeniedException("You can only delete your own messages for everyone.");
+        }
+        if (message.getCreatedAt() == null || message.getCreatedAt().isBefore(LocalDateTime.now().minusMinutes(10))) {
+            throw new IllegalArgumentException("Messages can only be deleted for everyone within 10 minutes.");
         }
     }
 }

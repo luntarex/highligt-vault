@@ -112,11 +112,18 @@
         <!-- Selection Controls (Header Right) -->
         <div class="header-selection-controls" *ngIf="selectedMessageIds.size > 0">
           <span class="selection-count">{{ selectedMessageIds.size }} selected</span>
-          <button class="delete-selected-btn-header" (click)="confirmMessageDeletion()" title="Delete Selected">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
+          <button
+            class="delete-for-me-btn-header"
+            (click)="confirmMessageDeletion('me')"
+            title="Delete for me">
+            Delete for me
+          </button>
+          <button
+            *ngIf="canDeleteSelectedForEveryone()"
+            class="delete-for-everyone-btn-header"
+            (click)="confirmMessageDeletion('everyone')"
+            title="Delete for everyone">
+            Delete for everyone
           </button>
           <button class="cancel-selection-btn-header" (click)="clearSelection()" title="Cancel">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -238,8 +245,8 @@
   <app-confirm-dialog
     *ngIf="showDeleteModal"
     [title]="'Delete Conversation'"
-    message="Are you sure you want to permanently delete this conversation? This action cannot be undone."
-    confirmText="Delete"
+    message="This will delete the conversation only for you. The other user will still keep their copy."
+    confirmText="Delete for me"
     cancelText="Cancel"
     type="danger"
     (confirmed)="confirmDelete()"

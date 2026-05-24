@@ -36,12 +36,12 @@ export class MessageService {
     return this.http.delete(`${this.apiUrl}/conversation?userId2=${userId2}`);
   }
 
-  deleteMessage(messageId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${messageId}`);
+  deleteMessage(messageId: number, scope: 'me' | 'everyone' = 'me'): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${messageId}?scope=${scope}`);
   }
 
-  deleteMessages(ids: number[]): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/batch?ids=${ids.join(',')}`);
+  deleteMessages(ids: number[], scope: 'me' | 'everyone' = 'me'): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/batch?ids=${ids.join(',')}&scope=${scope}`);
   }
 }
 

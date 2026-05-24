@@ -297,10 +297,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  confirmMessageDeletion(): void {
+  confirmMessageDeletion(scope: 'me' | 'everyone' = 'me'): void {
     if (this.selectedMessageIds.size > 0) {
       const idsToDelete = Array.from(this.selectedMessageIds);
-      this.messageService.deleteMessages(idsToDelete).subscribe(() => {
+      this.messageService.deleteMessages(idsToDelete, scope).subscribe(() => {
         this.currentConversation = this.currentConversation.filter(m => !this.selectedMessageIds.has(m.id));
         this.clearSelection();
         this.loadConversations(false);
@@ -312,6 +312,18 @@ export class MessagesComponent implements OnInit, OnDestroy {
   clearSelection(): void {
     this.selectedMessageIds = new Set<number>();
     this.cdr.detectChanges();
+  }
+
+  canDeleteSelectedForEveryone(): boolean {
+    const selectedMessages = this.selectedMessages();
+    return selectedMessages.length > 0
+      && selectedMessages.every(message =>
+        message.senderId === this.currentUserId && message.canDeleteForEveryone === true
+      );
+  }
+
+  private selectedMessages(): Message[] {
+    return this.currentConversation.filter(message => this.selectedMessageIds.has(message.id));
   }
 
   postLink(postId: string | number): any[] {
@@ -415,6 +427,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
       isRead: this.toBoolean(m.isRead ?? m.is_read ?? m.read),
       sharedPostId: m.sharedPostId ?? m.shared_post_id,
       sharedPost: m.sharedPost ?? null,
+      canDeleteForEveryone: this.toBoolean(m.canDeleteForEveryone ?? m.can_delete_for_everyone),
       createdAt: this.fixDate(m.createdAt ?? m.created_at).toISOString()
     };
   }
