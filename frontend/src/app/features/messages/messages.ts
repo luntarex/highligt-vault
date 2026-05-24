@@ -244,9 +244,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
       .subscribe(
         message => {
           this.isSending = false;
-          this.currentConversation = this.currentConversation
-            .map(existing => existing.id === tempMessage.id ? this.normalizeMessage(message) : existing)
-            .sort((a, b) => this.compareMessages(a, b));
+          this.upsertMessage(this.normalizeMessage(message));
           this.loadConversations(false);
           this.cdr.detectChanges();
         },
@@ -362,11 +360,22 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   private upsertMessage(message: Message): void {
-    const existingIndex = this.currentConversation.findIndex(item => item.id === message.id);
+    const withoutOptimisticDuplicate = this.currentConversation.filter(item => {
+      if (item.id >= 0 || message.id < 0) {
+        return true;
+      }
+
+      return item.senderId !== message.senderId
+        || item.receiverId !== message.receiverId
+        || item.content !== message.content
+        || (item.sharedPostId ?? null) !== (message.sharedPostId ?? null);
+    });
+
+    const existingIndex = withoutOptimisticDuplicate.findIndex(item => item.id === message.id);
     if (existingIndex >= 0) {
-      this.currentConversation = this.currentConversation.map(item => item.id === message.id ? message : item);
+      this.currentConversation = withoutOptimisticDuplicate.map(item => item.id === message.id ? message : item);
     } else {
-      this.currentConversation = [...this.currentConversation, message];
+      this.currentConversation = [...withoutOptimisticDuplicate, message];
     }
     this.currentConversation = this.currentConversation.sort((a, b) => this.compareMessages(a, b));
   }

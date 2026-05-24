@@ -17,6 +17,8 @@ export class MessageNotificationService implements OnDestroy {
   private started = false;
   private hasBaseline = false;
   private inFlight = false;
+  private lastAlertSignature = '';
+  private lastAlertAt = 0;
 
   constructor(
     private authService: AuthService,
@@ -137,6 +139,15 @@ export class MessageNotificationService implements OnDestroy {
   }
 
   private showMessageAlert(conversation: Conversation): void {
+    const signature = this.alertSignature(conversation);
+    const now = Date.now();
+    if (this.lastAlertSignature === signature && now - this.lastAlertAt < 4000) {
+      return;
+    }
+
+    this.lastAlertSignature = signature;
+    this.lastAlertAt = now;
+
     this.alerts.show({
       username: conversation.username,
       profilePhotoUrl: conversation.profile_photo_url,
@@ -151,6 +162,15 @@ export class MessageNotificationService implements OnDestroy {
       : this.truncate(conversation.content || 'sent you a message');
 
     return preview;
+  }
+
+  private alertSignature(conversation: Conversation): string {
+    return [
+      conversation.other_user_id,
+      conversation.sender_id,
+      conversation.content,
+      conversation.shared_post_id ?? ''
+    ].join('|');
   }
 
   private truncate(value: string): string {

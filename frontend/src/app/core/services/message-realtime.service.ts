@@ -16,6 +16,7 @@ export class MessageRealtimeService implements OnDestroy {
   private socket: WebSocket | null = null;
   private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
   private manuallyStopped = false;
+  private readonly recentMessageIds = new Map<number, number>();
   private readonly eventsSubject = new Subject<MessageRealtimeEvent>();
 
   readonly events$ = this.eventsSubject.asObservable();
@@ -64,9 +65,14 @@ export class MessageRealtimeService implements OnDestroy {
     try {
       const payload = JSON.parse(event.data) as MessageRealtimeEvent;
       if (payload.type === 'message') {
+        const message = this.normalizeMessage(payload.message);
+        if (this.wasRecentlyEmitted(message.id)) {
+          return;
+        }
+
         this.eventsSubject.next({
           type: 'message',
-          message: this.normalizeMessage(payload.message),
+          message,
           conversation: this.normalizeConversation(payload.conversation)
         });
       }
@@ -91,6 +97,24 @@ export class MessageRealtimeService implements OnDestroy {
     const apiRoot = API_BASE_URL.replace(/\/api\/?$/, '');
     const wsRoot = apiRoot.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
     return `${wsRoot}/ws/messages?token=${encodeURIComponent(token)}`;
+  }
+
+  private wasRecentlyEmitted(messageId: number): boolean {
+    if (!Number.isFinite(messageId)) {
+      return false;
+    }
+
+    const now = Date.now();
+    const previous = this.recentMessageIds.get(messageId);
+    this.recentMessageIds.set(messageId, now);
+
+    for (const [id, timestamp] of this.recentMessageIds) {
+      if (now - timestamp > 10000) {
+        this.recentMessageIds.delete(id);
+      }
+    }
+
+    return previous !== undefined && now - previous < 10000;
   }
 
   private normalizeMessage(message: any): Message {
