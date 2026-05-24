@@ -143,6 +143,10 @@ export class MessageAlertComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription.add(
       this.alertService.alerts$.subscribe(alert => {
+        if (this.activeAlerts.some(activeAlert => this.sameAlert(activeAlert, alert))) {
+          return;
+        }
+
         const activeAlert = { ...alert, createdAt: Date.now() + Math.random() };
         this.activeAlerts = [activeAlert, ...this.activeAlerts].slice(0, 3);
         this.cdr.detectChanges();
@@ -157,6 +161,12 @@ export class MessageAlertComponent implements OnInit, OnDestroy {
 
   removeAlert(alert: MessageAlert & { createdAt: number }): void {
     this.activeAlerts = this.activeAlerts.filter(item => item.createdAt !== alert.createdAt);
+  }
+
+  private sameAlert(left: MessageAlert, right: MessageAlert): boolean {
+    return left.username.trim().toLowerCase() === right.username.trim().toLowerCase()
+      && left.message.trim() === right.message.trim()
+      && (left.profilePhotoUrl ?? '') === (right.profilePhotoUrl ?? '');
   }
 
   ngOnDestroy(): void {
