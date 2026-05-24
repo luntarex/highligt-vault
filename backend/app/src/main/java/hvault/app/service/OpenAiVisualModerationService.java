@@ -164,12 +164,13 @@ public class OpenAiVisualModerationService {
 
         return "You are the moderation decision engine for Highlight Vault, a gaming clip sharing platform. "
             + "Think semantically and contextually; do not behave like a keyword matcher. "
-            + "Analyze this frame plus metadata, including any audio transcript if present, and produce a strict JSON decision matching the provided schema. "
+            + "Analyze this frame plus metadata, including any audio transcript and recent moderator feedback if present, and produce a strict JSON decision matching the provided schema. "
             + "Approve only content whose main purpose is gaming, esports, gameplay, game UI, gaming tutorials, "
             + "game reviews, or game-centered creator content. Do not auto-approve real-world political propaganda, "
             + "extremist or hate movement content, real-world violence, shock/offense content, sexual content, nudity, "
             + "self-harm, illegal activity, or non-gaming media. Fictional violence or political themes inside an obvious game can be allowed. "
             + "If the audio transcript contains credible threats, targeted harassment, hate speech, extremist praise, sexual content, self-harm encouragement, or illegal instructions, treat that as policy evidence even when the image looks safe. "
+            + "Use recent moderator feedback only to stay consistent with site policy; do not copy it blindly and do not let it override severe safety evidence. "
             + "If evidence is ambiguous, choose NEEDS_REVIEW, not APPROVE_PUBLIC. "
             + "Clip metadata: " + safeContext;
     }
@@ -181,7 +182,7 @@ public class OpenAiVisualModerationService {
 
         return "You are the moderation decision engine for Highlight Vault, a gaming clip sharing platform. "
             + "Think semantically and contextually; do not behave like a keyword matcher. "
-            + "You will receive several extracted frames from the same video plus clip metadata and possibly an audio transcript. "
+            + "You will receive several extracted frames from the same video plus clip metadata, possibly an audio transcript, and possibly recent moderator feedback. "
             + "Your job is to decide whether this clip can be published publicly, needs human review, or should be rejected from public feeds. "
             + "Allowed content: gameplay, esports, game UI, game highlights, gaming tutorials, game reviews, "
             + "and creator content clearly centered on games. "
@@ -189,6 +190,7 @@ public class OpenAiVisualModerationService {
             + "extremist or hate movement content, real-world violence/conflict footage, shock/offense content, sexual content, "
             + "nudity, self-harm, illegal activity, harassment, or hateful symbols. "
             + "If the audio transcript contains credible threats, targeted harassment, hate speech, extremist praise, sexual content, self-harm encouragement, or illegal instructions, treat that as policy evidence even when the frames look safe. "
+            + "Use recent moderator feedback only to stay consistent with site policy; do not copy it blindly and do not let it override severe safety evidence. "
             + "Important nuance: fictional violence, weapons, factions, controversial missions, or political themes inside an obvious video game can be allowed. "
             + "If the evidence is ambiguous, choose NEEDS_REVIEW instead of APPROVE_PUBLIC. "
             + "Use REJECT_PUBLIC for clearly severe unsafe content; use NEEDS_REVIEW for uncertain game relevance or uncertain policy context. "

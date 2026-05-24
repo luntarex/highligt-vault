@@ -25,6 +25,7 @@ public class ModerationScannerService {
     private final FfmpegFrameExtractionService ffmpegFrameExtractionService;
     private final FfmpegAudioExtractionService ffmpegAudioExtractionService;
     private final OpenAiAudioTranscriptionService openAiAudioTranscriptionService;
+    private final ModerationFeedbackService moderationFeedbackService;
 
     public ModerationScannerService(
         ClipRepository clipRepository,
@@ -32,7 +33,8 @@ public class ModerationScannerService {
         OpenAiVisualModerationService openAiVisualModerationService,
         FfmpegFrameExtractionService ffmpegFrameExtractionService,
         FfmpegAudioExtractionService ffmpegAudioExtractionService,
-        OpenAiAudioTranscriptionService openAiAudioTranscriptionService
+        OpenAiAudioTranscriptionService openAiAudioTranscriptionService,
+        ModerationFeedbackService moderationFeedbackService
     ) {
         this.clipRepository = clipRepository;
         this.moderationResultRepository = moderationResultRepository;
@@ -40,6 +42,7 @@ public class ModerationScannerService {
         this.ffmpegFrameExtractionService = ffmpegFrameExtractionService;
         this.ffmpegAudioExtractionService = ffmpegAudioExtractionService;
         this.openAiAudioTranscriptionService = openAiAudioTranscriptionService;
+        this.moderationFeedbackService = moderationFeedbackService;
     }
 
     public ModerationScanResult scanClipForPublishing(Long clipId, String caption) {
@@ -59,7 +62,8 @@ public class ModerationScannerService {
 
         ModerationScanResult finalResult = metadataResult;
         String audioTranscript = extractAudioTranscript(clip);
-        String aiContext = buildAiContext(clip, caption, audioTranscript);
+        String moderatorFeedback = moderationFeedbackService.buildFeedbackContext();
+        String aiContext = buildAiContext(clip, caption, audioTranscript, moderatorFeedback);
         List<String> frameDataUrls = ffmpegFrameExtractionService.extractFrameDataUrls(clip.getVideoUrl());
         if (!frameDataUrls.isEmpty()) {
             Optional<VisualModerationSignal> clipSignal = openAiVisualModerationService.scanClip(frameDataUrls, aiContext);
@@ -233,12 +237,13 @@ public class ModerationScannerService {
         return safeTranscript;
     }
 
-    private String buildAiContext(Clip clip, String caption, String audioTranscript) {
+    private String buildAiContext(Clip clip, String caption, String audioTranscript, String moderatorFeedback) {
         return String.join(" | ", nonNullValues(
             "title=" + safeValue(clip.getTitle()),
             "notes=" + safeValue(clip.getNotes()),
             "caption=" + safeValue(caption),
             "audioTranscript=" + safeValue(audioTranscript),
+            "moderatorFeedback=" + safeValue(moderatorFeedback),
             "tags=" + String.join(",", clipRepository.getTagsForClip(clip.getId())),
             "videoUrl=" + safeValue(clip.getVideoUrl())
         ));
