@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +26,11 @@ public class ModerationScannerService {
     private final FfmpegFrameExtractionService ffmpegFrameExtractionService;
     private final FfmpegAudioExtractionService ffmpegAudioExtractionService;
     private final OpenAiAudioTranscriptionService openAiAudioTranscriptionService;
+    private final GeminiAudioModerationService geminiAudioModerationService;
     private final ModerationFeedbackService moderationFeedbackService;
+
+    @Value("${app.moderation.ai.audio-provider:openai}")
+    private String audioProvider;
 
     public ModerationScannerService(
         ClipRepository clipRepository,
@@ -34,6 +39,7 @@ public class ModerationScannerService {
         FfmpegFrameExtractionService ffmpegFrameExtractionService,
         FfmpegAudioExtractionService ffmpegAudioExtractionService,
         OpenAiAudioTranscriptionService openAiAudioTranscriptionService,
+        GeminiAudioModerationService geminiAudioModerationService,
         ModerationFeedbackService moderationFeedbackService
     ) {
         this.clipRepository = clipRepository;
@@ -42,6 +48,7 @@ public class ModerationScannerService {
         this.ffmpegFrameExtractionService = ffmpegFrameExtractionService;
         this.ffmpegAudioExtractionService = ffmpegAudioExtractionService;
         this.openAiAudioTranscriptionService = openAiAudioTranscriptionService;
+        this.geminiAudioModerationService = geminiAudioModerationService;
         this.moderationFeedbackService = moderationFeedbackService;
     }
 
@@ -61,9 +68,12 @@ public class ModerationScannerService {
         saveResult(clipId, "METADATA_PRECHECK", metadataResult.category(), metadataResult.score(), metadataResult.flagged(), metadataResult.reason());
 
         ModerationScanResult finalResult = metadataResult;
-        String audioTranscript = extractAudioTranscript(clip);
+        AudioScanContext audioScanContext = scanAudio(clip);
+        if (audioScanContext.signal().isPresent()) {
+            finalResult = combineAudio(finalResult, audioScanContext.signal().get());
+        }
         String moderatorFeedback = moderationFeedbackService.buildFeedbackContext();
-        String aiContext = buildAiContext(clip, caption, audioTranscript, moderatorFeedback);
+        String aiContext = buildAiContext(clip, caption, audioScanContext.contextText(), moderatorFeedback);
         List<String> frameDataUrls = ffmpegFrameExtractionService.extractFrameDataUrls(clip.getVideoUrl());
         if (!frameDataUrls.isEmpty()) {
             Optional<VisualModerationSignal> clipSignal = openAiVisualModerationService.scanClip(frameDataUrls, aiContext);
@@ -212,17 +222,27 @@ public class ModerationScannerService {
         }
     }
 
-    private String extractAudioTranscript(Clip clip) {
-        List<AudioModerationSample> audioSamples = ffmpegAudioExtractionService.extractAudioSamples(clip.getVideoUrl());
+    private AudioScanContext scanAudio(Clip clip) {
+        List<AudioModerationSample> audioSamples = ffmpegAudioExtractionService.extractAudioSamples(clip.getVideoUrl(), clip.getDuration());
         if (audioSamples.isEmpty()) {
             saveResult(clip.getId(), "FFMPEG_AUDIO", "AUDIO_EXTRACTION_SKIPPED", 0, false, "No audio samples were available for transcription.");
-            return "";
+            return AudioScanContext.empty();
+        }
+
+        if (usesGeminiAudio()) {
+            Optional<AudioModerationSignal> geminiSignal = geminiAudioModerationService.moderateSamples(audioSamples);
+            if (geminiSignal.isPresent()) {
+                AudioModerationSignal signal = geminiSignal.get();
+                saveResult(clip.getId(), "GEMINI_AUDIO", signal.category(), signal.score(), signal.flagged(), signal.rawResult());
+                return new AudioScanContext(toAudioContext(signal), Optional.of(signal));
+            }
         }
 
         Optional<String> transcript = openAiAudioTranscriptionService.transcribeSamples(audioSamples);
         if (transcript.isEmpty()) {
-            saveResult(clip.getId(), "OPENAI_AUDIO", "AUDIO_TRANSCRIPTION_SKIPPED", 0, false, "Audio samples were available, but no transcript could be produced.");
-            return "";
+            String provider = usesGeminiAudio() ? "GEMINI_AUDIO" : "OPENAI_AUDIO";
+            saveResult(clip.getId(), provider, "AUDIO_TRANSCRIPTION_SKIPPED", 0, false, "Audio samples were available, but no transcript could be produced.");
+            return AudioScanContext.empty();
         }
 
         String safeTranscript = limit(transcript.get(), 2000);
@@ -234,15 +254,42 @@ public class ModerationScannerService {
             false,
             "{\"transcript\":\"" + escapeForJson(safeTranscript) + "\"}"
         );
-        return safeTranscript;
+        return new AudioScanContext("audioTranscript=" + safeTranscript, Optional.empty());
     }
 
-    private String buildAiContext(Clip clip, String caption, String audioTranscript, String moderatorFeedback) {
+    private boolean usesGeminiAudio() {
+        return audioProvider != null && audioProvider.equalsIgnoreCase("gemini");
+    }
+
+    private ModerationScanResult combineAudio(ModerationScanResult baseResult, AudioModerationSignal audioSignal) {
+        if (!audioSignal.flagged()) {
+            return baseResult;
+        }
+
+        return requireManualReview(
+            baseResult,
+            audioSignal.category(),
+            audioSignal.reason(),
+            VisibilityStatus.HIDDEN,
+            audioSignal.score()
+        );
+    }
+
+    private String toAudioContext(AudioModerationSignal signal) {
+        return String.join("; ", nonNullValues(
+            "audioCategory=" + safeValue(signal.category()),
+            "audioScore=" + signal.score(),
+            "audioReason=" + safeValue(signal.reason()),
+            "audioTranscript=" + safeValue(signal.transcript())
+        ));
+    }
+
+    private String buildAiContext(Clip clip, String caption, String audioContext, String moderatorFeedback) {
         return String.join(" | ", nonNullValues(
             "title=" + safeValue(clip.getTitle()),
             "notes=" + safeValue(clip.getNotes()),
             "caption=" + safeValue(caption),
-            "audioTranscript=" + safeValue(audioTranscript),
+            "audioContext=" + safeValue(audioContext),
             "moderatorFeedback=" + safeValue(moderatorFeedback),
             "tags=" + String.join(",", clipRepository.getTagsForClip(clip.getId())),
             "videoUrl=" + safeValue(clip.getVideoUrl())
@@ -293,5 +340,11 @@ public class ModerationScannerService {
 
     private String safeValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private record AudioScanContext(String contextText, Optional<AudioModerationSignal> signal) {
+        private static AudioScanContext empty() {
+            return new AudioScanContext("", Optional.empty());
+        }
     }
 }
