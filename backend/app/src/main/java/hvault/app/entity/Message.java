@@ -35,4 +35,16 @@ public class Message {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "deleted_for_sender")
+    private Boolean deletedForSender;
+
+    @Column(name = "deleted_for_receiver")
+    private Boolean deletedForReceiver;
+
+    @Column(name = "deleted_for_everyone")
+    private Boolean deletedForEveryone;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

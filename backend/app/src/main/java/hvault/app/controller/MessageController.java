@@ -77,18 +77,30 @@ public class MessageController {
             @RequestParam Long userId2,
             Authentication authentication) {
         messageService.deleteConversation(SecurityUtil.requireCurrentUserId(authentication), userId2);
-        return ResponseEntity.ok(new ApiMessageResponse("Conversation deleted successfully"));
+        return ResponseEntity.ok(new ApiMessageResponse("Conversation deleted for you"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiMessageResponse> deleteMessage(@PathVariable Long id, Authentication authentication) {
-        messageService.deleteMessage(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
-        return ResponseEntity.ok(new ApiMessageResponse("Message deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deleteMessage(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "me") String scope,
+            Authentication authentication) {
+        messageService.deleteMessage(id, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication), scope);
+        return ResponseEntity.ok(new ApiMessageResponse(deleteMessageResponse(scope)));
     }
 
     @DeleteMapping("/batch")
-    public ResponseEntity<ApiMessageResponse> deleteMessages(@RequestParam List<Long> ids, Authentication authentication) {
-        messageService.deleteMessages(ids, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication));
-        return ResponseEntity.ok(new ApiMessageResponse("Messages deleted successfully"));
+    public ResponseEntity<ApiMessageResponse> deleteMessages(
+            @RequestParam List<Long> ids,
+            @RequestParam(defaultValue = "me") String scope,
+            Authentication authentication) {
+        messageService.deleteMessages(ids, SecurityUtil.requireCurrentUserId(authentication), SecurityUtil.isAdmin(authentication), scope);
+        return ResponseEntity.ok(new ApiMessageResponse(deleteMessageResponse(scope)));
+    }
+
+    private String deleteMessageResponse(String scope) {
+        return "everyone".equalsIgnoreCase(scope)
+            ? "Messages deleted for everyone"
+            : "Messages deleted for you";
     }
 }

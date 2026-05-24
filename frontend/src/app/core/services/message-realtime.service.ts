@@ -127,7 +127,8 @@ export class MessageRealtimeService implements OnDestroy {
       isRead: this.toBoolean(message.isRead ?? message.is_read ?? message.read),
       createdAt: String(message.createdAt ?? message.created_at ?? new Date().toISOString()),
       sharedPostId: message.sharedPostId ?? message.shared_post_id,
-      sharedPost: message.sharedPost ?? null
+      sharedPost: message.sharedPost ?? null,
+      canDeleteForEveryone: this.toBoolean(message.canDeleteForEveryone ?? message.can_delete_for_everyone)
     };
   }
 

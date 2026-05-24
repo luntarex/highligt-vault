@@ -13,4 +13,5 @@ public class MessageResponse {
     private LocalDateTime createdAt;
     private Long sharedPostId;
     private PostFeedResponse sharedPost;
+    private Boolean canDeleteForEveryone;
 }
