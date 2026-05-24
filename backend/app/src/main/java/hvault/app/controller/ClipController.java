@@ -47,12 +47,12 @@ public class ClipController {
      */
     @GetMapping
     public ResponseEntity<?> getAllClips(@RequestParam(required = false) Long uploaderId, Authentication authentication) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        boolean admin = SecurityUtil.isAdmin(authentication);
         if (uploaderId != null) {
-            Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
-            Long targetUserId = SecurityUtil.isAdmin(authentication) ? uploaderId : currentUserId;
-            return ResponseEntity.ok(clipService.getClipsByUserId(targetUserId));
+            return ResponseEntity.ok(clipService.getClipsByUserId(uploaderId, currentUserId, admin));
         }
-        return ResponseEntity.ok(clipService.getAllClips());
+        return ResponseEntity.ok(admin ? clipService.getAllClips() : clipService.getPublicClips());
     }
 
     /**
@@ -60,8 +60,12 @@ public class ClipController {
      * Get a single clip by ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getClipById(@PathVariable Long id) {
-        ClipResponse clip = clipService.getClipById(id);
+    public ResponseEntity<?> getClipById(@PathVariable Long id, Authentication authentication) {
+        ClipResponse clip = clipService.getClipById(
+            id,
+            SecurityUtil.requireCurrentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
         if (clip != null) {
             return ResponseEntity.ok(clip);
         }

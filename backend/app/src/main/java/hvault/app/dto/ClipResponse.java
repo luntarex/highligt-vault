@@ -1,5 +1,6 @@
 package hvault.app.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import hvault.app.enums.VisibilityStatus;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClipResponse {
     private Long id;
     private String title;

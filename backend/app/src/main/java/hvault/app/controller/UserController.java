@@ -29,8 +29,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        UserProfileResponse user = userService.getUserById(id);
+    public ResponseEntity<?> getUserById(@PathVariable Long id, Authentication authentication) {
+        UserProfileResponse user = userService.getUserById(
+            id,
+            SecurityUtil.currentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
         if (user != null) {
             return ResponseEntity.ok(user);
         }
