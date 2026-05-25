@@ -2,13 +2,12 @@ package hvault.app.dto;
 
 import hvault.app.enums.ReportReason;
 import hvault.app.enums.ReportTargetType;
+import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class CreateReportRequest {
-    private Long reporterId;
-
     @NotNull
     private ReportTargetType targetType;
 
@@ -18,5 +17,6 @@ public class CreateReportRequest {
     @NotNull
     private ReportReason reason;
 
+    @Size(max = 1000)
     private String details;
 }

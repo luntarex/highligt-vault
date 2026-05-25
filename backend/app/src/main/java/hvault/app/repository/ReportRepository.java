@@ -14,6 +14,22 @@ import org.springframework.transaction.annotation.Transactional;
 public interface ReportRepository extends JpaRepository<ContentReport, Long> {
 
     @Query(value = """
+        SELECT COUNT(*)
+        FROM content_reports
+        WHERE reporter_id = :reporterId
+          AND target_type = :targetType
+          AND target_id = :targetId
+          AND status IN ('OPEN', 'IN_REVIEW')
+        """, nativeQuery = true)
+    int countOpenByReporterAndTarget(@Param("reporterId") Long reporterId,
+                                      @Param("targetType") String targetType,
+                                      @Param("targetId") Long targetId);
+
+    default boolean hasOpenReport(Long reporterId, String targetType, Long targetId) {
+        return countOpenByReporterAndTarget(reporterId, targetType, targetId) > 0;
+    }
+
+    @Query(value = """
         SELECT id, reporter_id AS reporterId, target_type AS targetType, target_id AS targetId,
                reason, details, status, created_at AS createdAt,
                reviewed_by AS reviewedBy, reviewed_at AS reviewedAt, resolution
@@ -43,10 +59,10 @@ public interface ReportRepository extends JpaRepository<ContentReport, Long> {
         SET status = :status, reviewed_by = :reviewerId, reviewed_at = CURRENT_TIMESTAMP, resolution = :resolution
         WHERE id = :reportId
         """, nativeQuery = true)
-    void updateReportResolution(@Param("reportId") Long reportId, @Param("reviewerId") Long reviewerId,
-                                @Param("resolution") String resolution, @Param("status") String status);
+    int updateReportResolution(@Param("reportId") Long reportId, @Param("reviewerId") Long reviewerId,
+                               @Param("resolution") String resolution, @Param("status") String status);
 
-    default void resolveReport(Long reportId, Long reviewerId, String resolution, boolean dismissed) {
-        updateReportResolution(reportId, reviewerId, resolution, dismissed ? "DISMISSED" : "RESOLVED");
+    default int resolveReport(Long reportId, Long reviewerId, String resolution, boolean dismissed) {
+        return updateReportResolution(reportId, reviewerId, resolution, dismissed ? "DISMISSED" : "RESOLVED");
     }
 }

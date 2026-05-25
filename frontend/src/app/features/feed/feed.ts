@@ -13,12 +13,13 @@ import { CommonModule } from '@angular/common';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 import { ClipPickerModal } from '../../shared/clip-picker-modal/clip-picker-modal';
 import { Clip } from '../../core/models/clip';
+import { ReportButtonComponent } from '../../shared/report-button/report-button';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;

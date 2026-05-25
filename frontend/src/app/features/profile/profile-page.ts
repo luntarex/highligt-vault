@@ -12,11 +12,12 @@ import { CommentService } from '../../core/services/comment.service';
 import { ExplorePost } from '../../core/models/explore-post';
 import { Comment } from '../../core/models/comment';
 import { ActivatedRoute, RouterModule, RouterLink, Router } from '@angular/router';
+import { ReportButtonComponent } from '../../shared/report-button/report-button';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink, FormsModule],
+  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink, FormsModule, ReportButtonComponent],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
@@ -50,7 +51,7 @@ export class ProfilePage implements OnInit {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private authService: AuthService,
+    public authService: AuthService,
     private exploreService: ExploreService,
     private commentService: CommentService
   ) { }

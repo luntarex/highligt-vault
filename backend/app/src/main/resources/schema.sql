@@ -246,3 +246,5 @@ CREATE INDEX idx_favorites_clip ON user_favorites(clip_id);
 
 CREATE INDEX idx_follows_followed ON follows(followed_id, follower_id);
 CREATE INDEX idx_moderation_results_target_created ON moderation_results(target_type, target_id, created_at);
+CREATE INDEX idx_content_reports_open_target ON content_reports(status, target_type, target_id, created_at);
+CREATE INDEX idx_content_reports_reporter_target ON content_reports(reporter_id, target_type, target_id, status);

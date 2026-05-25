@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { ReportResponse } from './report.service';
 
 export interface ModerationQueueItem {
   clipId: number;
@@ -33,6 +34,11 @@ export interface ModerationDecisionRequest {
   reason: string;
 }
 
+export interface ResolveReportRequest {
+  resolution?: string;
+  dismissed?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -54,6 +60,18 @@ export class ModerationService {
 
   decideClip(clipId: number, request: ModerationDecisionRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/clips/${clipId}/decision`, request);
+  }
+
+  getReports(): Observable<ReportResponse[]> {
+    return this.http.get<ReportResponse[]>(`${this.apiUrl}/reports`).pipe(timeout(10000));
+  }
+
+  resolveReport(reportId: number, request: ResolveReportRequest): Observable<any> {
+    const params = new HttpParams()
+      .set('resolution', request.resolution || '')
+      .set('dismissed', String(request.dismissed ?? false));
+
+    return this.http.post(`${this.apiUrl}/reports/${reportId}/resolve`, null, { params });
   }
 }
 

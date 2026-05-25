@@ -47,6 +47,14 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               Message
             </button>
+            <app-report-button
+              *ngIf="user.id"
+              [targetType]="'USER'"
+              [targetId]="user.id"
+              targetLabel="user"
+              label="Report"
+              [compact]="true">
+            </app-report-button>
           </div>
         </div>
       </aside>
@@ -187,6 +195,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             <span>{{activePost.comments}}</span>
           </button>
+          <app-report-button
+            *ngIf="activePost.author.id !== authService.getCurrentUserId()"
+            [targetType]="'POST'"
+            [targetId]="activePost.id"
+            targetLabel="post"
+            label="Report"
+            [compact]="true">
+          </app-report-button>
         </div>
 
         <!-- Comments Section -->
@@ -206,6 +222,14 @@
                   </p>
                   <div class="comment-actions">
                     <button class="reply-btn" (click)="setReplyTo(comment)">Reply</button>
+                    <app-report-button
+                      *ngIf="comment.userId !== authService.getCurrentUserId()"
+                      [targetType]="'COMMENT'"
+                      [targetId]="comment.id"
+                      targetLabel="comment"
+                      label="Report"
+                      [compact]="true">
+                    </app-report-button>
                     <button *ngIf="canEditComment(comment)" class="delete-btn" (click)="deleteComment(comment)">Delete</button>
                   </div>
                 </div>

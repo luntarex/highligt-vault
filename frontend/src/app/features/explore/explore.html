@@ -84,6 +84,9 @@
                   <span class="comment-time">{{ comment.timeAgo }}</span>
                   @if (canEditComment(comment)) {
                     <div class="comment-actions">
+                      @if (comment.userId !== authService.getCurrentUserId()) {
+                        <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                      }
                       <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(comment)" title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -105,6 +108,7 @@
                     </div>
                   } @else {
                     <div class="comment-actions">
+                      <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
                       <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" title="Reply">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <polyline points="9 17 4 12 9 7"></polyline>
@@ -149,6 +153,9 @@
                         <span class="comment-time">{{ reply.timeAgo }}</span>
                         @if (canEditComment(reply)) {
                           <div class="comment-actions">
+                            @if (reply.userId !== authService.getCurrentUserId()) {
+                              <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                            }
                             <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(reply)" title="Edit">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -170,6 +177,7 @@
                           </div>
                         } @else {
                           <div class="comment-actions">
+                            <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
                             <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" title="Reply">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="9 17 4 12 9 7"></polyline>

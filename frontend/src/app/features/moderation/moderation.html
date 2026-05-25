@@ -147,6 +147,64 @@
         </div>
       </div>
     </section>
+
+    <aside class="reports-list">
+      <div class="reports-header">
+        <div>
+          <span>Open Reports</span>
+          <small>{{ reports.length }} pending</small>
+        </div>
+        <button class="refresh-btn" [disabled]="reportsLoading" (click)="loadReports()">
+          {{ reportsLoading ? 'Loading...' : 'Refresh' }}
+        </button>
+      </div>
+
+      <div class="report-items" *ngIf="!reportsLoading; else reportsLoadingState">
+        <article class="report-card" *ngFor="let report of reports">
+          <div class="report-top">
+            <span class="report-type">{{ formatReportText(report.targetType) }} #{{ report.targetId }}</span>
+            <span class="report-reason">{{ formatReportText(report.reason) }}</span>
+          </div>
+          <p class="report-meta">
+            Reported by {{ report.reporterUsername || ('User #' + report.reporterId) }} - {{ formatDate(report.createdAt) }}
+          </p>
+          <p class="report-details">{{ report.details || 'No extra details were provided.' }}</p>
+
+          <a *ngIf="reportTargetRoute(report) as route" [routerLink]="route" class="target-link">
+            Open target
+          </a>
+
+          <textarea
+            [(ngModel)]="reportResolutionById[report.id]"
+            rows="2"
+            placeholder="Resolution note..."></textarea>
+
+          <div class="report-actions">
+            <button
+              class="resolve-report-btn"
+              [disabled]="isResolvingReportId === report.id"
+              (click)="resolveReport(report, false)">
+              Resolve
+            </button>
+            <button
+              class="dismiss-report-btn"
+              [disabled]="isResolvingReportId === report.id"
+              (click)="resolveReport(report, true)">
+              Dismiss
+            </button>
+          </div>
+        </article>
+
+        <div class="empty-card report-empty" *ngIf="reports.length === 0">
+          <h3>No open reports</h3>
+          <p>User reports will appear here.</p>
+        </div>
+      </div>
+
+      <ng-template #reportsLoadingState>
+        <div class="loading-card report-loading">Loading reports...</div>
+      </ng-template>
+    </aside>
   </div>
 </div>
 

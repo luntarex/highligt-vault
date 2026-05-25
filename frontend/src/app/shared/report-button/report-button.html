@@ -1,0 +1,42 @@
+<button
+  type="button"
+  class="report-trigger"
+  [class.compact]="compact"
+  (click)="open($event)">
+  {{ label }}
+</button>
+
+<div class="report-overlay" *ngIf="isOpen" (click)="close($event)">
+  <div class="report-modal" (click)="$event.stopPropagation()">
+    <div class="report-header">
+      <div>
+        <span>Report {{ targetLabel }}</span>
+        <h3>What is wrong here?</h3>
+      </div>
+      <button type="button" class="report-close" (click)="close($event)">x</button>
+    </div>
+
+    <label class="report-field">
+      <span>Reason</span>
+      <select [(ngModel)]="reason">
+        <option *ngFor="let option of reasons" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
+
+    <label class="report-field">
+      <span>Details optional</span>
+      <textarea
+        [(ngModel)]="details"
+        maxlength="1000"
+        rows="4"
+        placeholder="Add context for moderators..."></textarea>
+    </label>
+
+    <div class="report-footer">
+      <button type="button" class="cancel-report" (click)="close($event)">Cancel</button>
+      <button type="button" class="submit-report" [disabled]="isSubmitting" (click)="submit($event)">
+        {{ isSubmitting ? 'Sending...' : 'Submit report' }}
+      </button>
+    </div>
+  </div>
+</div>

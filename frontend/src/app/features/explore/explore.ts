@@ -9,12 +9,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { CommonModule } from '@angular/common';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
+import { ReportButtonComponent } from '../../shared/report-button/report-button';
 
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.html',
   styleUrls: ['./explore.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ReportButtonComponent]
 })
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
