@@ -254,6 +254,27 @@
   padding: 10px;
 }
 
+.report-target-missing {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+  border: 1px dashed rgba(248, 113, 113, 0.32);
+  border-radius: 12px;
+  background: rgba(248, 113, 113, 0.07);
+  color: #fecaca;
+  padding: 11px 12px;
+}
+
+.report-target-missing strong {
+  font-size: 12px;
+}
+
+.report-target-missing span {
+  color: hsl(0, 0%, 68%);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .report-video-wrap {
   width: 100%;
   aspect-ratio: 16 / 9;
