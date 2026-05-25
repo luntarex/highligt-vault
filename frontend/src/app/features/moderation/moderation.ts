@@ -3,8 +3,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { Clip } from '../../core/models/clip';
+import { ExplorePost } from '../../core/models/explore-post';
+import { ClipService } from '../../core/services/clip.service';
+import { ExploreService } from '../../core/services/explore.service';
 import { ModerationQueueItem, ModerationService } from '../../core/services/moderation.service';
-import { ReportResponse } from '../../core/services/report.service';
+import { ReportedClipPreview, ReportResponse } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 
@@ -38,6 +42,8 @@ export class Moderation implements OnInit {
 
   constructor(
     private moderationService: ModerationService,
+    private clipService: ClipService,
+    private exploreService: ExploreService,
     private authService: AuthService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
@@ -85,6 +91,7 @@ export class Moderation implements OnInit {
       next: (reports) => {
         this.reports = reports || [];
         this.reportsLoading = false;
+        this.hydrateMissingReportTargets();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -193,6 +200,83 @@ export class Moderation implements OnInit {
       : `Report #${report.id}: ${this.formatReportText(report.reason)}`;
     this.resetReviewPlayer();
     this.cdr.detectChanges();
+  }
+
+  private hydrateMissingReportTargets(): void {
+    this.reports
+      .filter(report => !report.targetClip && report.targetType !== 'USER')
+      .forEach(report => this.hydrateReportTarget(report));
+  }
+
+  private hydrateReportTarget(report: ReportResponse): void {
+    if (report.targetType === 'CLIP') {
+      this.clipService.getClip(report.targetId).subscribe({
+        next: (clip) => {
+          this.patchReport(report.id, { targetClip: this.clipToReportPreview(clip) });
+          this.hydratePostIdFromClip(report, clip.id);
+        },
+        error: () => this.patchReport(report.id, { targetClip: undefined })
+      });
+      return;
+    }
+
+    if (report.targetType === 'POST') {
+      this.exploreService.getPostById(String(report.targetId)).subscribe({
+        next: (post) => this.patchReport(report.id, {
+          targetPostId: Number(post.id),
+          targetClip: this.postToReportPreview(post)
+        }),
+        error: () => this.patchReport(report.id, { targetClip: undefined })
+      });
+    }
+  }
+
+  private hydratePostIdFromClip(report: ReportResponse, clipId: number): void {
+    this.exploreService.getPostByClipId(clipId).subscribe({
+      next: (post) => this.patchReport(report.id, { targetPostId: Number(post.id) || undefined }),
+      error: () => undefined
+    });
+  }
+
+  private patchReport(reportId: number, patch: Partial<ReportResponse>): void {
+    this.reports = this.reports.map(report =>
+      report.id === reportId ? { ...report, ...patch } : report
+    );
+    this.cdr.detectChanges();
+  }
+
+  private clipToReportPreview(clip: Clip): ReportedClipPreview {
+    return {
+      clipId: clip.id,
+      title: clip.title,
+      videoUrl: clip.url,
+      thumbnailUrl: clip.thumbnailUrl,
+      uploaderId: clip.uploaderId,
+      uploaderUsername: `User #${clip.uploaderId}`,
+      moderationStatus: clip.moderationStatus || 'N/A',
+      moderationScore: clip.moderationScore || 0,
+      moderationReason: clip.moderationReason || '',
+      moderationCategory: 'N/A',
+      visibilityStatus: clip.visibilityStatus || 'N/A',
+      createdAt: String(clip.dateCreated || '')
+    };
+  }
+
+  private postToReportPreview(post: ExplorePost): ReportedClipPreview {
+    return {
+      clipId: Number(post.clipId || 0),
+      title: post.title,
+      videoUrl: post.videoUrl,
+      thumbnailUrl: '',
+      uploaderId: Number(post.author.id),
+      uploaderUsername: post.author.username,
+      moderationStatus: 'PUBLIC_POST',
+      moderationScore: 0,
+      moderationReason: '',
+      moderationCategory: post.game || 'N/A',
+      visibilityStatus: 'PUBLIC',
+      createdAt: post.createdAt || ''
+    };
   }
 
   toggleReviewPlay(video: HTMLVideoElement): void {

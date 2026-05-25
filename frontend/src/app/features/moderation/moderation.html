@@ -242,6 +242,13 @@
             </a>
           </div>
 
+          <div class="report-target-missing" *ngIf="!report.targetClip && report.targetType !== 'USER'">
+            <strong>Target preview is loading or unavailable.</strong>
+            <span>
+              The report is still actionable, but this target is not in the AI queue right now.
+            </span>
+          </div>
+
           <a *ngIf="reportTargetRoute(report) as route" [routerLink]="route" class="target-link">
             Open target
           </a>
