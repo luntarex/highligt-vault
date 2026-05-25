@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ModerationQueueItem, ModerationService } from '../../core/services/moderation.service';
+import { ReportResponse } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 
@@ -16,14 +17,18 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
 })
 export class Moderation implements OnInit {
   queue: ModerationQueueItem[] = [];
+  reports: ReportResponse[] = [];
   selectedClip: ModerationQueueItem | null = null;
   decisionReason = '';
   isLoading = false;
   isRefreshing = false;
+  reportsLoading = false;
   isSubmitting = false;
+  isResolvingReportId: number | null = null;
   reviewCurrentTime = 0;
   reviewDuration = 0;
   isReviewPlaying = false;
+  reportResolutionById: Record<number, string> = {};
   statusFilter = '';
   minScoreFilter: number | null = null;
   categoryFilter = '';
@@ -40,6 +45,7 @@ export class Moderation implements OnInit {
 
   ngOnInit(): void {
     this.loadQueue();
+    this.loadReports();
   }
 
   loadQueue(): void {
@@ -68,6 +74,44 @@ export class Moderation implements OnInit {
         this.isLoading = false;
         this.isRefreshing = false;
         this.toast.error(getSafeErrorMessage(err, 'Could not refresh moderation queue.'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadReports(): void {
+    this.reportsLoading = this.reports.length === 0;
+    this.moderationService.getReports().subscribe({
+      next: (reports) => {
+        this.reports = reports || [];
+        this.reportsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.reportsLoading = false;
+        this.toast.error(getSafeErrorMessage(err, 'Could not load content reports.'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  resolveReport(report: ReportResponse, dismissed = false): void {
+    if (this.isResolvingReportId) return;
+
+    const resolution = (this.reportResolutionById[report.id] || '').trim()
+      || (dismissed ? 'Dismissed by moderator.' : 'Resolved by moderator.');
+    this.isResolvingReportId = report.id;
+    this.moderationService.resolveReport(report.id, { resolution, dismissed }).subscribe({
+      next: () => {
+        this.reports = this.reports.filter(item => item.id !== report.id);
+        delete this.reportResolutionById[report.id];
+        this.isResolvingReportId = null;
+        this.toast.success(dismissed ? 'Report dismissed.' : 'Report resolved.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isResolvingReportId = null;
+        this.toast.error(getSafeErrorMessage(err, 'Could not resolve report.'));
         this.cdr.detectChanges();
       }
     });
@@ -123,6 +167,20 @@ export class Moderation implements OnInit {
   formatDate(value: string): string {
     if (!value) return '';
     return new Date(value).toLocaleDateString();
+  }
+
+  formatReportText(value: string | null | undefined): string {
+    if (!value) return 'Unknown';
+    return value
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  reportTargetRoute(report: ReportResponse): Array<string | number> | null {
+    if (report.targetType === 'POST') return ['/post', report.targetId];
+    if (report.targetType === 'USER') return ['/profile', report.targetId];
+    return null;
   }
 
   toggleReviewPlay(video: HTMLVideoElement): void {

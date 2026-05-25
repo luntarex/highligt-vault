@@ -69,4 +69,20 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         archiveViolation(id);
         return deleteComment(id);
     }
+
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM comments cm
+        JOIN posts p ON cm.post_id = p.id
+        JOIN clips c ON p.clip_id = c.id
+        WHERE cm.id = :commentId
+          AND (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        """, nativeQuery = true)
+    int countPubliclyVisibleComment(@Param("commentId") Long commentId);
+
+    default boolean isPubliclyVisibleComment(Long commentId) {
+        return countPubliclyVisibleComment(commentId) > 0;
+    }
 }

@@ -237,6 +237,16 @@
       </div>
     }
     </div>
+
+    @if (!canEdit()) {
+      <app-report-button
+        [targetType]="reportTargetType()"
+        [targetId]="reportTargetId()"
+        [targetLabel]="reportTargetLabel()"
+        label="Report"
+        [compact]="true">
+      </app-report-button>
+    }
   </div>
   }
 

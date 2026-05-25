@@ -89,7 +89,6 @@ public class ModerationController {
     @PostMapping("/reports/{id}/resolve")
     public ResponseEntity<?> resolveReport(
         @PathVariable Long id,
-        @RequestParam(required = false) Long reviewerId,
         @RequestParam(required = false, defaultValue = "") String resolution,
         @RequestParam(required = false, defaultValue = "false") boolean dismissed,
         Authentication authentication

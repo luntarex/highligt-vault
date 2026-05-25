@@ -8,11 +8,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ExploreService } from '../../core/services/explore.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ReportButtonComponent } from '../../shared/report-button/report-button';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ReportButtonComponent],
   templateUrl: './post-detail.html',
   styleUrls: ['./post-detail.css']
 })
@@ -32,7 +33,7 @@ export class PostDetail implements OnInit, OnDestroy {
     private router: Router,
     private exploreService: ExploreService,
     private commentService: CommentService,
-    private authService: AuthService,
+    public authService: AuthService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {}

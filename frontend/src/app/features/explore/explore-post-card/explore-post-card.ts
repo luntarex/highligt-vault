@@ -8,12 +8,14 @@ import { ExploreService } from '../../../core/services/explore.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { MessageService } from '../../../core/services/message.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ReportTargetType } from '../../../core/services/report.service';
+import { ReportButtonComponent } from '../../../shared/report-button/report-button';
 
 @Component({
   selector: 'app-explore-post-card',
   templateUrl: './explore-post-card.html',
   styleUrls: ['./explore-post-card.css'],
-  imports: [RouterLink, NgClass, FormsModule]
+  imports: [RouterLink, NgClass, FormsModule, ReportButtonComponent]
 })
 export class ExplorePostCard {
   @Input() post!: ExplorePost;
@@ -207,6 +209,18 @@ export class ExplorePostCard {
 
   onOpenComments() {
     this.openCommentsEvent.emit(this.post);
+  }
+
+  reportTargetType(): ReportTargetType {
+    return this.post.clipId ? 'CLIP' : 'POST';
+  }
+
+  reportTargetId(): number {
+    return Number(this.post.clipId || this.post.id);
+  }
+
+  reportTargetLabel(): string {
+    return this.post.clipId ? 'clip' : 'post';
   }
 
   toggleSharePanel(event: MouseEvent) {

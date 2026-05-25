@@ -1,0 +1,145 @@
+:host {
+  display: inline-flex;
+}
+
+.report-trigger {
+  border: 1px solid rgba(248, 113, 113, 0.32);
+  background: rgba(248, 113, 113, 0.08);
+  color: #fecaca;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.report-trigger.compact {
+  padding: 5px 9px;
+  font-size: 0.72rem;
+}
+
+.report-trigger:hover {
+  background: rgba(248, 113, 113, 0.16);
+  border-color: rgba(248, 113, 113, 0.55);
+  transform: translateY(-1px);
+}
+
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.64);
+  backdrop-filter: blur(10px);
+}
+
+.report-modal {
+  width: min(440px, 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  background: linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%));
+  color: white;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  padding: 20px;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.report-header span {
+  display: block;
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-header h3 {
+  margin: 4px 0 0;
+  font-size: 1.2rem;
+}
+
+.report-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  cursor: pointer;
+}
+
+.report-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.report-field span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.report-field select,
+.report-field textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  font: inherit;
+  padding: 11px 12px;
+  outline: none;
+}
+
+.report-field textarea {
+  resize: vertical;
+}
+
+.report-field select:focus,
+.report-field textarea:focus {
+  border-color: rgba(248, 113, 113, 0.62);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+}
+
+.report-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cancel-report,
+.submit-report {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.cancel-report {
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submit-report {
+  color: #190707;
+  background: #fca5a5;
+}
+
+.submit-report:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
