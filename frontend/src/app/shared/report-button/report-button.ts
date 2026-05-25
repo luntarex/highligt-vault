@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ReportReason, ReportService, ReportTargetType } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
+import { CustomDropdownComponent } from '../custom-dropdown/custom-dropdown';
 
 @Component({
   selector: 'app-report-button',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomDropdownComponent],
   templateUrl: './report-button.html',
   styleUrl: './report-button.css'
 })
@@ -34,6 +35,7 @@ export class ReportButtonComponent {
     { value: 'COPYRIGHT', label: 'Copyright issue' },
     { value: 'OTHER', label: 'Other' }
   ];
+  readonly reasonOptions = this.reasons.map(reason => reason.label);
 
   constructor(
     private reportService: ReportService,
@@ -82,6 +84,17 @@ export class ReportButtonComponent {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  selectedReasonLabel(): string {
+    return this.reasons.find(option => option.value === this.reason)?.label || 'Select a reason';
+  }
+
+  onReasonLabelChange(label: string): void {
+    const selectedReason = this.reasons.find(option => option.label === label);
+    if (selectedReason) {
+      this.reason = selectedReason.value;
+    }
   }
 
   private normalizedTargetId(): number | null {

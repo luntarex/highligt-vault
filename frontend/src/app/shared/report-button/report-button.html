@@ -2,8 +2,13 @@
   type="button"
   class="report-trigger"
   [class.compact]="compact"
+  [attr.aria-label]="label + ' ' + targetLabel"
+  [attr.title]="label + ' ' + targetLabel"
   (click)="open($event)">
-  {{ label }}
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 21V5.5c0-.83.67-1.5 1.5-1.5h6.14c.38 0 .74.14 1.02.4l.76.7c.28.26.64.4 1.02.4H20v10h-5.56c-.38 0-.74-.14-1.02-.4l-.76-.7c-.28-.26-.64-.4-1.02-.4H6v7H4Z"></path>
+  </svg>
+  <span class="sr-only">{{ label }}</span>
 </button>
 
 <div class="report-overlay" *ngIf="isOpen" (click)="close($event)">
@@ -16,12 +21,15 @@
       <button type="button" class="report-close" (click)="close($event)">x</button>
     </div>
 
-    <label class="report-field">
+    <div class="report-field">
       <span>Reason</span>
-      <select [(ngModel)]="reason">
-        <option *ngFor="let option of reasons" [value]="option.value">{{ option.label }}</option>
-      </select>
-    </label>
+      <app-custom-dropdown
+        [label]="'Select a reason'"
+        [options]="reasonOptions"
+        [selectedOption]="selectedReasonLabel()"
+        (selectedOptionChange)="onReasonLabelChange($event)">
+      </app-custom-dropdown>
+    </div>
 
     <label class="report-field">
       <span>Details optional</span>
