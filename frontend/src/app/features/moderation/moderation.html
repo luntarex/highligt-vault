@@ -191,7 +191,7 @@
 
             <div class="report-clip-header">
               <div>
-                <span class="label">Reported clip</span>
+                <span class="label">{{ report.targetType === 'COMMENT' ? 'Reported post' : 'Reported clip' }}</span>
                 <a
                   *ngIf="report.targetPostId; else plainClipTitle"
                   [routerLink]="['/post', report.targetPostId]"
@@ -206,7 +206,24 @@
               <span class="status-pill">{{ clip.visibilityStatus || 'N/A' }}</span>
             </div>
 
-            <div class="report-detail-grid">
+            <div class="report-comment-preview" *ngIf="report.targetType === 'COMMENT'">
+              <span class="label">Reported comment</span>
+              <div class="reported-comment-card" *ngIf="report.targetComment as comment; else commentLoading">
+                <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
+                <div>
+                  <div class="reported-comment-meta">
+                    <strong>{{ comment.username || ('User #' + comment.userId) }}</strong>
+                    <small *ngIf="comment.createdAt">{{ formatDate(comment.createdAt) }}</small>
+                  </div>
+                  <p>{{ comment.content }}</p>
+                </div>
+              </div>
+              <ng-template #commentLoading>
+                <p class="reported-comment-missing">The reported comment is loading or no longer available.</p>
+              </ng-template>
+            </div>
+
+            <div class="report-detail-grid" *ngIf="report.targetType !== 'COMMENT'">
               <div>
                 <span class="label">Status</span>
                 <strong>{{ clip.moderationStatus || 'N/A' }}</strong>
@@ -225,12 +242,12 @@
               </div>
             </div>
 
-            <div class="report-ai-reason">
+            <div class="report-ai-reason" *ngIf="report.targetType !== 'COMMENT'">
               <span class="label">AI reason</span>
               <p>{{ clip.moderationReason || 'No AI reason was provided.' }}</p>
             </div>
 
-            <button type="button" class="review-target-btn" (click)="selectReportClip(report)">
+            <button type="button" class="review-target-btn" *ngIf="report.targetType !== 'COMMENT'" (click)="selectReportClip(report)">
               Review in main panel
             </button>
 
