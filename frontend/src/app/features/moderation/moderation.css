@@ -244,6 +244,163 @@
   margin-top: 8px;
 }
 
+.report-clip-preview {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 10px;
+}
+
+.report-video-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: hsl(0, 0%, 8%);
+  position: relative;
+}
+
+.report-video-wrap video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.report-video-open {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.58);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 7px 10px;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.report-video-open:hover {
+  border-color: rgba(168, 85, 247, 0.72);
+  background: rgba(168, 85, 247, 0.5);
+}
+
+.report-clip-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.report-clip-header div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.report-clip-header strong {
+  overflow: hidden;
+  color: white;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-clip-title {
+  overflow: hidden;
+  color: white;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-clip-title:hover {
+  color: #d8b4fe;
+  text-decoration: underline;
+}
+
+.report-clip-header small {
+  color: hsl(0, 0%, 62%);
+  font-size: 11px;
+}
+
+.report-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.report-detail-grid div,
+.report-ai-reason {
+  min-width: 0;
+  border: 1px solid hsl(0, 0%, 20%);
+  border-radius: 11px;
+  background: hsl(0, 0%, 12%);
+  padding: 9px 10px;
+}
+
+.report-detail-grid strong {
+  display: block;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-ai-reason p {
+  max-height: 76px;
+  margin: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  color: hsl(0, 0%, 72%);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.review-target-btn {
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.14);
+  color: #d8b4fe;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 9px 10px;
+  transition: all 0.2s ease;
+}
+
+.open-post-btn {
+  display: flex;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 9px 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.review-target-btn:hover {
+  background: rgba(168, 85, 247, 0.24);
+  color: white;
+}
+
+.open-post-btn:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.18);
+  color: #d8b4fe;
+}
+
 .target-link {
   display: inline-flex;
   margin-top: 10px;

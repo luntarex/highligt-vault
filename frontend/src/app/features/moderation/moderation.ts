@@ -178,9 +178,21 @@ export class Moderation implements OnInit {
   }
 
   reportTargetRoute(report: ReportResponse): Array<string | number> | null {
+    if (report.targetPostId) return ['/post', report.targetPostId];
     if (report.targetType === 'POST') return ['/post', report.targetId];
     if (report.targetType === 'USER') return ['/profile', report.targetId];
     return null;
+  }
+
+  selectReportClip(report: ReportResponse): void {
+    if (!report.targetClip) return;
+
+    this.selectedClip = { ...report.targetClip };
+    this.decisionReason = report.details?.trim()
+      ? `Report #${report.id}: ${report.details.trim()}`
+      : `Report #${report.id}: ${this.formatReportText(report.reason)}`;
+    this.resetReviewPlayer();
+    this.cdr.detectChanges();
   }
 
   toggleReviewPlay(video: HTMLVideoElement): void {

@@ -135,6 +135,30 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         return rows.isEmpty() ? null : rows.get(0);
     }
 
+    @Query(value = """
+        SELECT c.id AS clipId, c.title, c.video_url AS videoUrl, c.thumbnail_url AS thumbnailUrl,
+               c.uploader_id AS uploaderId, u.username AS uploaderUsername,
+               c.moderation_status AS moderationStatus, c.moderation_score AS moderationScore,
+               c.moderation_reason AS moderationReason, c.visibility_status AS visibilityStatus,
+               (
+                   SELECT mr.category
+                   FROM moderation_results mr
+                   WHERE mr.target_type = 'CLIP' AND mr.target_id = c.id
+                   ORDER BY mr.created_at DESC
+                   LIMIT 1
+               ) AS moderationCategory,
+               c.created_at AS createdAt
+        FROM clips c
+        LEFT JOIN users u ON c.uploader_id = u.id
+        WHERE c.id = :clipId
+        """, nativeQuery = true)
+    List<ModerationQueueItemView> findReportClipRowsById(@Param("clipId") Long clipId);
+
+    default ModerationQueueItemView findReportClipById(Long clipId) {
+        List<ModerationQueueItemView> rows = findReportClipRowsById(clipId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
     @Query("""
         SELECT c FROM Clip c
         LEFT JOIN FETCH c.game

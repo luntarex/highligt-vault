@@ -89,6 +89,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT id FROM posts WHERE clip_id = :clipId", nativeQuery = true)
     List<Long> findPostIdsByClipId(@Param("clipId") Long clipId);
 
+    default Long getPostIdByClipId(Long clipId) {
+        List<Long> rows = findPostIdsByClipId(clipId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM comments WHERE post_id = :postId", nativeQuery = true)

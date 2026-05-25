@@ -21,4 +21,6 @@ public class ReportResponse {
     private LocalDateTime reviewedAt;
     private String resolution;
     private String reporterUsername;
+    private Long targetPostId;
+    private ModerationQueueItemResponse targetClip;
 }
