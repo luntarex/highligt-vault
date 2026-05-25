@@ -39,6 +39,30 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         JOIN users pu ON p.user_id = pu.id
         JOIN clips cl ON p.clip_id = cl.id
         LEFT JOIN games g ON cl.game_id = g.id
+        WHERE c.id = :commentId
+        """, nativeQuery = true)
+    List<CommentView> findReportCommentRowsById(@Param("commentId") Long commentId);
+
+    default CommentView findReportCommentById(Long commentId) {
+        List<CommentView> rows = findReportCommentRowsById(commentId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    @Query(value = """
+        SELECT c.id, c.content, c.created_at AS createdAt, c.user_id AS userId, c.post_id AS postId,
+               c.post_comment_id AS parentCommentId,
+               u.username, u.profile_photo_url AS profilePhoto,
+               cl.title AS postTitle, cl.thumbnail_url AS postThumbnail,
+               cl.video_url AS postVideoUrl, cl.duration AS postDuration,
+               cl.start_time AS postStartTime, cl.end_time AS postEndTime,
+               g.name AS postGameName,
+               pu.username AS postAuthorName, pu.profile_photo_url AS postAuthorPhoto, pu.id AS postAuthorId
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        JOIN posts p ON c.post_id = p.id
+        JOIN users pu ON p.user_id = pu.id
+        JOIN clips cl ON p.clip_id = cl.id
+        LEFT JOIN games g ON cl.game_id = g.id
         WHERE c.user_id = :userId
         ORDER BY c.created_at DESC
         """, nativeQuery = true)

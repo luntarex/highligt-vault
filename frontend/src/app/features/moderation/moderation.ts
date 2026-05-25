@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Clip } from '../../core/models/clip';
+import { Comment } from '../../core/models/comment';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ClipService } from '../../core/services/clip.service';
+import { CommentService } from '../../core/services/comment.service';
 import { ExploreService } from '../../core/services/explore.service';
 import { ModerationQueueItem, ModerationService } from '../../core/services/moderation.service';
-import { ReportedClipPreview, ReportResponse } from '../../core/services/report.service';
+import { ReportedClipPreview, ReportedCommentPreview, ReportResponse } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 
@@ -43,6 +45,7 @@ export class Moderation implements OnInit {
   constructor(
     private moderationService: ModerationService,
     private clipService: ClipService,
+    private commentService: CommentService,
     private exploreService: ExploreService,
     private authService: AuthService,
     private toast: ToastService,
@@ -204,7 +207,10 @@ export class Moderation implements OnInit {
 
   private hydrateMissingReportTargets(): void {
     this.reports
-      .filter(report => !report.targetClip && report.targetType !== 'USER')
+      .filter(report =>
+        report.targetType !== 'USER'
+        && (!report.targetClip || (report.targetType === 'COMMENT' && !report.targetComment))
+      )
       .forEach(report => this.hydrateReportTarget(report));
   }
 
@@ -227,6 +233,26 @@ export class Moderation implements OnInit {
           targetClip: this.postToReportPreview(post)
         }),
         error: () => this.patchReport(report.id, { targetClip: undefined })
+      });
+      return;
+    }
+
+    if (report.targetType === 'COMMENT' && report.targetPostId) {
+      if (!report.targetClip) {
+        this.exploreService.getPostById(String(report.targetPostId)).subscribe({
+          next: (post) => this.patchReport(report.id, { targetClip: this.postToReportPreview(post) }),
+          error: () => undefined
+        });
+      }
+
+      this.commentService.getCommentsByPostId(String(report.targetPostId)).subscribe({
+        next: (comments) => {
+          const targetComment = (comments || []).find(comment => comment.id === report.targetId);
+          if (targetComment) {
+            this.patchReport(report.id, { targetComment: this.commentToReportPreview(targetComment) });
+          }
+        },
+        error: () => undefined
       });
     }
   }
@@ -276,6 +302,19 @@ export class Moderation implements OnInit {
       moderationCategory: post.game || 'N/A',
       visibilityStatus: 'PUBLIC',
       createdAt: post.createdAt || ''
+    };
+  }
+
+  private commentToReportPreview(comment: Comment): ReportedCommentPreview {
+    return {
+      id: comment.id,
+      content: comment.cleanText || comment.content,
+      createdAt: '',
+      userId: comment.userId,
+      postId: Number(comment.postId),
+      parentCommentId: comment.parentCommentId,
+      username: comment.username,
+      profilePhoto: comment.profilePhoto
     };
   }
 

@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
 
+import hvault.app.dto.CommentResponse;
 import hvault.app.dto.CreateReportRequest;
 import hvault.app.dto.ModerationQueueItemResponse;
 import hvault.app.dto.ReportResponse;
@@ -21,6 +22,7 @@ import hvault.app.repository.CommentRepository;
 import hvault.app.repository.PostRepository;
 import hvault.app.repository.ReportRepository;
 import hvault.app.repository.UserRepository;
+import hvault.app.repository.projection.CommentView;
 import hvault.app.repository.projection.ModerationQueueItemView;
 import hvault.app.repository.projection.ReportView;
 
@@ -130,6 +132,7 @@ public class ReportService {
             Long targetPostId = resolveTargetPostId(response.getTargetType(), response.getTargetId());
             response.setTargetPostId(targetPostId);
             response.setTargetClip(resolveTargetClip(response.getTargetType(), response.getTargetId(), targetPostId));
+            response.setTargetComment(resolveTargetComment(response.getTargetType(), response.getTargetId()));
         }
         return response;
     }
@@ -172,6 +175,15 @@ public class ReportService {
         return clip == null ? null : toModerationQueueItemResponse(clip);
     }
 
+    private CommentResponse resolveTargetComment(ReportTargetType targetType, Long targetId) {
+        if (targetType != ReportTargetType.COMMENT || targetId == null) {
+            return null;
+        }
+
+        CommentView comment = commentRepository.findReportCommentById(targetId);
+        return comment == null ? null : toCommentResponse(comment);
+    }
+
     private ModerationQueueItemResponse toModerationQueueItemResponse(ModerationQueueItemView item) {
         ModerationQueueItemResponse response = new ModerationQueueItemResponse();
         response.setClipId(item.getClipId());
@@ -186,6 +198,29 @@ public class ReportService {
         response.setModerationCategory(item.getModerationCategory());
         response.setVisibilityStatus(parseEnum(VisibilityStatus.class, item.getVisibilityStatus()));
         response.setCreatedAt(item.getCreatedAt());
+        return response;
+    }
+
+    private CommentResponse toCommentResponse(CommentView comment) {
+        CommentResponse response = new CommentResponse();
+        response.setId(comment.getId());
+        response.setContent(comment.getContent());
+        response.setCreatedAt(comment.getCreatedAt());
+        response.setUserId(comment.getUserId());
+        response.setPostId(comment.getPostId());
+        response.setParentCommentId(comment.getParentCommentId());
+        response.setUsername(comment.getUsername());
+        response.setProfilePhoto(comment.getProfilePhoto());
+        response.setPostTitle(comment.getPostTitle());
+        response.setPostThumbnail(comment.getPostThumbnail());
+        response.setPostVideoUrl(comment.getPostVideoUrl());
+        response.setPostDuration(comment.getPostDuration());
+        response.setPostStartTime(comment.getPostStartTime());
+        response.setPostEndTime(comment.getPostEndTime());
+        response.setPostGameName(comment.getPostGameName());
+        response.setPostAuthorName(comment.getPostAuthorName());
+        response.setPostAuthorPhoto(comment.getPostAuthorPhoto());
+        response.setPostAuthorId(comment.getPostAuthorId());
         return response;
     }
 

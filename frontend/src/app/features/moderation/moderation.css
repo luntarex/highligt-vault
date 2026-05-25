@@ -360,12 +360,71 @@
 }
 
 .report-detail-grid div,
-.report-ai-reason {
+.report-ai-reason,
+.report-comment-preview {
   min-width: 0;
   border: 1px solid hsl(0, 0%, 20%);
   border-radius: 11px;
   background: hsl(0, 0%, 12%);
   padding: 9px 10px;
+}
+
+.report-comment-preview {
+  display: grid;
+  gap: 8px;
+  border-color: rgba(168, 85, 247, 0.28);
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.reported-comment-card {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.reported-comment-card img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: hsl(0, 0%, 16%);
+}
+
+.reported-comment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.reported-comment-meta strong {
+  overflow: hidden;
+  color: white;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reported-comment-meta small {
+  flex: 0 0 auto;
+  color: hsl(0, 0%, 56%);
+  font-size: 10px;
+}
+
+.reported-comment-card p,
+.reported-comment-missing {
+  margin: 4px 0 0;
+  color: hsl(0, 0%, 78%);
+  font-size: 12px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.reported-comment-missing {
+  margin-top: 0;
+  color: hsl(0, 0%, 62%);
 }
 
 .report-detail-grid strong {

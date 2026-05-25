@@ -23,4 +23,5 @@ public class ReportResponse {
     private String reporterUsername;
     private Long targetPostId;
     private ModerationQueueItemResponse targetClip;
+    private CommentResponse targetComment;
 }

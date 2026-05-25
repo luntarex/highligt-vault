@@ -37,6 +37,17 @@ export interface ReportedClipPreview {
   createdAt: string;
 }
 
+export interface ReportedCommentPreview {
+  id: number;
+  content: string;
+  createdAt: string;
+  userId: number;
+  postId: number;
+  parentCommentId?: number;
+  username: string;
+  profilePhoto?: string;
+}
+
 export interface ReportResponse {
   id: number;
   reporterId: number;
@@ -52,6 +63,7 @@ export interface ReportResponse {
   reporterUsername?: string;
   targetPostId?: number;
   targetClip?: ReportedClipPreview;
+  targetComment?: ReportedCommentPreview;
 }
 
 @Injectable({
