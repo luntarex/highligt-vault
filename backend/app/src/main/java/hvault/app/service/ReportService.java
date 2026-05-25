@@ -7,31 +7,40 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 
 import hvault.app.dto.CreateReportRequest;
+import hvault.app.dto.ModerationQueueItemResponse;
 import hvault.app.dto.ReportResponse;
 import hvault.app.entity.ContentReport;
+import hvault.app.entity.Comment;
 import hvault.app.enums.ReportReason;
 import hvault.app.enums.ReportStatus;
 import hvault.app.enums.ReportTargetType;
+import hvault.app.enums.ModerationStatus;
+import hvault.app.enums.VisibilityStatus;
+import hvault.app.repository.ClipRepository;
 import hvault.app.repository.CommentRepository;
 import hvault.app.repository.PostRepository;
 import hvault.app.repository.ReportRepository;
 import hvault.app.repository.UserRepository;
+import hvault.app.repository.projection.ModerationQueueItemView;
 import hvault.app.repository.projection.ReportView;
 
 @Service
 public class ReportService {
     private final ReportRepository reportRepository;
+    private final ClipRepository clipRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
     public ReportService(
         ReportRepository reportRepository,
+        ClipRepository clipRepository,
         PostRepository postRepository,
         CommentRepository commentRepository,
         UserRepository userRepository
     ) {
         this.reportRepository = reportRepository;
+        this.clipRepository = clipRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
@@ -55,11 +64,15 @@ public class ReportService {
     }
 
     public List<ReportResponse> getReportsByUser(Long reporterId) {
-        return reportRepository.findByReporterId(reporterId).stream().map(this::toReportResponse).toList();
+        return reportRepository.findByReporterId(reporterId).stream()
+            .map(report -> toReportResponse(report, false))
+            .toList();
     }
 
     public List<ReportResponse> getOpenReports() {
-        return reportRepository.findOpenReports().stream().map(this::toReportResponse).toList();
+        return reportRepository.findOpenReports().stream()
+            .map(report -> toReportResponse(report, true))
+            .toList();
     }
 
     public void resolveReport(Long reportId, Long reviewerId, String resolution, boolean dismissed) {
@@ -99,7 +112,7 @@ public class ReportService {
         return trimmed.length() <= 1000 ? trimmed : trimmed.substring(0, 1000);
     }
 
-    private ReportResponse toReportResponse(ReportView report) {
+    private ReportResponse toReportResponse(ReportView report, boolean includeTargetDetails) {
         ReportResponse response = new ReportResponse();
         response.setId(report.getId());
         response.setReporterId(report.getReporterId());
@@ -113,6 +126,66 @@ public class ReportService {
         response.setReviewedAt(report.getReviewedAt());
         response.setResolution(report.getResolution());
         response.setReporterUsername(report.getReporterUsername());
+        if (includeTargetDetails) {
+            Long targetPostId = resolveTargetPostId(response.getTargetType(), response.getTargetId());
+            response.setTargetPostId(targetPostId);
+            response.setTargetClip(resolveTargetClip(response.getTargetType(), response.getTargetId(), targetPostId));
+        }
+        return response;
+    }
+
+    private Long resolveTargetPostId(ReportTargetType targetType, Long targetId) {
+        if (targetType == null || targetId == null) {
+            return null;
+        }
+
+        return switch (targetType) {
+            case CLIP -> postRepository.getPostIdByClipId(targetId);
+            case POST -> targetId;
+            case COMMENT -> commentRepository.findById(targetId)
+                .map(Comment::getPostId)
+                .orElse(null);
+            case USER -> null;
+        };
+    }
+
+    private ModerationQueueItemResponse resolveTargetClip(ReportTargetType targetType, Long targetId, Long targetPostId) {
+        if (targetType == null || targetId == null) {
+            return null;
+        }
+        if (targetType == ReportTargetType.USER) {
+            return null;
+        }
+        if (targetType != ReportTargetType.CLIP && targetPostId == null) {
+            return null;
+        }
+
+        Long clipId = targetType == ReportTargetType.CLIP
+            ? targetId
+            : postRepository.getClipIdByPostId(targetPostId);
+
+        if (clipId == null) {
+            return null;
+        }
+
+        ModerationQueueItemView clip = clipRepository.findReportClipById(clipId);
+        return clip == null ? null : toModerationQueueItemResponse(clip);
+    }
+
+    private ModerationQueueItemResponse toModerationQueueItemResponse(ModerationQueueItemView item) {
+        ModerationQueueItemResponse response = new ModerationQueueItemResponse();
+        response.setClipId(item.getClipId());
+        response.setTitle(item.getTitle());
+        response.setVideoUrl(item.getVideoUrl());
+        response.setThumbnailUrl(item.getThumbnailUrl());
+        response.setUploaderId(item.getUploaderId());
+        response.setUploaderUsername(item.getUploaderUsername());
+        response.setModerationStatus(parseEnum(ModerationStatus.class, item.getModerationStatus()));
+        response.setModerationScore(item.getModerationScore());
+        response.setModerationReason(item.getModerationReason());
+        response.setModerationCategory(item.getModerationCategory());
+        response.setVisibilityStatus(parseEnum(VisibilityStatus.class, item.getVisibilityStatus()));
+        response.setCreatedAt(item.getCreatedAt());
         return response;
     }
 

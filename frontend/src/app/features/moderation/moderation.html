@@ -170,6 +170,78 @@
           </p>
           <p class="report-details">{{ report.details || 'No extra details were provided.' }}</p>
 
+          <div class="report-clip-preview" *ngIf="report.targetClip as clip">
+            <div class="report-video-wrap">
+              <video
+                [src]="clip.videoUrl"
+                [poster]="clip.thumbnailUrl"
+                muted
+                playsinline
+                preload="metadata"
+                controls>
+              </video>
+              <a
+                *ngIf="report.targetPostId"
+                [routerLink]="['/post', report.targetPostId]"
+                class="report-video-open"
+                aria-label="Open reported post">
+                Open post
+              </a>
+            </div>
+
+            <div class="report-clip-header">
+              <div>
+                <span class="label">Reported clip</span>
+                <a
+                  *ngIf="report.targetPostId; else plainClipTitle"
+                  [routerLink]="['/post', report.targetPostId]"
+                  class="report-clip-title">
+                  {{ clip.title }}
+                </a>
+                <ng-template #plainClipTitle>
+                  <strong>{{ clip.title }}</strong>
+                </ng-template>
+                <small>{{ clip.uploaderUsername || ('User #' + clip.uploaderId) }}</small>
+              </div>
+              <span class="status-pill">{{ clip.visibilityStatus || 'N/A' }}</span>
+            </div>
+
+            <div class="report-detail-grid">
+              <div>
+                <span class="label">Status</span>
+                <strong>{{ clip.moderationStatus || 'N/A' }}</strong>
+              </div>
+              <div>
+                <span class="label">Score</span>
+                <strong>{{ clip.moderationScore || 0 }}</strong>
+              </div>
+              <div>
+                <span class="label">Created</span>
+                <strong>{{ formatDate(clip.createdAt) }}</strong>
+              </div>
+              <div>
+                <span class="label">Category</span>
+                <strong>{{ clip.moderationCategory || 'N/A' }}</strong>
+              </div>
+            </div>
+
+            <div class="report-ai-reason">
+              <span class="label">AI reason</span>
+              <p>{{ clip.moderationReason || 'No AI reason was provided.' }}</p>
+            </div>
+
+            <button type="button" class="review-target-btn" (click)="selectReportClip(report)">
+              Review in main panel
+            </button>
+
+            <a
+              *ngIf="report.targetPostId"
+              [routerLink]="['/post', report.targetPostId]"
+              class="open-post-btn">
+              Open post and take action
+            </a>
+          </div>
+
           <a *ngIf="reportTargetRoute(report) as route" [routerLink]="route" class="target-link">
             Open target
           </a>

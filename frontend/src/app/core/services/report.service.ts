@@ -22,6 +22,21 @@ export interface CreateReportRequest {
   details?: string;
 }
 
+export interface ReportedClipPreview {
+  clipId: number;
+  title: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  uploaderId: number;
+  uploaderUsername: string;
+  moderationStatus: string;
+  moderationScore: number;
+  moderationReason: string;
+  moderationCategory: string;
+  visibilityStatus: string;
+  createdAt: string;
+}
+
 export interface ReportResponse {
   id: number;
   reporterId: number;
@@ -35,6 +50,8 @@ export interface ReportResponse {
   reviewedAt?: string;
   resolution?: string;
   reporterUsername?: string;
+  targetPostId?: number;
+  targetClip?: ReportedClipPreview;
 }
 
 @Injectable({
