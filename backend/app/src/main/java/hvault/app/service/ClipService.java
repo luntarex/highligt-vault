@@ -76,6 +76,7 @@ public class ClipService {
 
     public void removeFavorite(Long userId, Long clipId) {
         clipRepository.removeFavorite(userId, clipId);
+        clipRepository.removeClipFromFavoriteGroups(userId, clipId);
     }
 
     public List<ClipResponse> getAllClips() {

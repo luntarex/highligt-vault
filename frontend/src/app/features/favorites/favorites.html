@@ -4,10 +4,64 @@
        <h1 class="favorites-title">Favorites</h1>
        <p class="favorites-subtitle">Your saved highlights, all in one place.</p>
      </div>
-     <app-back-link></app-back-link>
+     <div class="header-actions">
+       <button
+         *ngIf="favoriteClips.length > 0"
+         class="group-mode-btn"
+         [class.active]="isGroupMode"
+         (click)="toggleGroupMode()">
+         {{ isGroupMode ? 'Cancel' : 'Group Clips' }}
+       </button>
+       <app-back-link></app-back-link>
+     </div>
   </header>
 
   <main class="favorites-content">
+    <div *ngIf="isGroupMode" class="selection-toolbar">
+      <span>{{ selectedCount }} selected</span>
+      <button class="btn-primary" [disabled]="selectedCount === 0" (click)="openGroupDialog()">Add to Group</button>
+    </div>
+
+    <section *ngIf="!isLoading && !selectedGroup && groups.length > 0 && !isGroupMode" class="groups-view">
+      <div class="groups-toolbar">
+        <h2>Groups</h2>
+      </div>
+
+      <div class="group-grid">
+        <div
+          class="group-card"
+          *ngFor="let group of groups"
+          [class.has-thumbnail]="!!group.thumbnailUrl"
+          role="button"
+          tabindex="0"
+          (click)="openGroup(group)"
+          (keydown.enter)="openGroup(group)">
+          <img *ngIf="group.thumbnailUrl" class="group-thumbnail" [src]="group.thumbnailUrl" alt="" loading="lazy" decoding="async">
+          <span *ngIf="group.thumbnailUrl" class="group-thumbnail-shade"></span>
+          <button class="group-delete-btn" title="Delete Group" (click)="$event.stopPropagation(); deleteGroup(group.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+          </button>
+          <span class="group-icon" *ngIf="!group.thumbnailUrl">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          </span>
+          <strong>{{ group.name }}</strong>
+          <small>{{ group.clipCount || 0 }} clips</small>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="selectedGroup" class="group-detail">
+      <div class="groups-toolbar">
+        <button class="back-group-btn" (click)="closeSelectedGroup()">Back</button>
+        <h2>{{ selectedGroup.name }}</h2>
+        <button class="danger-action" (click)="deleteGroup(selectedGroup.id)">Delete Group</button>
+      </div>
+    </section>
+
     <div *ngIf="isLoading" class="loading-state">
       <div class="spinner"></div>
       <p>Loading favorites...</p>
@@ -26,14 +80,28 @@
 
     <div *ngIf="!isLoading && favoriteClips.length > 0" class="clips-grid">
       <app-clip-card
-        *ngFor="let clip of favoriteClips"
+        *ngFor="let clip of (selectedGroup ? selectedGroupClips : favoriteClips)"
         [clip]="clip"
         mode="favorites"
+        [selectable]="isGroupMode"
+        [selected]="selectedClipIds.has(clip.id)"
+        [showRemoveFromGroup]="!!selectedGroup"
         (removeClip)="handleRemoveFavorite($event)"
-        (playClip)="openClip($event)">
+        (playClip)="openClip($event)"
+        (selectionChange)="handleSelectionChange($event)"
+        (removeFromGroup)="removeClipFromGroup($event)">
       </app-clip-card>
     </div>
   </main>
+
+  <app-group-dialog
+    *ngIf="showGroupDialog"
+    [groups]="groups"
+    [clipCount]="selectedCount"
+    (createGroup)="createGroup($event)"
+    (addToGroup)="addToGroup($event)"
+    (cancelled)="closeGroupDialog()">
+  </app-group-dialog>
 
   <app-confirm-dialog
     *ngIf="showRemoveModal"

@@ -4,17 +4,20 @@ import { CommonModule } from '@angular/common';
 import { ClipService } from '../../core/services/clip.service';
 import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
+import { ClipGroupService } from '../../core/services/clip-group.service';
 import { Clip } from '../../core/models/clip'
+import { ClipGroup } from '../../core/models/clip-group';
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
-import { RouterLink, RouterLinkActive, Router } from "@angular/router";
+import { Router } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
+import { GroupDialog } from '../../shared/group-dialog/group-dialog';
 
 
 @Component({
   selector: 'app-library',
-  imports: [CommonModule, ClipCard, CustomDropdownComponent, RouterLink, RouterLinkActive, FormsModule, ConfirmDialog, ProfileDropdown],
+  imports: [CommonModule, ClipCard, CustomDropdownComponent, FormsModule, ConfirmDialog, ProfileDropdown, GroupDialog],
   templateUrl: './library.html',
   styleUrl: './library.css',
 })
@@ -33,6 +36,12 @@ export class Library implements OnInit {
   selectedSort: string = 'Date';
   isTrashView: boolean = false;
   deletedClips: Clip[] = [];
+  libraryView: 'clips' | 'groups' | 'groupDetail' | 'selecting' = 'clips';
+  selectedClipIds = new Set<number>();
+  groups: ClipGroup[] = [];
+  selectedGroup: ClipGroup | null = null;
+  selectedGroupClips: Clip[] = [];
+  showGroupDialog = false;
 
   showDeleteModal: boolean = false;
   clipToDelete: number | null = null;
@@ -41,6 +50,7 @@ export class Library implements OnInit {
     private clipService: ClipService,
     private authService: AuthService,
     private gameService: GameService,
+    private clipGroupService: ClipGroupService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -62,6 +72,7 @@ export class Library implements OnInit {
 
 
   handleDelete(id: number) {
+    if (this.libraryView !== 'clips') return;
     const userId = this.authService.getCurrentUserId();
     this.clipService.deleteClip(id).subscribe(() => {
       this.clipService.getClips(userId).subscribe(clips => {
@@ -75,12 +86,156 @@ export class Library implements OnInit {
   }
 
   toggleTrashView() {
+    this.libraryView = 'clips';
+    this.selectedClipIds.clear();
+    this.selectedGroup = null;
+    this.selectedGroupClips = [];
     this.isTrashView = !this.isTrashView;
     if (this.isTrashView) {
       this.loadDeletedClips();
     } else {
       this.applyFilters();
     }
+  }
+
+  toggleGroupMode() {
+    if (this.isTrashView) return;
+    this.selectedClipIds.clear();
+    this.selectedGroup = null;
+    this.selectedGroupClips = [];
+
+    if (this.libraryView === 'groups' || this.libraryView === 'groupDetail' || this.libraryView === 'selecting') {
+      this.libraryView = 'clips';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.libraryView = 'groups';
+    this.loadGroups();
+  }
+
+  loadGroups(): void {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) return;
+    this.clipGroupService.getUserGroups(userId, 'LIBRARY').subscribe({
+      next: (groups) => {
+        this.groups = groups;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to load groups:', err)
+    });
+  }
+
+  openGroup(group: ClipGroup): void {
+    this.clipGroupService.getGroup(group.id).subscribe({
+      next: (groupDetail) => {
+        this.selectedGroup = groupDetail;
+        this.selectedGroupClips = groupDetail.clips || [];
+        this.libraryView = 'groupDetail';
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to load group:', err)
+    });
+  }
+
+  deleteGroup(groupId: number): void {
+    this.clipGroupService.deleteGroup(groupId).subscribe({
+      next: () => {
+        this.groups = this.groups.filter(group => group.id !== groupId);
+        if (this.selectedGroup?.id === groupId) {
+          this.selectedGroup = null;
+          this.selectedGroupClips = [];
+          this.libraryView = 'groups';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to delete group:', err)
+    });
+  }
+
+  removeClipFromGroup(clipId: number): void {
+    if (!this.selectedGroup) return;
+    const groupId = this.selectedGroup.id;
+    this.clipGroupService.removeClipFromGroup(groupId, clipId).subscribe({
+      next: () => {
+        this.selectedGroupClips = this.selectedGroupClips.filter(clip => clip.id !== clipId);
+        if (this.selectedGroup) {
+          this.selectedGroup.clipCount = Math.max((this.selectedGroup.clipCount || 1) - 1, 0);
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to remove clip from group:', err)
+    });
+  }
+
+  backToGroups(): void {
+    this.selectedGroup = null;
+    this.selectedGroupClips = [];
+    this.libraryView = 'groups';
+    this.loadGroups();
+  }
+
+  startGroupSelection(): void {
+    this.selectedClipIds.clear();
+    this.libraryView = 'selecting';
+    this.applyFilters();
+  }
+
+  handleSelectionChange(selection: { id: number; selected: boolean }): void {
+    if (selection.selected) {
+      this.selectedClipIds.add(selection.id);
+    } else {
+      this.selectedClipIds.delete(selection.id);
+    }
+    this.cdr.detectChanges();
+  }
+
+  openGroupDialog(): void {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId || this.selectedClipIds.size === 0) return;
+
+    this.clipGroupService.getUserGroups(userId, 'LIBRARY').subscribe({
+      next: (groups) => {
+        this.groups = groups;
+        this.showGroupDialog = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to load groups:', err)
+    });
+  }
+
+  createGroup(data: { name: string; description: string }): void {
+    const clipIds = Array.from(this.selectedClipIds);
+    this.clipGroupService.createGroup(data.name, data.description, clipIds, 'LIBRARY').subscribe({
+      next: () => this.closeGroupDialog(true),
+      error: (err) => console.error('Failed to create group:', err)
+    });
+  }
+
+  addToGroup(groupId: number): void {
+    const clipIds = Array.from(this.selectedClipIds);
+    this.clipGroupService.addClipsToGroup(groupId, clipIds).subscribe({
+      next: () => this.closeGroupDialog(true),
+      error: (err) => console.error('Failed to add clips to group:', err)
+    });
+  }
+
+  closeGroupDialog(resetSelection = false): void {
+    this.showGroupDialog = false;
+    if (resetSelection) {
+      this.libraryView = 'groups';
+      this.selectedClipIds.clear();
+      this.loadGroups();
+    }
+    this.cdr.detectChanges();
+  }
+
+  isSelectingGroups(): boolean {
+    return this.libraryView === 'selecting';
+  }
+
+  get selectedCount(): number {
+    return this.selectedClipIds.size;
   }
 
   loadDeletedClips() {

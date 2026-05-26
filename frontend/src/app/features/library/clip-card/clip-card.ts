@@ -12,11 +12,16 @@ import { Router } from "@angular/router";
 export class ClipCard {
   @Input() clip!: Clip;
   @Input() mode: 'library' | 'trash' | 'favorites' = 'library';
+  @Input() selectable = false;
+  @Input() selected = false;
+  @Input() showRemoveFromGroup = false;
   @Output() removeClip = new EventEmitter<number>();
   @Output() recoverClip = new EventEmitter<number>();
   @Output() hardDeleteClip = new EventEmitter<number>();
   @Output() playClip = new EventEmitter<Clip>();
   @Output() appealClip = new EventEmitter<number>();
+  @Output() selectionChange = new EventEmitter<{ id: number; selected: boolean }>();
+  @Output() removeFromGroup = new EventEmitter<number>();
 
   constructor(private router: Router) {}
 
@@ -30,7 +35,16 @@ export class ClipCard {
     this.hardDeleteClip.emit(this.clip.id);
   }
 
+  onRemoveFromGroup(event: Event) {
+    event.stopPropagation();
+    this.removeFromGroup.emit(this.clip.id);
+  }
+
   handleCardClick(event: Event) {
+    if (this.selectable && this.mode !== 'trash') {
+      this.toggleSelection(event);
+      return;
+    }
     if (this.isModerationLocked()) {
       return;
     }
@@ -41,6 +55,11 @@ export class ClipCard {
     } else if (this.mode === 'trash' && this.canRecoverFromTrash()) {
       this.recoverClip.emit(this.clip.id);
     }
+  }
+
+  toggleSelection(event: Event) {
+    event.stopPropagation();
+    this.selectionChange.emit({ id: this.clip.id, selected: !this.selected });
   }
 
   formatDuration(seconds: number): string {

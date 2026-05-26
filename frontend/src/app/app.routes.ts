@@ -19,11 +19,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'playlist/:id',
-    loadComponent: () => import('./features/playlist-view/playlist-view').then(m => m.PlaylistView),
-    canActivate: [AuthGuard]
-  },
-  {
     path: 'welcome',
     loadComponent: () => import('./features/welcome/welcome').then(m => m.Welcome)
   },
