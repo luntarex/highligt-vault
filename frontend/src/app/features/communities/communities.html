@@ -29,7 +29,7 @@
     </div>
   </section>
 
-  <section class="content-shell" *ngIf="!isLoading; else loadingState">
+  <section class="content-shell" [class.has-selection]="selectedCommunity" *ngIf="!isLoading; else loadingState">
     <div class="community-grid">
       <button class="create-card" type="button" (click)="openCreateModal()">
         <span class="plus-icon">
