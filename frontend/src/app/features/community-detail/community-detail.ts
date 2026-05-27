@@ -21,11 +21,14 @@ import { PostDetail } from '../post-detail/post-detail';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { CommentsModalComponent } from '../../shared/comments-modal/comments-modal';
+import { SharePanelComponent } from '../../shared/share-panel/share-panel';
+import { RepostOverlayComponent } from '../../shared/repost-overlay/repost-overlay';
 
 @Component({
   selector: 'app-community-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, BackLink, ExplorePostCard, PostDetail, ProfileDropdown, ReportButtonComponent, ConfirmDialog, RouterLink],
+  imports: [CommonModule, FormsModule, BackLink, ExplorePostCard, PostDetail, ProfileDropdown, ReportButtonComponent, ConfirmDialog, CommentsModalComponent, SharePanelComponent, RepostOverlayComponent, RouterLink],
   templateUrl: './community-detail.html',
   styleUrl: './community-detail.css'
 })
@@ -52,14 +55,6 @@ export class CommunityDetail implements OnInit {
   newPostText = '';
 
   activePostForComments: ExplorePost | null = null;
-  newCommentText: string = '';
-  replyingToComment: any | null = null;
-  comments: any[] = [];
-  editingCommentId: number | null = null;
-  editingCommentText: string = '';
-  showModerateModal: boolean = false;
-  commentToModerate: any | null = null;
-  tosViolationText: string = '[This comment is deleted by an admin because of a TOS violation]';
   currentUserPhotoUrl: string = localStorage.getItem('profile_photo_url') || 'assets/icons/profile-pic.svg';
 
   isCommunityOptionsOpen = false;
@@ -77,14 +72,9 @@ export class CommunityDetail implements OnInit {
 
   isRepostModalOpen = false;
   postToRepost: ExplorePost | null = null;
-  repostMode: 'SELECT' | 'QUOTE' = 'SELECT';
-  quoteText = '';
   isReposting = false;
   isRepostPanelOpen = false;
   repostPanelPosition: Record<string, string> = {};
-  quoteMediaFile: File | null = null;
-  quoteMediaPreview = '';
-  quoteIsVideo = false;
 
   selectedMediaFile: File | null = null;
   mediaPreviewUrl: string = '';
@@ -92,11 +82,6 @@ export class CommunityDetail implements OnInit {
   isDragging: boolean = false;
 
   isSharePanelOpen = false;
-  shareUrl = '';
-  shareUsers: any[] = [];
-  shareMessage = '';
-  isLoadingShareUsers = false;
-  sendingToUserId: number | null = null;
   postToShare: ExplorePost | null = null;
   selectedPostDetailId: string | null = null;
 
@@ -227,9 +212,10 @@ export class CommunityDetail implements OnInit {
   }
 
   canDeleteCommunity(): boolean {
-    if (!this.community || this.community.type === 'GAME') return false;
-    return this.authService.isAdmin()
-      || this.community.viewerRole === 'OWNER'
+    if (!this.community) return false;
+    if (this.authService.isAdmin()) return true;
+    if (this.community.type === 'GAME') return false;
+    return this.community.viewerRole === 'OWNER'
       || this.community.founderId === this.authService.getCurrentUserId();
   }
 
@@ -527,118 +513,16 @@ export class CommunityDetail implements OnInit {
     this.isSharePanelOpen = !this.isSharePanelOpen;
     if (this.isSharePanelOpen && post) {
       this.isRepostPanelOpen = false;
-      this.shareUrl = `${window.location.origin}/post/${post.id}`;
       this.postToShare = post;
-      if (this.shareUsers.length === 0) {
-        this.loadShareUsers();
-      }
     } else {
       this.postToShare = null;
     }
     this.cdr.detectChanges();
   }
 
-  private loadShareUsers() {
-    const currentUserId = this.authService.getCurrentUserId();
-    this.isLoadingShareUsers = true;
-    this.profileService.getFollowing(currentUserId.toString()).subscribe({
-      next: users => {
-        this.shareUsers = users || [];
-        this.isLoadingShareUsers = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoadingShareUsers = false;
-        this.toast.error('Could not load people to share with.');
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  isSendingTo(user: any): boolean {
-    return this.sendingToUserId !== null && this.sendingToUserId === Number(user.id);
-  }
-
-  sendPostToUser(event: MouseEvent, user: any) {
-    event.stopPropagation();
-    if (!this.postToShare) return;
-    this.sendingToUserId = Number(user.id);
-    const message = this.shareMessage.trim() || 'Shared a post';
-    this.messageService.sendPost(user.id, this.postToShare.id, message).subscribe({
-      next: () => {
-        this.toast.success(`Sent to ${user.username}.`);
-        this.resetSharePanelAfterSend();
-      },
-      error: (err) => {
-        console.error('Send message error:', err);
-        this.toast.error('Failed to send post.');
-        this.sendingToUserId = null;
-        this.cdr.detectChanges();
-      },
-      complete: () => {
-        if (this.sendingToUserId === Number(user.id)) {
-          this.sendingToUserId = null;
-          this.cdr.detectChanges();
-        }
-      }
-    });
-  }
-
-  private resetSharePanelAfterSend() {
-    this.sendingToUserId = null;
-    this.shareMessage = '';
-    this.isSharePanelOpen = false;
-    this.postToShare = null;
-    this.cdr.detectChanges();
-  }
-
-  copyPostLink(event: MouseEvent) {
-    event.stopPropagation();
-    navigator.clipboard.writeText(this.shareUrl).then(() => {
-      this.toast.success('Link copied to clipboard!');
-      this.isSharePanelOpen = false;
-      this.cdr.detectChanges();
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      this.toast.error('Failed to copy link');
-    });
-  }
-
-  openShareTarget(event: MouseEvent, target: string) {
-    event.stopPropagation();
-    let url = '';
-    const text = encodeURIComponent('Check out this post on Highlight!');
-    const encodedUrl = encodeURIComponent(this.shareUrl);
-
-    switch (target) {
-      case 'whatsapp':
-        url = `https://api.whatsapp.com/send?text=${text}%20${encodedUrl}`;
-        break;
-      case 'x':
-        url = `https://twitter.com/intent/tweet?text=${text}&url=${encodedUrl}`;
-        break;
-      case 'facebook':
-        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-        break;
-      case 'email':
-        url = `mailto:?subject=${text}&body=${encodedUrl}`;
-        break;
-    }
-
-    if (url) {
-      window.open(url, '_blank', 'width=600,height=400');
-    }
-    this.isSharePanelOpen = false;
-    this.cdr.detectChanges();
-  }
-
-
-
   openRepostModal(post: ExplorePost, event?: MouseEvent) {
     this.isSharePanelOpen = false;
     this.postToRepost = post;
-    this.repostMode = 'SELECT';
-    this.quoteText = '';
     if (event) {
       this.repostPanelPosition = this.getRepostPanelPosition(event);
     }
@@ -646,8 +530,10 @@ export class CommunityDetail implements OnInit {
     this.cdr.detectChanges();
   }
 
-  closeRepostModal() {
-    this.closeRepostPanel();
+  closeRepostPanel() {
+    this.isRepostPanelOpen = false;
+    this.postToRepost = null;
+    this.cdr.detectChanges();
   }
 
   toggleRepostPanel(event: MouseEvent, post: ExplorePost) {
@@ -655,108 +541,27 @@ export class CommunityDetail implements OnInit {
     if (this.isRepostPanelOpen && this.postToRepost?.id === post.id) {
       this.closeRepostPanel();
     } else {
-      this.isSharePanelOpen = false;
-      this.postToRepost = post;
-      this.repostMode = 'SELECT';
-      this.quoteText = '';
-      this.repostPanelPosition = this.getRepostPanelPosition(event);
-      this.isRepostPanelOpen = true;
-      this.cdr.detectChanges();
+      this.openRepostModal(post, event);
     }
-  }
-
-  closeRepostPanel() {
-    this.resetRepostState();
-    this.cdr.detectChanges();
   }
 
   openMediaRepostPanel(payload: { post: ExplorePost; event: MouseEvent }): void {
     this.openRepostModal(payload.post, payload.event);
   }
 
-  selectRepostMode(mode: 'SELECT' | 'QUOTE') {
-    this.repostMode = mode;
-    this.cdr.detectChanges();
-  }
 
-  onQuoteMediaSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.handleQuoteFile(input.files[0]);
-    }
-  }
-
-  private handleQuoteFile(file: File): void {
-    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-      this.quoteMediaFile = file;
-      this.quoteIsVideo = file.type.startsWith('video/');
-      if (this.quoteMediaPreview) {
-        URL.revokeObjectURL(this.quoteMediaPreview);
-      }
-      this.quoteMediaPreview = URL.createObjectURL(file);
-      this.cdr.detectChanges();
-    } else {
-      this.toast.error('Please select a valid image or video file.');
-    }
-  }
-
-  removeQuoteMedia(): void {
-    this.quoteMediaFile = null;
-    if (this.quoteMediaPreview) {
-      URL.revokeObjectURL(this.quoteMediaPreview);
-      this.quoteMediaPreview = '';
-    }
-    this.quoteIsVideo = false;
-  }
-
-  submitInlineRepost() {
+  handleOverlaySubmit(event: { mode: 'SELECT' | 'QUOTE', text: string, mediaFile: File | null }) {
     if (!this.community || !this.postToRepost || this.isReposting) return;
     this.isReposting = true;
-    const content = this.repostMode === 'QUOTE' ? this.quoteText.trim() : '';
-
-    this.communityService.createCommunityPost(
-      this.community.id,
-      content,
-      this.postToRepost.id,
-      this.repostMode
-    ).subscribe({
-      next: (post) => {
-        this.resetRepostState();
-        if (post) {
-          this.posts = [{
-            ...post,
-            timeAgo: 'Just now',
-            currentTime: 0,
-            duration: post.duration || 0
-          }, ...this.posts];
-          if (this.community) {
-            this.community.postCount = (this.community.postCount || 0) + 1;
-          }
-        }
-        this.toast.success('Post shared.');
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isReposting = false;
-        this.toast.error(getSafeErrorMessage(err, 'Could not share post.'));
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  submitRepost() {
-    if (!this.community || !this.postToRepost || this.isReposting) return;
-    this.isReposting = true;
-    const content = this.repostMode === 'QUOTE' ? this.quoteText.trim() : '';
     
     this.communityService.createCommunityPost(
       this.community.id, 
-      content, 
+      event.mode === 'QUOTE' ? event.text.trim() : '', 
       this.postToRepost.id, 
-      this.repostMode
+      event.mode
     ).subscribe({
       next: (post) => {
-        this.resetRepostState();
+        this.closeRepostPanel();
         if (post) {
           this.posts = [{
             ...post,
@@ -768,6 +573,7 @@ export class CommunityDetail implements OnInit {
             this.community.postCount = (this.community.postCount || 0) + 1;
           }
         }
+        this.isReposting = false;
         this.toast.success('Post shared.');
         this.cdr.detectChanges();
       },
@@ -778,7 +584,6 @@ export class CommunityDetail implements OnInit {
       }
     });
   }
-
 
   togglePlay(data: { post: ExplorePost; video: HTMLVideoElement }): void {
     if (this.playingPostId === data.post.id) {
@@ -820,260 +625,12 @@ export class CommunityDetail implements OnInit {
 
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
-    this.comments = [];
-
-    const currentUserId = this.authService.getCurrentUserId();
-    this.userService.getUserById(currentUserId).subscribe(user => {
-      if (user && user.profilePhotoUrl) {
-        this.currentUserPhotoUrl = user.profilePhotoUrl;
-      }
-      this.cdr.detectChanges();
-    });
-
     this.cdr.detectChanges();
-    this.commentService.getCommentsByPostId(post.id).subscribe({
-      next: (data: any[]) => {
-        if (!data || !Array.isArray(data)) {
-          this.comments = [];
-          this.cdr.detectChanges();
-          return;
-        }
-
-        const raw = (obj: any, key: string) => obj[key] !== undefined ? obj[key] : (obj[key.toUpperCase()] !== undefined ? obj[key.toUpperCase()] : obj[key.toLowerCase()]);
-
-        const allMapped = data.map((c: any) => ({
-          id: Number(raw(c, 'id')),
-          userId: Number(raw(c, 'userId')),
-          username: raw(c, 'username') || 'Unknown',
-          profilePhoto: raw(c, 'profilePhoto'),
-          text: raw(c, 'content') || '',
-          cleanText: raw(c, 'content') || '',
-          timeAgo: this.formatTimeAgo(raw(c, 'created_at')),
-          parentCommentId: raw(c, 'parentCommentId') ? Number(raw(c, 'parentCommentId')) : null,
-          replyTargetUserId: undefined as number | undefined,
-          replyTargetUsername: undefined as string | undefined,
-          replies: [] as any[]
-        }));
-
-        const parentMap = new Map();
-        allMapped.forEach(c => parentMap.set(c.id, c));
-
-        const topLevel: any[] = [];
-        allMapped.forEach(c => {
-          if (c.parentCommentId) {
-            const parent = parentMap.get(c.parentCommentId);
-            if (parent) {
-              const tag = `@${parent.username} `;
-              if (c.text.startsWith(tag)) {
-                c.cleanText = c.text.substring(tag.length);
-              }
-              c.replyTargetUserId = parent.userId;
-              c.replyTargetUsername = parent.username;
-
-              let root = parent;
-              while (root.parentCommentId && parentMap.has(root.parentCommentId)) {
-                root = parentMap.get(root.parentCommentId);
-              }
-              root.replies.push(c);
-            } else {
-              topLevel.push(c);
-            }
-          } else {
-            topLevel.push(c);
-          }
-        });
-
-        topLevel.forEach(c => {
-          c.replies = [...new Set(c.replies)];
-          c.replies.reverse();
-        });
-
-        this.comments = topLevel;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Fetch comments error:', err);
-        this.comments = [];
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   closeComments() {
     this.activePostForComments = null;
-    this.editingCommentId = null;
-    this.replyingToComment = null;
-    this.comments = [];
-  }
-
-  setReplyTo(comment: any) {
-    this.replyingToComment = comment;
-    this.newCommentText = `@${comment.username} `;
-
-    setTimeout(() => {
-      const input = document.querySelector('.comment-input') as HTMLInputElement;
-      if (input) input.focus();
-    }, 50);
-  }
-
-  cancelReply() {
-    if (this.replyingToComment && this.newCommentText === `@${this.replyingToComment.username} `) {
-      this.newCommentText = '';
-    }
-    this.replyingToComment = null;
-  }
-
-  postComment() {
-    if (!this.newCommentText.trim() || !this.activePostForComments) return;
-
-    const postId = this.activePostForComments.id;
-    const userId = this.authService.getCurrentUserId();
-    const content = this.newCommentText.trim();
-    const parentId = this.replyingToComment ? this.replyingToComment.id : undefined;
-
-    this.commentService.addComment(postId, userId, content, parentId).subscribe((res: any) => {
-      const username = localStorage.getItem('username') || 'You';
-      const currentUserPhoto = this.currentUserPhotoUrl;
-      let replyTargetUserId = undefined;
-      let replyTargetUsername = undefined;
-      let cleanText = content;
-
-      if (this.replyingToComment) {
-        replyTargetUserId = this.replyingToComment.userId;
-        replyTargetUsername = this.replyingToComment.username;
-        const tag = `@${replyTargetUsername} `;
-        if (content.startsWith(tag)) {
-          cleanText = content.substring(tag.length);
-        }
-      }
-
-      const newCmnt = {
-        id: Number(res.id),
-        userId: userId,
-        username: username,
-        profilePhoto: currentUserPhoto,
-        text: content,
-        cleanText: cleanText,
-        timeAgo: 'Just now',
-        parentCommentId: parentId,
-        replyTargetUserId: replyTargetUserId,
-        replyTargetUsername: replyTargetUsername,
-        replies: []
-      };
-
-      if (this.replyingToComment) {
-        let parentFound = false;
-        this.comments.forEach(rootCmnt => {
-          if (rootCmnt.id === parentId || rootCmnt.replies.some((r: any) => r.id === parentId)) {
-            rootCmnt.replies.push(newCmnt);
-            parentFound = true;
-          }
-        });
-        if (!parentFound) {
-            this.comments.unshift(newCmnt);
-        }
-      } else {
-        this.comments.unshift(newCmnt);
-      }
-
-      this.newCommentText = '';
-      this.replyingToComment = null;
-      if (this.activePostForComments) {
-        this.activePostForComments.comments++;
-      }
-      this.cdr.detectChanges();
-    });
-  }
-
-  canEditComment(comment: any): boolean {
-    if (this.isTosViolation(comment.text)) {
-      return false;
-    }
-    return this.authService.isAdmin() || this.authService.getCurrentUserId() === comment.userId;
-  }
-
-  startEditingComment(comment: any) {
-    this.editingCommentId = comment.id;
-    this.editingCommentText = comment.text;
-  }
-
-  saveComment(comment: any) {
-    if (this.editingCommentText.trim()) {
-      this.commentService.updateComment(comment.id, this.editingCommentText.trim()).subscribe(() => {
-        comment.text = this.editingCommentText.trim();
-        comment.cleanText = comment.text;
-        if (comment.replyTargetUsername) {
-            const tag = `@${comment.replyTargetUsername} `;
-            if (comment.text.startsWith(tag)) {
-              comment.cleanText = comment.text.substring(tag.length);
-            }
-        }
-        this.editingCommentId = null;
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  deleteComment(comment: any) {
-    const isCommentOwner = this.authService.getCurrentUserId() === comment.userId;
-    const isPostOwner = this.activePostForComments && this.authService.getCurrentUserId() === this.activePostForComments.author.id;
-
-    if (this.authService.isAdmin() && !isCommentOwner && !isPostOwner) {
-       this.commentToModerate = comment;
-       this.showModerateModal = true;
-       this.cdr.detectChanges();
-    } else {
-       this.executeDeleteComment(comment);
-    }
-  }
-
-  private executeDeleteComment(comment: any) {
-    const targetId = Number(comment.id);
-    this.commentService.removeComment(targetId).subscribe(() => {
-      const updatedComments = this.comments.filter(c => Number(c.id) !== targetId);
-      updatedComments.forEach(c => {
-        if (c.replies) {
-           c.replies = c.replies.filter((r: any) => Number(r.id) !== targetId);
-        }
-      });
-      this.comments = updatedComments;
-      if (this.activePostForComments) {
-        this.activePostForComments.comments--;
-      }
-      this.cdr.detectChanges();
-    });
-  }
-
-  closeModerateModal(): void {
-    this.showModerateModal = false;
-    this.commentToModerate = null;
     this.cdr.detectChanges();
-  }
-
-  moderateDelete(): void {
-    if (!this.commentToModerate) return;
-    const targetId = Number(this.commentToModerate.id);
-    this.commentService.removeCommentViolation(targetId).subscribe(() => {
-        this.executeDeleteComment(this.commentToModerate);
-        this.closeModerateModal();
-    });
-  }
-
-  moderateTosViolation(): void {
-    if (!this.commentToModerate) return;
-    const targetId = Number(this.commentToModerate.id);
-    this.commentService.removeCommentViolation(targetId).subscribe({
-      next: () => {
-        this.executeDeleteComment(this.commentToModerate);
-        this.closeModerateModal();
-      },
-      error: () => console.error('Failed to moderate comment.')
-    });
-  }
-
-  isTosViolation(content: string | undefined | null): boolean {
-    if (!content) return false;
-    return content === this.tosViolationText;
   }
 
   isImageMedia(post: ExplorePost | null | undefined): boolean {
@@ -1192,10 +749,7 @@ export class CommunityDetail implements OnInit {
     this.isRepostPanelOpen = false;
     this.isRepostModalOpen = false;
     this.postToRepost = null;
-    this.repostMode = 'SELECT';
-    this.quoteText = '';
     this.repostPanelPosition = {};
-    this.removeQuoteMedia();
   }
 
   private getRepostPanelPosition(event: MouseEvent): Record<string, string> {

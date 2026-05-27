@@ -1,0 +1,195 @@
+  @if (post) {
+    <div class="comments-backdrop" (click)="closeComments()">
+
+      <div class="comments-modal" (click)="$event.stopPropagation()">
+
+        <div class="comments-header">
+          <h3>Comments</h3>
+          <button class="close-btn" (click)="closeComments()">✕</button>
+        </div>
+
+        <div class="comments-list">
+          @for (comment of comments; track comment.id) {
+            <div class="comment-item" [class.tos-violation]="isTosViolation(comment.text)">
+              <div class="comment-avatar">
+                @if (comment.profilePhoto) {
+                  <img [src]="comment.profilePhoto" alt="profile" class="avatar-img">
+                } @else {
+                  <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
+                }
+              </div>
+
+              <div class="comment-body">
+                <div class="comment-user">
+                  <span class="comment-username">{{ comment.username }}</span>
+                  <span class="comment-time">{{ comment.timeAgo }}</span>
+                  @if (canEditComment(comment)) {
+                    <div class="comment-actions">
+                      @if (comment.userId !== currentUserId) {
+                        <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                      }
+                      <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(comment)" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(comment)" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" title="Reply">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 17 4 12 9 7"></polyline>
+                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="comment-actions">
+                      <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" title="Reply">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 17 4 12 9 7"></polyline>
+                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                @if (editingCommentId === comment.id) {
+                  <div class="edit-comment-area">
+                    <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(comment)">
+                    <button class="save-comment-btn" (click)="saveComment(comment)">Save</button>
+                  </div>
+                } @else {
+                  <p class="comment-text">
+                    @if (comment.replyTargetUserId) {
+                      <a [routerLink]="['/profile', comment.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
+                    }
+                    {{ comment.cleanText }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            @if (comment.replies && comment.replies.length > 0) {
+              <div class="nested-replies" style="margin-left: 3rem; margin-top: -0.5rem; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 1rem;">
+                @for (reply of comment.replies; track reply.id) {
+                  <div class="comment-item reply-item" [class.tos-violation]="isTosViolation(reply.text)" style="margin-bottom: 0.5rem;">
+                    <div class="comment-avatar reply-avatar" style="width: 24px; height: 24px;">
+                      @if (reply.profilePhoto) {
+                        <img [src]="reply.profilePhoto" alt="profile" class="avatar-img thumb">
+                      } @else {
+                        <div class="comment-avatar-placeholder" style="width: 24px; height: 24px; font-size: 10px;">{{ reply.username.charAt(0) }}</div>
+                      }
+                    </div>
+
+                    <div class="comment-body">
+                      <div class="comment-user">
+                        <span class="comment-username">{{ reply.username }}</span>
+                        <span class="comment-time">{{ reply.timeAgo }}</span>
+                        @if (canEditComment(reply)) {
+                          <div class="comment-actions">
+                            @if (reply.userId !== currentUserId) {
+                              <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                            }
+                            <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(reply)" title="Edit">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                              </svg>
+                            </button>
+                            <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(reply)" title="Delete">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" title="Reply">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="comment-actions">
+                            <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" title="Reply">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      @if (editingCommentId === reply.id) {
+                        <div class="edit-comment-area">
+                          <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(reply)">
+                          <button class="save-comment-btn" (click)="saveComment(reply)">Save</button>
+                        </div>
+                      } @else {
+                        <p class="comment-text">
+                          @if (reply.replyTargetUserId) {
+                            <a [routerLink]="['/profile', reply.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
+                          }
+                          {{ reply.cleanText }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          } @empty {
+            <div class="empty-comments" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">
+              <p>No comments yet. Start the conversation!</p>
+            </div>
+          }
+        </div>
+
+        <div class="comment-input-area" [class.is-replying]="replyingToComment">
+          @if (replyingToComment) {
+            <div class="reply-badge" style="position: absolute; top: -25px; left: 15px; font-size: 12px; color: var(--accent); background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
+              Replying to @{{ replyingToComment.username }}
+              <span (click)="cancelReply()" style="cursor: pointer; font-weight: bold; padding: 0 4px;">✕</span>
+            </div>
+          }
+          <div class="comment-avatar" style="margin-top: auto">
+            @if (currentUserPhotoUrl) {
+              <img [src]="currentUserPhotoUrl" alt="me" class="avatar-img">
+            } @else {
+              <div class="comment-avatar-placeholder">P</div>
+            }
+          </div>
+          <input type="text" class="comment-input" [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
+                 [(ngModel)]="newCommentText"
+                 (keyup.enter)="postComment()">
+          <button class="comment-post-btn" (click)="postComment()">Post</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Moderation Modal -->
+    @if (showModerateModal) {
+      <div class="modal-overlay" (click)="closeModerateModal()">
+        <div class="confirm-modal" (click)="$event.stopPropagation()">
+          <h2>Moderate Comment</h2>
+          <p>Choose an action for this comment by <strong>{{commentToModerate?.username}}</strong>.</p>
+
+          <div class="modal-actions">
+            <button class="modal-tos-btn" (click)="moderateTosViolation()">Mark as TOS Violation</button>
+            <button class="modal-delete-btn" (click)="moderateDelete()">Delete Completely</button>
+            <button class="modal-cancel-btn" (click)="closeModerateModal()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
