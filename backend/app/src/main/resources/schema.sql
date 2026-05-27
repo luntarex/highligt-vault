@@ -144,6 +144,25 @@ CREATE TABLE IF NOT EXISTS playlist_items (
     FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS clip_groups (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(30) DEFAULT 'LIBRARY',
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS clip_group_items (
+    group_id BIGINT,
+    clip_id BIGINT,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (group_id, clip_id),
+    FOREIGN KEY (group_id) REFERENCES clip_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS user_favorites (
     user_id BIGINT,
     clip_id BIGINT,
@@ -279,6 +298,8 @@ CREATE INDEX idx_favorites_clip ON user_favorites(clip_id);
 CREATE INDEX idx_communities_status_created ON communities(moderation_status, created_at);
 CREATE INDEX idx_communities_game ON communities(game_id);
 CREATE INDEX idx_community_members_user ON community_members(user_id, community_id);
+CREATE INDEX idx_clip_groups_user_created ON clip_groups(user_id, created_at);
+CREATE INDEX idx_clip_group_items_clip ON clip_group_items(clip_id);
 
 CREATE INDEX idx_follows_followed ON follows(followed_id, follower_id);
 CREATE INDEX idx_moderation_results_target_created ON moderation_results(target_type, target_id, created_at);

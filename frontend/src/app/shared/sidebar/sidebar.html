@@ -50,7 +50,6 @@
       </a>
     </li>
 
-
     @if(authService.isAdmin()){
     <li>
       <a routerLink="/admin" routerLinkActive="active">
@@ -123,23 +122,3 @@
   </div>
 
 </nav>
-
-<app-playlist-dialog
-  *ngIf="showPlaylistDialog"
-  [mode]="playlistDialogMode"
-  [initialName]="editingPlaylist?.name || ''"
-  [initialDescription]="editingPlaylist?.description || ''"
-  (created)="onPlaylistCreated($event)"
-  (cancelled)="onPlaylistDialogCancelled()">
-</app-playlist-dialog>
-
-<app-confirm-dialog
-  *ngIf="showDeleteConfirm"
-  title="Delete Playlist"
-  [message]="'Are you sure you want to delete \'' + (playlistToDelete?.name || '') + '\'? This action cannot be undone.'"
-  confirmText="Delete"
-  cancelText="Cancel"
-  type="danger"
-  (confirmed)="onConfirmDelete()"
-  (cancelled)="onCancelDelete()">
-</app-confirm-dialog>

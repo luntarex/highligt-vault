@@ -96,7 +96,8 @@
 
 
 
-.last-deleted-btn {
+.last-deleted-btn,
+.group-clips-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -112,13 +113,15 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.last-deleted-btn:hover {
+.last-deleted-btn:hover,
+.group-clips-btn:hover {
   background-color: hsla(265, 40%, 68%, 0.1);
   border-color: hsl(265, 40%, 68%);
   box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.2);
 }
 
-.last-deleted-btn.active {
+.last-deleted-btn.active,
+.group-clips-btn.active {
   background-color: hsla(265, 40%, 68%, 0.2);
   border-color: hsl(265, 40%, 68%);
   color: #fff;
@@ -130,8 +133,222 @@
   transition: transform 0.2s;
 }
 
-.last-deleted-btn:hover .btn-icon {
+.last-deleted-btn:hover .btn-icon,
+.group-clips-btn:hover .btn-icon {
   transform: scale(1.1);
+}
+
+.selection-toolbar {
+  min-height: 52px;
+  margin-bottom: 24px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.selection-toolbar span {
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+}
+
+.selection-action {
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #a855f7;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selection-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.groups-view,
+.group-detail {
+  margin-bottom: 24px;
+}
+
+.groups-toolbar {
+  min-height: 48px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.groups-toolbar h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+}
+
+.group-card {
+  position: relative;
+  min-height: 150px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  text-align: left;
+}
+
+.group-card.has-thumbnail {
+  background: #111;
+}
+
+.group-card:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+}
+
+.group-card:hover {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.group-card.has-thumbnail:hover {
+  background: #111;
+}
+
+.group-thumbnail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  transition: transform 0.2s ease;
+}
+
+.group-card:hover .group-thumbnail {
+  transform: scale(1.04);
+}
+
+.group-thumbnail-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.82));
+}
+
+.group-card strong {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+}
+
+.group-card small {
+  position: relative;
+  z-index: 2;
+  color: hsl(var(--muted-foreground));
+}
+
+.group-card.has-thumbnail small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.group-icon {
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  color: #c084fc;
+}
+
+.group-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.back-group-btn {
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: white;
+  cursor: pointer;
+}
+
+.group-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.52);
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+
+.group-card:hover .group-delete-btn,
+.group-card:focus-within .group-delete-btn {
+  opacity: 1;
+}
+
+.group-delete-btn:hover,
+.danger-action:hover {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: #ff4d4d;
+  color: #ff4d4d;
+}
+
+.group-delete-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.group-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.danger-action {
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .upload-card {

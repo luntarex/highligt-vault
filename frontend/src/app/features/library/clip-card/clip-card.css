@@ -49,6 +49,7 @@
 }
 
 .game-badge { top: 6px; left: 6px; text-transform: uppercase; }
+.card-container.selectable .game-badge { top: 38px; }
 .duration-badge { bottom: 6px; right: 6px; }
 .moderation-badge {
   top: 6px;
@@ -58,7 +59,8 @@
   text-transform: uppercase;
 }
 
-.delete-btn {
+.delete-btn,
+.group-remove-btn {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -74,6 +76,29 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
+}
+
+.select-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 1;
+  z-index: 4;
+}
+
+.select-btn.selected {
+  background: #a855f7;
+  border-color: #c084fc;
+  color: white;
+}
+
+.select-btn svg {
+  width: 15px;
+  height: 15px;
 }
 
 .action-btn {
@@ -188,17 +213,20 @@
   color: #a855f7;
 }
 
-.card-container:hover .delete-btn {
+.card-container:hover .delete-btn,
+.card-container:hover .group-remove-btn {
   opacity: 1;
 }
 
-.delete-btn:hover {
+.delete-btn:hover,
+.group-remove-btn:hover {
   background: rgba(255, 77, 77, 0.2);
   color: #ff4d4d;
   border-color: #ff4d4d;
 }
 
 .delete-btn svg { width: 14px; height: 14px; }
+.group-remove-btn svg { width: 16px; height: 16px; }
 
 /* Unfavorite button */
 .unfav-btn {
