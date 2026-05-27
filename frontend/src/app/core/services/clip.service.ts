@@ -27,6 +27,21 @@ export interface ClipModerationResponse {
   reason: string;
 }
 
+export interface ClipMetadataSuggestionRequest {
+  fileName: string;
+  relativePath?: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  duration?: number;
+}
+
+export interface ClipMetadataSuggestionResponse {
+  title: string;
+  game: string;
+  notes: string;
+  tags: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,6 +74,10 @@ export class ClipService {
 
   scanClipAfterUpload(clipId: number): Observable<ClipModerationResponse> {
     return this.http.post<ClipModerationResponse>(`${this.apiUrl}/scan/${clipId}`, {});
+  }
+
+  suggestClipMetadata(request: ClipMetadataSuggestionRequest): Observable<ClipMetadataSuggestionResponse> {
+    return this.http.post<ClipMetadataSuggestionResponse>(`${this.apiUrl}/metadata/suggest`, request);
   }
 
   uploadVideo(file: File): Observable<VideoUploadResponse> {

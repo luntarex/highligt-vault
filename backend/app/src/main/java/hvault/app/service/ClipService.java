@@ -30,17 +30,20 @@ public class ClipService {
     private final GameRepository gameRepository;
     private final PostService postService;
     private final ModerationActionRepository moderationActionRepository;
+    private final ClipMetadataExampleService clipMetadataExampleService;
 
     public ClipService(
         ClipRepository clipRepository,
         GameRepository gameRepository,
         PostService postService,
-        ModerationActionRepository moderationActionRepository
+        ModerationActionRepository moderationActionRepository,
+        ClipMetadataExampleService clipMetadataExampleService
     ) {
         this.clipRepository = clipRepository;
         this.gameRepository = gameRepository;
         this.postService = postService;
         this.moderationActionRepository = moderationActionRepository;
+        this.clipMetadataExampleService = clipMetadataExampleService;
     }
 
     public List<ClipResponse> getClipsCommentedByUser(Long userId) {
@@ -139,6 +142,13 @@ public class ClipService {
 
     public void updateClip(Long id, ClipUpdateRequest clipData, Long currentUserId, boolean admin) {
         requireClipOwnerOrAdmin(id, currentUserId, admin);
+        Clip existingClip = clipRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        String previousTitle = existingClip.getTitle();
+        String previousNotes = existingClip.getNotes();
+        String previousGame = existingClip.getGame() != null ? existingClip.getGame().getName() : null;
+        List<String> previousTags = getTagsSafely(id);
+
         Long gameId = getGameIdByNameOrCreate(clipData.getGame());
         VisibilityStatus visibilityStatus = clipData.getVisibilityStatus() != null
             ? clipData.getVisibilityStatus()
@@ -156,6 +166,17 @@ public class ClipService {
             for (String tag : tags) {
                 clipRepository.insertTagIfNotExistAndLink(id, tag.trim().toLowerCase());
             }
+        }
+
+        if (metadataChanged(previousTitle, previousNotes, previousGame, previousTags, clipData)) {
+            clipMetadataExampleService.recordApprovedExample(
+                existingClip.getUploaderId(),
+                id,
+                clipData.getGame(),
+                clipData.getTitle(),
+                clipData.getNotes(),
+                clipData.getTags()
+            );
         }
     }
 
@@ -383,5 +404,42 @@ public class ClipService {
     private boolean isModerationRemoved(Clip clip) {
         return clip.getModerationStatus() == ModerationStatus.REMOVED
             || clip.getRemovedAt() != null;
+    }
+
+    private boolean metadataChanged(
+        String previousTitle,
+        String previousNotes,
+        String previousGame,
+        List<String> previousTags,
+        ClipUpdateRequest clipData
+    ) {
+        return !sameText(previousTitle, clipData.getTitle())
+            || !sameText(previousNotes, clipData.getNotes())
+            || !sameText(previousGame, clipData.getGame())
+            || !sameTags(previousTags, clipData.getTags());
+    }
+
+    private boolean sameText(String left, String right) {
+        String safeLeft = left == null ? "" : left.trim();
+        String safeRight = right == null ? "" : right.trim();
+        return safeLeft.equals(safeRight);
+    }
+
+    private boolean sameTags(List<String> left, List<String> right) {
+        List<String> safeLeft = normalizeTags(left);
+        List<String> safeRight = normalizeTags(right);
+        return safeLeft.equals(safeRight);
+    }
+
+    private List<String> normalizeTags(List<String> tags) {
+        if (tags == null) {
+            return List.of();
+        }
+        return tags.stream()
+            .filter(tag -> tag != null && !tag.isBlank())
+            .map(tag -> tag.trim().toLowerCase(Locale.ROOT))
+            .distinct()
+            .sorted()
+            .toList();
     }
 }

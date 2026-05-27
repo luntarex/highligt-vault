@@ -1,5 +1,6 @@
 
 .library-container {
+  position: relative;
   padding: 32px;
   background-color: hsl(var(--background));
   height: 100%;
@@ -17,9 +18,22 @@
   gap: 20px;
 }
 
+.library-container.drag-active {
+  outline: 1px solid hsla(var(--third), 0.5);
+  outline-offset: -8px;
+}
+
+.library-primary-actions {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .search-box {
-  flex-grow: 1;
-  max-width: 450px;
+  flex: 1 1 360px;
+  max-width: 520px;
   background-color: hsl(var(--muted));
   border-radius: var(--radius);
   display: flex;
@@ -58,6 +72,7 @@
 .filters {
   display: flex;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .filter-select {
@@ -97,7 +112,8 @@
 
 
 .last-deleted-btn,
-.group-clips-btn {
+.group-clips-btn,
+.ai-import-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -114,7 +130,8 @@
 }
 
 .last-deleted-btn:hover,
-.group-clips-btn:hover {
+.group-clips-btn:hover,
+.ai-import-btn:hover:not(:disabled) {
   background-color: hsla(265, 40%, 68%, 0.1);
   border-color: hsl(265, 40%, 68%);
   box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.2);
@@ -128,14 +145,120 @@
   box-shadow: 0 0 20px hsla(265, 40%, 68%, 0.3);
 }
 
+.ai-import-btn {
+  background: #24352f;
+  border-color: rgba(74, 222, 128, 0.32);
+  color: #dcfce7;
+}
+
+.ai-import-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .btn-icon {
   opacity: 0.9;
   transition: transform 0.2s;
 }
 
 .last-deleted-btn:hover .btn-icon,
-.group-clips-btn:hover .btn-icon {
+.group-clips-btn:hover .btn-icon,
+.ai-import-btn:hover .btn-icon {
   transform: scale(1.1);
+}
+
+.mini-spinner {
+  width: 16px;
+  height: 16px;
+  animation: rotate 1s linear infinite;
+}
+
+.mini-spinner .path {
+  stroke: currentColor;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+.import-status {
+  min-height: 42px;
+  margin: -20px 0 24px;
+  padding: 10px 14px;
+  border: 1px solid rgba(74, 222, 128, 0.24);
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.08);
+  color: #dcfce7;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding: 24px;
+}
+
+.drop-overlay-content {
+  width: min(420px, 100%);
+  min-height: 190px;
+  padding: 28px;
+  border: 2px dashed hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.drop-overlay-content svg {
+  color: hsl(var(--foreground));
+  flex: 0 0 auto;
+}
+
+.drop-overlay-content strong {
+  display: block;
+  font-size: 1.12rem;
+  line-height: 1.3;
+}
+
+.drop-overlay-content span {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 300px;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .selection-toolbar {
@@ -360,12 +483,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: hsl(var(--muted-foreground));
 }
 
-.upload-card:hover {
+.upload-card:hover,
+.upload-card.drag-active {
   background-color: hsla(265, 40%, 68%, 0.1);
   border-color: hsl(265, 40%, 68%);
   color: hsl(265, 40%, 90%);
@@ -378,10 +504,26 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.2s;
+  pointer-events: none;
 }
 
 .upload-card:hover .plus-icon {
   transform: scale(1.2);
+}
+
+.upload-card.drag-active .plus-icon {
+  transform: scale(1.2);
+}
+
+.upload-card-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.86rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.upload-card.drag-active .upload-card-label {
+  color: hsl(var(--foreground));
 }
 
 .empty-library-state {

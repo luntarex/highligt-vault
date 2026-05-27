@@ -1,19 +1,56 @@
-<div class="library-container">
+<div
+  class="library-container"
+  [class.drag-active]="isDragActive"
+  (dragenter)="onDragOver($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDropImport($event)">
 
   <header class="library-header">
 
-    <div class="search-box">
-      <span class="search-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    <div class="library-primary-actions">
+      
+
+      <button
+        class="group-clips-btn"
+        *ngIf="!isTrashView"
+        (click)="toggleGroupMode()"
+        [class.active]="libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         </svg>
-      </span>
+        {{ libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting' ? 'Library' : 'Group Clips' }}
+      </button>
 
-      <input type="text" placeholder="Search clips..." class="search-input"
-      [(ngModel)]="searchQuery"
-        (input)="onSearch()">
+      <button
+        class="ai-import-btn"
+        *ngIf="!isTrashView && libraryView === 'clips'"
+        (click)="startSavedFolderImport()"
+        [disabled]="isAiImporting">
+        <svg *ngIf="!isAiImporting" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3z"></path>
+          <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"></path>
+          <path d="M5 14l.9 2.1L8 17l-2.1.9L5 20l-.9-2.1L2 17l2.1-.9L5 14z"></path>
+        </svg>
+        <svg *ngIf="isAiImporting" class="mini-spinner" viewBox="0 0 50 50">
+          <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+        {{ isAiImporting ? 'Importing' : 'AI Folder Import' }}
+      </button>
 
+      <div class="search-box">
+        <span class="search-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+
+        <input type="text" placeholder="Search clips..." class="search-input"
+        [(ngModel)]="searchQuery"
+          (input)="onSearch()">
+
+      </div>
     </div>
 
     <div class="filters">
@@ -46,26 +83,40 @@
           <line x1="10" y1="11" x2="10" y2="17"></line>
           <line x1="14" y1="11" x2="14" y2="17"></line>
         </svg>
-        {{ isTrashView ? 'Library' : 'Last Deleted' }}
+        {{ isTrashView ? 'Back to Library' : 'Last Deleted' }}
       </button>
 
-      <button
-        class="group-clips-btn"
-        *ngIf="!isTrashView"
-        (click)="toggleGroupMode()"
-        [class.active]="libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        </svg>
-        {{ libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting' ? 'Library' : 'Group Clips' }}
-      </button>
     </div>
 
     <app-profile-dropdown />
   </header>
 
+  <div *ngIf="isAiImporting" class="import-status">
+    {{ aiImportStatus }}
+  </div>
+
+  <div *ngIf="isDragActive && !isAiImporting" class="drop-overlay">
+    <div class="drop-overlay-content">
+      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <path d="M12 11v6"></path>
+        <path d="m9 14 3-3 3 3"></path>
+      </svg>
+      <strong>Drop to import</strong>
+      <span>Folders and supported video files will be scanned.</span>
+    </div>
+  </div>
+
   <div *ngIf="clips.length === 0 && !isTrashView && libraryView === 'clips'" class="empty-library-state">
     <p>Upload your first clip</p>
+  </div>
+
+  <div *ngIf="isTrashView && isDeletedLoading" class="empty-library-state">
+    <p>Loading deleted clips</p>
+  </div>
+
+  <div *ngIf="isTrashView && !isDeletedLoading && clips.length === 0" class="empty-library-state">
+    <p>No deleted clips</p>
   </div>
 
   <div *ngIf="libraryView === 'selecting'" class="selection-toolbar">
@@ -138,7 +189,14 @@
     </app-clip-card>
 
     <!-- Upload Card -->
-    <div *ngIf="!isTrashView && libraryView === 'clips'" class="upload-card" (click)="fileInput.click()">
+    <div
+      *ngIf="!isTrashView && libraryView === 'clips'"
+      class="upload-card"
+      [class.drag-active]="isDragActive"
+      (click)="fileInput.click()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDropImport($event)">
       <div class="plus-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -170,4 +228,9 @@
     (confirmed)="onConfirmDelete()"
     (cancelled)="onCancelDelete()">
   </app-confirm-dialog>
+
+  <app-import-folders-dialog
+    *ngIf="showImportFoldersDialog"
+    (closed)="closeImportFoldersDialog()">
+  </app-import-folders-dialog>
 </div>

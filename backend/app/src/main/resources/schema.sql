@@ -62,6 +62,20 @@ CREATE TABLE IF NOT EXISTS clip_tags (
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS clip_metadata_examples (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    source_clip_id BIGINT NOT NULL,
+    game_name VARCHAR(100),
+    title VARCHAR(100) NOT NULL,
+    notes TEXT,
+    tags VARCHAR(255),
+    approved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_clip_metadata_example_user_clip (user_id, source_clip_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (source_clip_id) REFERENCES clips(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS posts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
