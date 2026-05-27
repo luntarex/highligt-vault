@@ -16,6 +16,10 @@ export interface ExplorePost {
   startTime?: number;
   endTime?: number;
   clipId?: string;
+  communityId?: string;
+  communityName?: string;
+  postType?: 'CLIP' | 'TEXT';
   isFavorited?: boolean;
+  originalPost?: ExplorePost;
+  repostType?: string;
 }
-

@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../config/api.config';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { ReportResponse } from './report.service';
+import { Community } from '../models/community';
 
 export interface ModerationQueueItem {
   clipId: number;
@@ -72,6 +73,20 @@ export class ModerationService {
       .set('dismissed', String(request.dismissed ?? false));
 
     return this.http.post(`${this.apiUrl}/reports/${reportId}/resolve`, null, { params });
+  }
+
+  getPendingCommunities(): Observable<Community[]> {
+    return this.http.get<Community[]>(`${this.apiUrl}/communities`).pipe(timeout(10000));
+  }
+
+  approveCommunity(communityId: number, reason: string): Observable<any> {
+    const params = new HttpParams().set('reason', reason || 'Approved after moderator review.');
+    return this.http.post(`${this.apiUrl}/communities/${communityId}/approve`, null, { params });
+  }
+
+  rejectCommunity(communityId: number, reason: string): Observable<any> {
+    const params = new HttpParams().set('reason', reason || 'Rejected after moderator review.');
+    return this.http.post(`${this.apiUrl}/communities/${communityId}/reject`, null, { params });
   }
 }
 

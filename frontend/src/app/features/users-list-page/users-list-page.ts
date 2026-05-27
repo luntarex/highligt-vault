@@ -7,6 +7,7 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { GameService } from '../../core/services/game.service';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
+import { UploadService } from '../../core/services/upload.service';
 
 @Component({
   selector: 'app-users-list-page',
@@ -20,6 +21,9 @@ export class UsersListPage implements OnInit {
   newGameName: string = '';
   addGameMessage: string = '';
   activeTab: 'users' | 'games' = 'users';
+  gameThumbnailFile: File | null = null;
+  gameThumbnailPreview: string = '';
+  isUploadingGame = false;
 
   // Modal State
   showDeleteModal: boolean = false;
@@ -29,6 +33,7 @@ export class UsersListPage implements OnInit {
     private userService: UserService,
     private router: Router,
     private gameService: GameService,
+    private uploadService: UploadService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService
   ) {}
@@ -48,8 +53,6 @@ export class UsersListPage implements OnInit {
     this.activeTab = tab;
     this.cdr.detectChanges();
   }
-
-
 
   viewProfile(id: number) {
     this.router.navigate(['/profile', id]);
@@ -85,12 +88,48 @@ export class UsersListPage implements OnInit {
     });
   }
 
+  onGameThumbnailSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type.startsWith('image/')) {
+        this.gameThumbnailFile = file;
+        this.gameThumbnailPreview = URL.createObjectURL(file);
+        this.cdr.detectChanges();
+      } else {
+        this.toast.error('Please select an image file');
+      }
+    }
+  }
+
   addGame() {
-    if(!this.newGameName.trim()) return;
-    this.gameService.addGame(this.newGameName).subscribe({
+    if (!this.newGameName.trim()) return;
+    this.isUploadingGame = true;
+    
+    if (this.gameThumbnailFile) {
+      this.uploadService.uploadImage(this.gameThumbnailFile).subscribe({
+        next: (res) => {
+          this.submitGame(res.secureUrl);
+        },
+        error: (err) => {
+          this.isUploadingGame = false;
+          this.addGameMessage = getSafeErrorMessage(err, 'Failed to upload thumbnail.');
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.submitGame();
+    }
+  }
+
+  private submitGame(coverUrl?: string) {
+    this.gameService.addGame(this.newGameName, coverUrl).subscribe({
       next: (res) => {
+        this.isUploadingGame = false;
         this.addGameMessage = "Game added successfully!";
         this.newGameName = '';
+        this.gameThumbnailFile = null;
+        this.gameThumbnailPreview = '';
         this.cdr.detectChanges();
         setTimeout(() => {
           this.addGameMessage = '';
@@ -98,6 +137,7 @@ export class UsersListPage implements OnInit {
         }, 3000);
       },
       error: (err) => {
+        this.isUploadingGame = false;
         this.addGameMessage = getSafeErrorMessage(err, 'Failed to add game. Please try again.');
         this.cdr.detectChanges();
         setTimeout(() => {

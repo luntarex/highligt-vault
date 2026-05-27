@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 public class PostFeedResponse {
     private String id;
     private String clipId;
+    private String communityId;
+    private String communityName;
+    private String postType;
     private String title;
     private String game;
     private String videoUrl;
@@ -22,4 +25,6 @@ public class PostFeedResponse {
     private Boolean isLiked;
     private Boolean isFavorited;
     private PostAuthorResponse author;
+    private String repostType;
+    private PostFeedResponse originalPost;
 }

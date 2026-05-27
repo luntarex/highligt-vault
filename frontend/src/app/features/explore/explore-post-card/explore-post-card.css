@@ -152,20 +152,61 @@
 }
 
 /* Tags & Badges */
+.post-meta-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.identity-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .tag-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .game-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 22px;
   font-size: 11px;
-  padding: 4px 8px;
+  padding: 4px 9px;
   background-color: rgb(45, 45, 45);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  font-weight: 600;
+  color: rgb(235, 235, 235);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  font-weight: 800;
+}
+
+.community-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 3px 10px;
+  border: 1px solid rgba(180, 158, 225, 0.45);
+  border-radius: 999px;
+  background: rgba(180, 158, 225, 0.12);
+  color: var(--accent-purple);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.community-badge:hover {
+  border-color: rgba(180, 158, 225, 0.8);
+  background: rgba(180, 158, 225, 0.2);
+  color: #fff;
 }
 
 .tag {
@@ -229,6 +270,15 @@
   height: 100%;
   object-fit: cover;
   border-radius: inherit;
+}
+
+.image-container {
+  cursor: default;
+  background-color: rgb(14, 14, 14);
+}
+
+.post-image {
+  object-fit: contain;
 }
 
 .video-container .play-button {

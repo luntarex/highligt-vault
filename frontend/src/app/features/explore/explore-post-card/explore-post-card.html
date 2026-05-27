@@ -50,13 +50,36 @@
       <h2 class="post-title">{{ post.title }}</h2>
     }
 
-    <div class="tag-row">
-      <span class="game-badge">{{post.game}}</span>
-      @for(tag of post.tags; track tag){
-        <span class="tag" [ngClass]="tag.toLowerCase()">{{tag}}</span>
+    <div class="post-meta-stack">
+      @if (post.game || post.communityId) {
+        <div class="identity-badges">
+          @if (post.game) {
+            <span class="game-badge">{{ post.game }}</span>
+          }
+          @if (post.communityId) {
+            <a
+              class="community-badge"
+              [routerLink]="['/communities', post.communityId]"
+              (click)="$event.stopPropagation()">
+              {{ post.communityName || 'Community' }}
+            </a>
+          }
+        </div>
+      }
+      @if (post.tags && post.tags.length > 0) {
+        <div class="tag-row">
+          @for(tag of post.tags; track tag){
+            <span class="tag" [ngClass]="tag.toLowerCase()">{{tag}}</span>
+          }
+        </div>
       }
     </div>
 
+    @if (isImagePost()) {
+      <div class="video-container image-container">
+        <img [src]="post.videoUrl" [alt]="post.title || 'Community image'" class="post-video post-image">
+      </div>
+    } @else {
     <div class="video-container" (click)="onTogglePlay(videoPlayer)">
       <video #videoPlayer
              [src]="post.videoUrl"
@@ -109,6 +132,7 @@
         </button>
       </div>
     </div>
+    }
   </div>
   @if(showActions){
   <div class="post-actions">
@@ -148,6 +172,17 @@
         </svg>
       }
     </button>
+
+    @if (showRepost) {
+      <button class="action-btn repost-btn" (click)="repostPost($event)" title="Repost">
+        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"></polyline>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+          <polyline points="7 23 3 19 7 15"></polyline>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+        </svg>
+      </button>
+    }
 
     <div class="share-action-wrapper">
     <button class="action-btn share-btn" (click)="toggleSharePanel($event)" title="Share post">
@@ -252,7 +287,7 @@
 
 
   <!-- Fullscreen Overlay -->
-  @if (showFullscreen && isFullscreen) {
+  @if (showFullscreen && isFullscreen && !isImagePost()) {
     <div class="fullscreen-overlay" (click)="toggleFullscreen()">
     <div class="fullscreen-backdrop"></div>
 

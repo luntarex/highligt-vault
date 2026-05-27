@@ -1,0 +1,158 @@
+<main class="communities-page">
+  <div class="profile-dropdown-anchor">
+    <app-profile-dropdown />
+  </div>
+
+  <app-back-link></app-back-link>
+
+  <header class="page-header">
+    <div>
+      <h1>Communities</h1>
+    </div>
+  </header>
+
+  <section class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </span>
+      <input type="text" [(ngModel)]="query" placeholder="Search communities..." class="search-input">
+    </div>
+    <div class="filter-tabs">
+      <button type="button" [class.active]="typeFilter === 'ALL'" (click)="typeFilter = 'ALL'">All</button>
+      <button type="button" [class.active]="typeFilter === 'GAME'" (click)="typeFilter = 'GAME'">Games</button>
+      <button type="button" [class.active]="typeFilter === 'USER'" (click)="typeFilter = 'USER'">User-made</button>
+      <button type="button" [class.active]="typeFilter === 'JOINED'" (click)="typeFilter = 'JOINED'">Joined</button>
+    </div>
+  </section>
+
+  <section class="content-shell" *ngIf="!isLoading; else loadingState">
+    <div class="community-grid">
+      <button class="create-card" type="button" (click)="openCreateModal()">
+        <span class="plus-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+      </button>
+
+      <article
+        class="community-card"
+        *ngFor="let community of filteredCommunities; trackBy: trackByCommunityId"
+        [class.selected]="selectedCommunity?.id === community.id"
+        [routerLink]="['/communities', community.id]"
+        (click)="selectCommunity(community)">
+        <div class="thumb-wrap">
+          <img [src]="community.thumbnailUrl || defaultThumbnail(community)" [alt]="community.name">
+          <span class="type-pill">{{ community.type === 'GAME' ? 'Game' : 'Community' }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-row">
+            <h2>{{ community.name }}</h2>
+            <span class="member-count">{{ community.memberCount || 0 }} members</span>
+          </div>
+          <p>{{ community.description || 'No description yet.' }}</p>
+          <div class="card-footer">
+            <span>{{ statusText(community) }}</span>
+            <button
+              class="join-btn"
+              type="button"
+              [class.joined]="community.joined"
+              [disabled]="community.viewerRole === 'OWNER' || isSubmitting"
+              (click)="toggleJoin(community, $event)">
+              {{ community.joined ? 'Joined' : 'Join' }}
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <aside class="detail-panel" *ngIf="selectedCommunity as community">
+      <img [src]="community.thumbnailUrl || defaultThumbnail(community)" [alt]="community.name">
+      <div>
+        <span class="detail-kicker">{{ community.type === 'GAME' ? 'Game community' : 'User-made community' }}</span>
+        <h3>{{ community.name }}</h3>
+        <p>{{ community.description || 'No description yet.' }}</p>
+      </div>
+      <dl>
+        <div>
+          <dt>Members</dt>
+          <dd>{{ community.memberCount || 0 }}</dd>
+        </div>
+        <div>
+          <dt>Posts</dt>
+          <dd>{{ community.postCount || 0 }}</dd>
+        </div>
+        <div *ngIf="community.viewerRole">
+          <dt>Your role</dt>
+          <dd>{{ community.viewerRole }}</dd>
+        </div>
+      </dl>
+      <p class="coming-next">
+        Text posts, quoting, and community comments will be connected here next.
+      </p>
+    </aside>
+  </section>
+</main>
+
+<div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <section class="create-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Create Community</h2>
+        <p>Community requests are reviewed before they go public.</p>
+      </div>
+      <button type="button" class="icon-btn" (click)="closeCreateModal()" aria-label="Close">x</button>
+    </div>
+
+    <button class="image-picker" type="button" (click)="thumbnailInput.click()">
+      <img *ngIf="thumbnailPreviewUrl; else pickerPlaceholder" [src]="thumbnailPreviewUrl" alt="Selected thumbnail">
+      <ng-template #pickerPlaceholder>
+        <span class="plus-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+        <strong>Select thumbnail</strong>
+      </ng-template>
+    </button>
+    <input #thumbnailInput type="file" accept="image/*" (change)="onThumbnailSelected($event)" hidden>
+
+    <label>
+      <span>Name</span>
+      <input type="text" [(ngModel)]="newCommunity.name" maxlength="100" placeholder="Community name">
+    </label>
+    <label>
+      <span>Description</span>
+      <textarea rows="4" [(ngModel)]="newCommunity.description" placeholder="What is this community about?"></textarea>
+    </label>
+    <label>
+      <span>Rules</span>
+      <textarea
+        rows="5"
+        [(ngModel)]="newCommunity.rules"
+        maxlength="2000"
+        placeholder="Write the rules members should follow. Example:&#10;1. Be respectful&#10;2. Keep posts on topic&#10;3. No spam"></textarea>
+    </label>
+
+    <div class="modal-actions">
+      <button class="secondary-btn" type="button" [disabled]="isSubmitting" (click)="closeCreateModal()">Cancel</button>
+      <button
+        class="submit-btn"
+        type="button"
+        [disabled]="isSubmitting || !newCommunity.name.trim() || !thumbnailFile"
+        (click)="createCommunity()">
+        {{ isSubmitting ? 'Submitting...' : 'Submit for review' }}
+      </button>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">Loading communities...</div>
+</ng-template>

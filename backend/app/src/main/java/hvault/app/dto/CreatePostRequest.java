@@ -8,8 +8,9 @@ public class CreatePostRequest {
     @NotNull
     private Long userId;
 
-    @NotNull
     private Long clipId;
+
+    private Long communityId;
 
     private String caption;
 }

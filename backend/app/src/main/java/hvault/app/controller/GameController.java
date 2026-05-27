@@ -42,6 +42,7 @@ public class GameController {
 
         Game game = new Game();
         game.setName(name);
+        game.setCoverUrl(request.getCoverUrl());
         Game saved = gameRepository.save(game);
 
         return ResponseEntity.ok(Map.of("id", saved.getId(), "name", saved.getName(), "message", "Game added successfully"));

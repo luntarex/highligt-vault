@@ -23,6 +23,8 @@ export class ExplorePostCard {
   @Input() showActions = true;
   @Input() showHeader = true;
   @Input() showFullscreen = true;
+  @Input() canManagePost = false;
+  @Input() showRepost = false;
 
   isEditingTitle = false;
   editedTitle = '';
@@ -44,7 +46,9 @@ export class ExplorePostCard {
   ) {}
 
   canEdit(): boolean {
-    return this.authService.isAdmin() || this.authService.getCurrentUserId() === this.post.author.id;
+    return this.canManagePost
+      || this.authService.isAdmin()
+      || this.authService.getCurrentUserId() === this.post.author.id;
   }
 
   startEditingTitle() {
@@ -71,6 +75,7 @@ export class ExplorePostCard {
   @Output() toggleFavoriteEvent = new EventEmitter<ExplorePost>();
   @Output() openCommentsEvent = new EventEmitter<ExplorePost>();
   @Output() deletePostEvent = new EventEmitter<ExplorePost>();
+  @Output() repostPostEvent = new EventEmitter<{ post: ExplorePost; event: MouseEvent }>();
   @Output() toggleMuteEvent = new EventEmitter<{ event: MouseEvent; video: HTMLVideoElement }>();
   @Output() seekToEvent = new EventEmitter<{ event: MouseEvent; post: ExplorePost; video: HTMLVideoElement }>();
   @Output() timeUpdateEvent = new EventEmitter<{ post: ExplorePost; video: HTMLVideoElement }>();
@@ -179,8 +184,23 @@ export class ExplorePostCard {
     return this.videoPlayerRef?.nativeElement ?? null;
   }
 
+  isImagePost(): boolean {
+    const url = this.post?.videoUrl || '';
+    if (!url) return false;
+
+    if (this.isKnownImageUrl(url)) return true;
+    if (this.isKnownVideoUrl(url)) return false;
+
+    return this.post.postType === 'CLIP' && Number(this.post.duration || 0) === 0;
+  }
+
   deletePost() {
     this.deletePostEvent.emit(this.post);
+  }
+
+  repostPost(event: MouseEvent) {
+    event.stopPropagation();
+    this.repostPostEvent.emit({ post: this.post, event });
   }
 
   onTogglePlay(video: HTMLVideoElement) {
@@ -284,10 +304,17 @@ export class ExplorePostCard {
         this.toast.success(`Sent to ${user.username}.`);
         this.resetSharePanelAfterSend();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Send message error:', err);
         this.toast.error('Could not send post.');
         this.sendingToUserId = null;
         this.cdr.detectChanges();
+      },
+      complete: () => {
+        if (this.sendingToUserId === Number(user.id)) {
+          this.sendingToUserId = null;
+          this.cdr.detectChanges();
+        }
       }
     });
   }
@@ -349,5 +376,13 @@ export class ExplorePostCard {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  private isKnownImageUrl(url: string): boolean {
+    return /\/image\/upload\//i.test(url) || /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:$|[?#])/i.test(url);
+  }
+
+  private isKnownVideoUrl(url: string): boolean {
+    return /\/video\/upload\//i.test(url) || /\.(m3u8|mov|mp4|mpeg|mpg|ogg|ogv|webm)(?:$|[?#])/i.test(url);
   }
 }

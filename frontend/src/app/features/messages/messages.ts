@@ -9,6 +9,7 @@ import { UserService } from '../../core/services/user.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { MessageRealtimeEvent, MessageRealtimeService } from '../../core/services/message-realtime.service';
 import { Message, Conversation } from '../../core/models/message.model';
+import { ExplorePost } from '../../core/models/explore-post';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
@@ -331,6 +332,24 @@ export class MessagesComponent implements OnInit, OnDestroy {
     return ['/post', postId];
   }
 
+  isSharedTextPost(post: ExplorePost | null | undefined): boolean {
+    return !post?.videoUrl || post.postType === 'TEXT' || !post.clipId;
+  }
+
+  isSharedImagePost(post: ExplorePost | null | undefined): boolean {
+    const url = post?.videoUrl || '';
+    if (!url) return false;
+
+    if (this.isKnownImageUrl(url)) return true;
+    if (this.isKnownVideoUrl(url)) return false;
+
+    return post?.postType === 'CLIP' && Number(post?.duration || 0) === 0;
+  }
+
+  sharedCommunityLabel(post: ExplorePost | null | undefined): string {
+    return post?.communityName || post?.game || 'Community';
+  }
+
   isMessagePostUnavailable(message: Message): boolean {
     return Boolean(message.sharedPostUnavailable || (message.sharedPostId && !message.sharedPost));
   }
@@ -502,6 +521,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   private toBoolean(value: unknown): boolean {
     return value === true || value === 1 || value === '1' || value === 'true';
+  }
+
+  private isKnownImageUrl(url: string): boolean {
+    return /\/image\/upload\//i.test(url) || /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:$|[?#])/i.test(url);
+  }
+
+  private isKnownVideoUrl(url: string): boolean {
+    return /\/video\/upload\//i.test(url) || /\.(m3u8|mov|mp4|mpeg|mpg|ogg|ogv|webm)(?:$|[?#])/i.test(url);
   }
 }
 

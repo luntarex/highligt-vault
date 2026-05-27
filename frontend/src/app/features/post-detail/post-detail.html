@@ -1,7 +1,7 @@
 <div class="post-detail-page">
   <div class="post-backdrop"></div>
 
-  <div class="post-detail-wrapper animate-in">
+  <div class="post-detail-wrapper animate-in" [class.text-post-wrapper]="!!post && isTextPost()">
     <button class="post-close" type="button" (click)="closePost()">x</button>
 
     @if (isLoading) {
@@ -10,63 +10,69 @@
         <p>Loading post...</p>
       </div>
     } @else if (post) {
-      <div class="post-detail-layout">
-        <div class="video-side" (click)="onTogglePlay($event)">
-          <video
-            #videoPlayer
-            [src]="post.videoUrl"
-            autoplay
-            muted
-            playsinline
-            class="detailed-video"
-            (timeupdate)="onTimeUpdate()"
-            (loadedmetadata)="onMetadataLoaded()">
-          </video>
+      <div class="post-detail-layout" [class.text-layout]="isTextPost()">
+        @if (!isTextPost()) {
+          <div class="video-side" [class.image-side]="isImagePost()" (click)="isVideoPost() && onTogglePlay($event)">
+            @if (isImagePost()) {
+              <img class="detailed-image" [src]="post.videoUrl" [alt]="post.title || 'Shared community post'">
+            } @else {
+              <video
+                #videoPlayer
+                [src]="post.videoUrl"
+                autoplay
+                muted
+                playsinline
+                class="detailed-video"
+                (timeupdate)="onTimeUpdate()"
+                (loadedmetadata)="onMetadataLoaded()">
+              </video>
 
-          <div class="fullscreen-hud" (click)="$event.stopPropagation()">
-            <div class="hud-bottom">
-              <div class="hud-progress-container" (click)="onSeekTo($event)">
-                <div
-                  class="hud-progress-bar"
-                  [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100">
+              <div class="fullscreen-hud" (click)="$event.stopPropagation()">
+                <div class="hud-bottom">
+                  <div class="hud-progress-container" (click)="onSeekTo($event)">
+                    <div
+                      class="hud-progress-bar"
+                      [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100">
+                    </div>
+                  </div>
+
+                  <div class="hud-controls">
+                    <button class="hud-play-btn" type="button" (click)="onTogglePlay($event)">
+                      @if (videoPlayer.paused) {
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                      }
+                    </button>
+
+                    <div class="hud-time">
+                      {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} /
+                      {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
+                    </div>
+
+                    <div class="hud-volume-control">
+                      <button class="hud-mute-btn" type="button" (click)="onToggleMute($event)">
+                        @if (videoPlayer.muted || videoPlayer.volume === 0) {
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                        } @else {
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        }
+                      </button>
+                      <input
+                        type="range"
+                        class="hud-volume-slider"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        [value]="videoPlayer.muted ? 0 : videoPlayer.volume"
+                        (input)="onVolumeChange($event)">
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div class="hud-controls">
-                <button class="hud-play-btn" type="button" (click)="onTogglePlay($event)">
-                  @if (videoPlayer.paused) {
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                  } @else {
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                  }
-                </button>
-
-                <div class="hud-time">
-                  {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} /
-                  {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
-                </div>
-
-                <div class="hud-volume-control">
-                  <button class="hud-mute-btn" type="button" (click)="onToggleMute($event)">
-                    @if (videoPlayer.muted || videoPlayer.volume === 0) {
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                    } @else {
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                    }
-                  </button>
-                  <input
-                    type="range"
-                    class="hud-volume-slider"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    [value]="videoPlayer.muted ? 0 : videoPlayer.volume"
-                    (input)="onVolumeChange($event)">
-                </div>
-              </div>
-            </div>
+            }
           </div>
-        </div>
+        }
 
         <aside class="social-side">
           <div class="social-header">
@@ -81,7 +87,51 @@
 
           <div class="clip-description">
             <h1>{{ post.title }}</h1>
-            <p class="game-tag">#{{ post.game }}</p>
+            <div class="post-detail-meta-stack">
+              @if (post.game) {
+                <span class="post-detail-game-badge">{{ post.game }}</span>
+              }
+              @if (hasCommunityLink()) {
+                <a class="post-detail-community-pill" [routerLink]="['/communities', post.communityId]">{{ communityLabel() }}</a>
+              }
+            </div>
+            @if (post.originalPost) {
+              <article class="detail-quoted-card" (click)="openLinkedPostDetail(post.originalPost.id, $event)">
+                <div class="detail-quoted-author">
+                  <img [src]="post.originalPost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+                  <strong>{{ post.originalPost.author.username }}</strong>
+                  <span>{{ formatTimeAgo(post.originalPost.createdAt || post.originalPost.timeAgo) }}</span>
+                </div>
+
+                @if (post.originalPost.title) {
+                  <p class="detail-quoted-text">{{ post.originalPost.title }}</p>
+                }
+
+                <div class="detail-quoted-meta">
+                  @if (post.originalPost.game) {
+                    <span class="detail-quoted-game">{{ post.originalPost.game }}</span>
+                  }
+                  @if (post.originalPost.communityId) {
+                    <a
+                      class="detail-quoted-community"
+                      [routerLink]="['/communities', post.originalPost.communityId]"
+                      (click)="$event.stopPropagation()">
+                      {{ originalCommunityLabel(post.originalPost) }}
+                    </a>
+                  }
+                </div>
+
+                @if (post.originalPost.videoUrl) {
+                  <div class="detail-quoted-media">
+                    @if (isImageMedia(post.originalPost)) {
+                      <img [src]="post.originalPost.videoUrl" [alt]="post.originalPost.title || 'Original post'">
+                    } @else {
+                      <video [src]="post.originalPost.videoUrl" muted playsinline preload="metadata"></video>
+                    }
+                  </div>
+                }
+              </article>
+            }
             @if (post.tags && post.tags.length > 0) {
               <div class="tag-row">
                 @for (tag of post.tags; track tag) {

@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Clip } from '../../core/models/clip';
 import { Comment } from '../../core/models/comment';
+import { Community } from '../../core/models/community';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ClipService } from '../../core/services/clip.service';
 import { CommentService } from '../../core/services/comment.service';
@@ -22,19 +23,25 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
   styleUrl: './moderation.css'
 })
 export class Moderation implements OnInit {
+  activeSection: 'uploads' | 'reports' | 'communities' = 'uploads';
   queue: ModerationQueueItem[] = [];
   reports: ReportResponse[] = [];
+  communityQueue: Community[] = [];
   selectedClip: ModerationQueueItem | null = null;
   decisionReason = '';
   isLoading = false;
   isRefreshing = false;
   reportsLoading = false;
+  communitiesLoading = false;
   isSubmitting = false;
   isResolvingReportId: number | null = null;
+  isActingOnCommentReportId: number | null = null;
+  isDecidingCommunityId: number | null = null;
   reviewCurrentTime = 0;
   reviewDuration = 0;
   isReviewPlaying = false;
   reportResolutionById: Record<number, string> = {};
+  communityReasonById: Record<number, string> = {};
   statusFilter = '';
   minScoreFilter: number | null = null;
   categoryFilter = '';
@@ -55,6 +62,11 @@ export class Moderation implements OnInit {
   ngOnInit(): void {
     this.loadQueue();
     this.loadReports();
+    this.loadCommunityQueue();
+  }
+
+  setSection(section: 'uploads' | 'reports' | 'communities'): void {
+    this.activeSection = section;
   }
 
   loadQueue(): void {
@@ -105,8 +117,50 @@ export class Moderation implements OnInit {
     });
   }
 
+  loadCommunityQueue(): void {
+    this.communitiesLoading = this.communityQueue.length === 0;
+    this.moderationService.getPendingCommunities().subscribe({
+      next: (items) => {
+        this.communityQueue = items || [];
+        this.communitiesLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.communitiesLoading = false;
+        this.toast.error(getSafeErrorMessage(err, 'Could not load community moderation queue.'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  decideCommunity(community: Community, approved: boolean): void {
+    if (this.isDecidingCommunityId) return;
+
+    const reason = (this.communityReasonById[community.id] || '').trim()
+      || (approved ? 'Approved after moderator review.' : 'Rejected after moderator review.');
+    this.isDecidingCommunityId = community.id;
+    const request = approved
+      ? this.moderationService.approveCommunity(community.id, reason)
+      : this.moderationService.rejectCommunity(community.id, reason);
+
+    request.subscribe({
+      next: () => {
+        this.communityQueue = this.communityQueue.filter(item => item.id !== community.id);
+        delete this.communityReasonById[community.id];
+        this.isDecidingCommunityId = null;
+        this.toast.success(approved ? 'Community approved.' : 'Community rejected.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isDecidingCommunityId = null;
+        this.toast.error(getSafeErrorMessage(err, 'Could not apply community decision.'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   resolveReport(report: ReportResponse, dismissed = false): void {
-    if (this.isResolvingReportId) return;
+    if (this.isResolvingReportId || this.isActingOnCommentReportId) return;
 
     const resolution = (this.reportResolutionById[report.id] || '').trim()
       || (dismissed ? 'Dismissed by moderator.' : 'Resolved by moderator.');
@@ -122,6 +176,36 @@ export class Moderation implements OnInit {
       error: (err) => {
         this.isResolvingReportId = null;
         this.toast.error(getSafeErrorMessage(err, 'Could not resolve report.'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  moderateReportedComment(report: ReportResponse, violation: boolean): void {
+    if (
+      this.isResolvingReportId
+      || this.isActingOnCommentReportId
+      || report.targetType !== 'COMMENT'
+    ) {
+      return;
+    }
+
+    const commentId = report.targetComment?.id || report.targetId;
+    const resolution = (this.reportResolutionById[report.id] || '').trim()
+      || (violation
+        ? 'Comment removed and archived for a policy violation.'
+        : 'Comment deleted by moderator.');
+
+    this.isActingOnCommentReportId = report.id;
+    const action = violation
+      ? this.commentService.removeCommentViolation(commentId)
+      : this.commentService.removeComment(commentId);
+
+    action.subscribe({
+      next: () => this.resolveReportAfterCommentAction(report, resolution, violation),
+      error: (err) => {
+        this.isActingOnCommentReportId = null;
+        this.toast.error(getSafeErrorMessage(err, 'Could not moderate reported comment.'));
         this.cdr.detectChanges();
       }
     });
@@ -203,6 +287,37 @@ export class Moderation implements OnInit {
       : `Report #${report.id}: ${this.formatReportText(report.reason)}`;
     this.resetReviewPlayer();
     this.cdr.detectChanges();
+  }
+
+  isReportActionBusy(report: ReportResponse): boolean {
+    return this.isResolvingReportId === report.id || this.isActingOnCommentReportId === report.id;
+  }
+
+  private resolveReportAfterCommentAction(
+    report: ReportResponse,
+    resolution: string,
+    violation: boolean
+  ): void {
+    this.moderationService.resolveReport(report.id, { resolution, dismissed: false }).subscribe({
+      next: () => {
+        this.reports = this.reports.filter(item => item.id !== report.id);
+        delete this.reportResolutionById[report.id];
+        this.isActingOnCommentReportId = null;
+        this.toast.success(violation
+          ? 'Comment removed for violation and report resolved.'
+          : 'Comment deleted and report resolved.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isActingOnCommentReportId = null;
+        this.patchReport(report.id, { targetComment: undefined });
+        this.toast.error(getSafeErrorMessage(
+          err,
+          'Comment was moderated, but the report could not be resolved.'
+        ));
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private hydrateMissingReportTargets(): void {

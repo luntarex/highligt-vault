@@ -25,8 +25,11 @@ public class Post {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "clip_id", nullable = false)
+    @Column(name = "clip_id")
     private Long clipId;
+
+    @Column(name = "community_id")
+    private Long communityId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
@@ -40,8 +43,26 @@ public class Post {
     @EqualsAndHashCode.Exclude
     private Clip clip;
 
+    @ManyToOne
+    @JoinColumn(name = "community_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Community community;
+
     @Column(columnDefinition = "TEXT")
     private String caption;
+
+    @Column(name = "original_post_id")
+    private Long originalPostId;
+
+    @Column(name = "repost_type")
+    private String repostType;
+
+    @ManyToOne
+    @JoinColumn(name = "original_post_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Post originalPost;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -33,6 +33,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         LEFT JOIN post_likes pl ON pl.post_id = p.id
         LEFT JOIN comments cm ON cm.post_id = p.id
         WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND p.community_id IS NULL
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC'
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
@@ -42,25 +43,31 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<PostDetailsView> findAllPostsWithDetails();
 
     @Query(value = """
-        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
                c.start_time AS startTime, c.end_time AS endTime,
-               g.name AS gameName,
+               COALESCE(g.name, cg.name) AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
                COUNT(DISTINCT cm.id) AS comments
         FROM posts p
-        JOIN clips c ON p.clip_id = c.id
+        LEFT JOIN clips c ON p.clip_id = c.id
+        LEFT JOIN communities cg ON p.community_id = cg.id
         JOIN users u ON p.user_id = u.id
         LEFT JOIN games g ON c.game_id = g.id
         LEFT JOIN post_likes pl ON pl.post_id = p.id
         LEFT JOIN comments cm ON cm.post_id = p.id
         WHERE p.id = :postId
-          AND (c.is_deleted = false OR c.is_deleted IS NULL)
-          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
-          AND c.visibility_status = 'PUBLIC'
-        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+          AND (
+            p.clip_id IS NULL
+            OR (
+              (c.is_deleted = false OR c.is_deleted IS NULL)
+              AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+              AND c.visibility_status = 'PUBLIC'
+            )
+          )
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, cg.name, u.id, u.username, u.profile_photo_url
         """, nativeQuery = true)
     List<PostDetailsView> findRowsByPostIdWithDetails(@Param("postId") Long postId);
 
@@ -137,6 +144,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         return rows.isEmpty() ? null : rows.get(0);
     }
 
+    @Query(value = """
+        SELECT COALESCE(p.community_id, cg.id)
+        FROM posts p
+        LEFT JOIN clips c ON c.id = p.clip_id
+        LEFT JOIN communities cg ON cg.game_id = c.game_id AND cg.type = 'GAME'
+        WHERE p.id = :postId
+        """, nativeQuery = true)
+    List<Long> findCommunityIdsByPostId(@Param("postId") Long postId);
+
+    default Long getCommunityIdByPostId(Long postId) {
+        List<Long> rows = findCommunityIdsByPostId(postId);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM posts WHERE id = :postId", nativeQuery = true)
@@ -172,6 +193,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         LEFT JOIN post_likes pl ON pl.post_id = p.id
         LEFT JOIN comments cm ON cm.post_id = p.id
         WHERE (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND p.community_id IS NULL
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC'
           AND (p.user_id = :userId OR p.user_id IN (SELECT followed_id FROM follows WHERE follower_id = :userId))
@@ -182,7 +204,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<PostDetailsView> findFollowingFeedPosts(@Param("userId") Long userId);
 
     @Query(value = """
-        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
                c.start_time AS startTime, c.end_time AS endTime,
                g.name AS gameName,
@@ -193,13 +215,73 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         JOIN clips c ON p.clip_id = c.id
         JOIN users u ON p.user_id = u.id
         LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN communities cg ON p.community_id = cg.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE c.game_id = :gameId
+          AND p.community_id IS NULL
+          AND (p.clip_id IS NULL OR (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC')
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, cg.name, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+        ORDER BY p.created_at DESC
+        """, nativeQuery = true)
+    List<PostDetailsView> findPostsByGameId(@Param("gameId") Long gameId);
+
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               COALESCE(g.name, cg.name) AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        LEFT JOIN clips c ON p.clip_id = c.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN communities cg ON p.community_id = cg.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN post_likes pl ON pl.post_id = p.id
+        LEFT JOIN comments cm ON cm.post_id = p.id
+        WHERE (
+            p.community_id = :communityId
+            OR (:gameId IS NOT NULL AND c.game_id = :gameId)
+          )
+          AND (
+            p.clip_id IS NULL
+            OR (
+              (c.is_deleted = false OR c.is_deleted IS NULL)
+              AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+              AND c.visibility_status = 'PUBLIC'
+            )
+          )
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
+                 c.start_time, c.end_time, g.name, cg.name, u.id, u.username, u.profile_photo_url
+        ORDER BY p.created_at DESC
+        """, nativeQuery = true)
+    List<PostDetailsView> findCommunityPosts(@Param("communityId") Long communityId, @Param("gameId") Long gameId);
+
+    @Query(value = """
+        SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
+               c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
+               c.start_time AS startTime, c.end_time AS endTime,
+               g.name AS gameName,
+               u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
+               COUNT(DISTINCT pl.user_id) AS likes,
+               COUNT(DISTINCT cm.id) AS comments
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN games g ON c.game_id = g.id
+        LEFT JOIN communities cg ON p.community_id = cg.id
         LEFT JOIN post_likes pl ON pl.post_id = p.id
         LEFT JOIN comments cm ON cm.post_id = p.id
         WHERE p.clip_id = :clipId
           AND (c.is_deleted = false OR c.is_deleted IS NULL)
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC'
-        GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
+        GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, cg.name, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
                  c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
         """, nativeQuery = true)
     List<PostDetailsView> findRowsByClipIdWithDetails(@Param("clipId") Long clipId);

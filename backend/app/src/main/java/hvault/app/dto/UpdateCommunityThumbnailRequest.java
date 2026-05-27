@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class CreateGameRequest {
+public class UpdateCommunityThumbnailRequest {
     @NotBlank
-    private String name;
-    
-    private String coverUrl;
+    private String thumbnailUrl;
 }

@@ -1,0 +1,806 @@
+<main class="community-detail-page" *ngIf="!isLoading && community; else loadingState">
+  <div class="profile-dropdown-anchor">
+    <app-profile-dropdown />
+  </div>
+
+  <div class="top-nav">
+    <app-back-link></app-back-link>
+  </div>
+
+  <section class="community-hero">
+    <div class="banner">
+      <img [src]="community.thumbnailUrl || defaultThumbnail()" [alt]="community.name">
+    </div>
+
+    <div class="community-header">
+      <div class="avatar">
+        <img [src]="community.thumbnailUrl || defaultThumbnail()" [alt]="community.name">
+      </div>
+      <div class="title-block">
+        <span>{{ communityTypeLabel() }}</span>
+        <h1>{{ community.name }}</h1>
+        <p>{{ community.description || 'No description yet.' }}</p>
+      </div>
+      <div class="header-actions">
+        <div class="community-options-wrapper" *ngIf="canManageCommunity()">
+          <button type="button" class="icon-btn options-btn" (click)="toggleCommunityOptions($event)">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+          
+          <div class="community-options-menu" *ngIf="isCommunityOptionsOpen" (click)="$event.stopPropagation()">
+            <button type="button" class="menu-item" (click)="openEditModal(); isCommunityOptionsOpen = false">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Edit Community
+            </button>
+            <button type="button" class="menu-item danger" (click)="deleteCommunity(); isCommunityOptionsOpen = false">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Delete Community
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="join-btn"
+          [class.joined]="community.joined"
+          [disabled]="community.viewerRole === 'OWNER' || isSubmitting"
+          (click)="toggleJoin()">
+          {{ community.joined ? 'Joined' : 'Join' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="detail-layout">
+    <div class="main-feed">
+      <div class="feed-toolbar">
+        <button type="button" [class.active]="sortFilter === 'best'" (click)="setSortFilter('best')">Best</button>
+        <button type="button" [class.active]="sortFilter === 'new'" (click)="setSortFilter('new')">New</button>
+      </div>
+
+      <div class="pinned-row">
+        <article>
+          <strong>Welcome to {{ community.name }}</strong>
+          <span>{{ community.description || 'Community highlights and discussions will live here.' }}</span>
+        </article>
+        <article>
+          <strong>Community posts</strong>
+          <span>{{ community.postCount || 0 }} posts available</span>
+        </article>
+      </div>
+
+      <section class="composer-card" [class.drag-active]="isDragging"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)">
+        <img [src]="currentUserPhoto()" alt="">
+        <div class="composer-main">
+          <textarea
+            rows="2"
+            [(ngModel)]="newPostText"
+            placeholder="What is happening?"
+            [disabled]="isCreatingPost"></textarea>
+
+          <div class="media-preview" *ngIf="selectedMediaFile">
+            <img *ngIf="!isVideo" [src]="mediaPreviewUrl" alt="Preview">
+            <video *ngIf="isVideo" [src]="mediaPreviewUrl" controls></video>
+            <button type="button" class="remove-media-btn" (click)="removeMedia()">×</button>
+          </div>
+          <div class="composer-footer">
+            <input type="file" #mediaInput accept="image/*,video/*" hidden (change)="onMediaSelected($event)">
+            <button type="button" class="action-btn media-btn" (click)="mediaInput.click()" title="Add Media">
+              <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="publish-btn"
+              [disabled]="isCreatingPost || (!newPostText.trim() && !selectedMediaFile)"
+              (click)="createCommunityPost()">
+              {{ isCreatingPost ? 'Publishing...' : 'Publish Post' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="post-list" *ngIf="!isPostsLoading; else postsLoadingState">
+        <article class="managed-post" *ngFor="let post of posts">
+          <article class="text-post-card" *ngIf="post.postType === 'TEXT' || !post.clipId; else clipPostCard">
+            <header>
+              <div class="text-post-author">
+                <img [src]="post.author.profilePhotoUrl || 'assets/icons/profile-pic.svg'" alt="">
+                <div>
+                  <strong>{{ post.author.username }}</strong>
+                  <span>{{ post.timeAgo }}</span>
+                </div>
+              </div>
+              <div class="text-post-admin-actions" *ngIf="canManageCommunity()">
+                <button type="button" (click)="startEditingPost(post)" title="Edit post">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button type="button" class="danger" (click)="deletePost(post)" title="Delete post">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div *ngIf="editingPostId === post.id; else textPostBody" class="post-edit-row">
+              <input type="text" [(ngModel)]="editingPostTitle" placeholder="Post text">
+              <button type="button" (click)="savePostTitle(post)">Save</button>
+              <button type="button" (click)="cancelEditingPost()">Cancel</button>
+            </div>
+            <ng-template #textPostBody>
+              <p>{{ post.title }}</p>
+              <article *ngIf="post.originalPost" class="repost-quoted-card" style="margin: 10px 0 0;" (click)="openPostDetail(post.originalPost.id, $event)">
+                <div class="repost-quoted-author">
+                  <img [src]="post.originalPost.author.profilePhotoUrl || 'assets/icons/profile-pic.svg'" alt="">
+                  <strong>{{ post.originalPost.author.username }}</strong>
+                </div>
+                <p class="repost-quoted-text" *ngIf="post.originalPost.title">{{ post.originalPost.title }}</p>
+                <div class="repost-quoted-meta">
+                  <span class="repost-quoted-game" *ngIf="post.originalPost.game">{{ post.originalPost.game }}</span>
+                  <a
+                    *ngIf="post.originalPost.communityId"
+                    class="repost-quoted-community"
+                    [routerLink]="['/communities', post.originalPost.communityId]"
+                    (click)="$event.stopPropagation()">
+                    {{ communityLabelForPost(post.originalPost) }}
+                  </a>
+                </div>
+                <div class="repost-quoted-media" *ngIf="post.originalPost.videoUrl">
+                  <img
+                    *ngIf="isImageMedia(post.originalPost); else originalVideo"
+                    [src]="post.originalPost.videoUrl"
+                    alt="">
+                  <ng-template #originalVideo>
+                    <video [src]="post.originalPost.videoUrl" controls></video>
+                  </ng-template>
+                </div>
+              </article>
+            </ng-template>
+
+            <div class="post-actions" style="margin-top: 16px;">
+              <button class="action-btn" [class.liked]="post.isLiked" (click)="toggleLike(post)">
+                @if (post.isLiked) {
+                  <svg viewBox="0 0 24 24" class="icon" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>
+                  </svg>
+                }
+                <span class="count">{{ post.likes || 0 }}</span>
+              </button>
+              <button class="action-btn" (click)="openComments(post)">
+                <svg viewBox="0 0 64 64" class="c-icon icon">
+                  <g fill="currentColor">
+                    <path d="M60,0H16c-2.211,0-4,1.789-4,4v6H4c-2.211,0-4,1.789-4,4v30c0,2.211,1.789,4,4,4h7c0.553,0,1,0.447,1,1v11c0,1.617,0.973,3.078,2.469,3.695C14.965,63.902,15.484,64,16,64c1.039,0,2.062-0.406,2.828-1.172l14.156-14.156c0,0,0.516-0.672,1.672-0.672S50,48,50,48c2.211,0,4-1.789,4-4v-8h6c2.211,0,4-1.789,4-4V4C64,1.789,62.211,0,60,0z M52,44c0,1.105-0.895,2-2,2c0,0-14.687,0-15.344,0C32.709,46,32,47,32,47S20,59,18,61c-2.141,2.141-4,0.391-4-1c0-1,0-12,0-12c0-1.105-0.895-2-2-2H4c-1.105,0-2-0.895-2-2V14c0-1.105,0.895-2,2-2h46c1.105,0,2,0.895,2,2V44z M62,32c0,1.105-0.895,2-2,2h-6V14c0-2.211-1.789-4-4-4H14V4c0-1.105,0.895-2,2-2h44c1.105,0,2,0.895,2,2V32z"/>
+                    <path d="M13,24h13c0.553,0,1-0.447,1-1s-0.447-1-1-1H13c-0.553,0-1,0.447-1,1S12.447,24,13,24z"/>
+                    <path d="M41,28H13c-0.553,0-1,0.447-1,1s0.447,1,1,1h28c0.553,0,1-0.447,1-1S41.553,28,41,28z"/>
+                    <path d="M34,34H13c-0.553,0-1,0.447-1,1s0.447,1,1,1h21c0.553,0,1-0.447,1-1S34.553,34,34,34z"/>
+                  </g>
+                </svg>
+                <span class="count">{{ post.comments || 0 }}</span>
+              </button>
+              <div class="share-action-wrapper" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <button class="action-btn share-btn" (click)="toggleSharePanel($event, post)" title="Share post">
+                  <svg viewBox="0 0 24 24" class="s-icon icon" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+
+                @if (isSharePanelOpen && shareUrl.includes(post.id)) {
+                  <div class="share-panel" (click)="$event.stopPropagation()">
+                    <div class="share-panel-header">
+                      <strong>Share post</strong>
+                      <button type="button" (click)="toggleSharePanel($event)">x</button>
+                    </div>
+
+                    <div class="share-copy-box">
+                      <div class="share-url-preview">
+                        <span>{{ shareUrl }}</span>
+                      </div>
+                      <button type="button" (click)="copyPostLink($event)">Copy</button>
+                    </div>
+
+                    <div class="share-target-grid">
+                      <button type="button" class="share-target whatsapp" (click)="openShareTarget($event, 'whatsapp')">
+                        <span>
+                          <svg viewBox="0 0 32 32" aria-hidden="true">
+                            <path d="M16.02 4.2A11.7 11.7 0 0 0 5.9 21.75L4.2 27.8l6.2-1.63A11.7 11.7 0 1 0 16.02 4.2Zm0 21.43c-1.95 0-3.77-.57-5.3-1.56l-.38-.24-3.67.96.98-3.58-.25-.37a9.7 9.7 0 1 1 8.62 4.79Zm5.33-7.27c-.29-.15-1.73-.85-2-.95-.27-.1-.47-.15-.67.15-.2.29-.77.95-.94 1.15-.17.2-.35.22-.64.07-.29-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.64-2.03-.17-.29-.02-.45.13-.6.13-.13.29-.35.44-.52.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.29-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.73-.71 1.98-1.39.24-.68.24-1.27.17-1.39-.07-.12-.27-.2-.56-.35Z"></path>
+                          </svg>
+                        </span>
+                        WhatsApp
+                      </button>
+                      <button type="button" class="share-target x" (click)="openShareTarget($event, 'x')">
+                        <span>
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18.24 2H21.6l-7.34 8.39L22.9 22h-6.77l-5.3-6.93L4.77 22H1.4l7.85-8.97L.96 2h6.94l4.79 6.33L18.24 2Zm-1.18 17.95h1.86L6.88 3.94h-2L17.06 19.95Z"></path>
+                          </svg>
+                        </span>
+                        X
+                      </button>
+                      <button type="button" class="share-target facebook" (click)="openShareTarget($event, 'facebook')">
+                        <span>
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M14.2 8.38V6.83c0-.75.5-.93.85-.93h2.17V2.17L14.23 2.16c-3.32 0-4.07 2.49-4.07 4.08v2.14H7.44v3.85h2.72V22h4.04v-9.77h3.43l.16-1.51.25-2.34H14.2Z"></path>
+                          </svg>
+                        </span>
+                        Facebook
+                      </button>
+                      <button type="button" class="share-target email" (click)="openShareTarget($event, 'email')">
+                        <span>
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 2v.28l8 5.15 8-5.15V7H4Zm0 2.66V17h16V9.66l-7.46 4.8a1 1 0 0 1-1.08 0L4 9.66Z"></path>
+                          </svg>
+                        </span>
+                        Email
+                      </button>
+                    </div>
+
+                    <div class="share-section-label">Send in messages</div>
+                    <div class="share-message-box">
+                      <label for="share-message-{{ post.id }}">Message</label>
+                      <textarea
+                        id="share-message-{{ post.id }}"
+                        [(ngModel)]="shareMessage"
+                        maxlength="180"
+                        rows="2"
+                        placeholder="Add a message..."></textarea>
+                    </div>
+                    @if (isLoadingShareUsers) {
+                      <p class="share-empty">Loading people...</p>
+                    } @else if (shareUsers.length > 0) {
+                      <div class="share-user-list">
+                        @for (user of shareUsers; track user.id) {
+                          <button type="button" class="share-user-row" (click)="sendPostToUser($event, user)">
+                            <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+                            <span>{{ user.username }}</span>
+                            <small>{{ isSendingTo(user) ? 'Sending...' : 'Send' }}</small>
+                          </button>
+                        }
+                      </div>
+                    } @else {
+                      <p class="share-empty">Follow someone to send posts in DM.</p>
+                    }
+                  </div>
+                }
+
+                <div class="repost-action-wrapper" style="position: relative;">
+                  <button class="action-btn repost-btn" (click)="toggleRepostPanel($event, post)" title="Repost">
+                    <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="17 1 21 5 17 9"></polyline>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                      <polyline points="7 23 3 19 7 15"></polyline>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                  </button>
+
+                  @if (isRepostPanelOpen && postToRepost?.id === post.id) {
+                    <div class="repost-panel" [ngStyle]="repostPanelPosition" (click)="$event.stopPropagation()">
+                      @if (repostMode === 'SELECT') {
+                        <button type="button" class="repost-option" (click)="selectRepostMode('SELECT'); submitInlineRepost()">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                          </svg>
+                          <span>{{ isReposting ? 'Reposting...' : 'Repost' }}</span>
+                        </button>
+                        <button type="button" class="repost-option" (click)="selectRepostMode('QUOTE')">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          <span>Quote</span>
+                        </button>
+                      } @else {
+                        <!-- Quote compose opens as centered overlay -->
+                      }
+                    </div>
+                  }
+
+                  @if (isRepostPanelOpen && postToRepost?.id === post.id && repostMode === 'QUOTE') {
+                    <div class="quote-overlay" (click)="closeRepostPanel()">
+                      <div class="quote-compose-modal" (click)="$event.stopPropagation()">
+                        <div class="quote-compose-header">
+                          <button type="button" class="repost-close-btn" (click)="closeRepostPanel()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                          <strong>Quote post</strong>
+                          <button
+                            type="button"
+                            class="quote-post-btn"
+                            [disabled]="isReposting || !quoteText.trim()"
+                            (click)="submitInlineRepost()">
+                            {{ isReposting ? 'Posting...' : 'Post' }}
+                          </button>
+                        </div>
+
+                        <div class="quote-compose-body">
+                          <div class="quote-compose-row">
+                            <img [src]="currentUserPhoto()" alt="" class="quote-user-avatar">
+                            <div class="quote-compose-input">
+                              <textarea
+                                class="repost-quote-textarea"
+                                [(ngModel)]="quoteText"
+                                rows="4"
+                                maxlength="500"
+                                placeholder="Add your thoughts..."></textarea>
+
+                              <div class="quote-media-preview" *ngIf="quoteMediaFile">
+                                <img *ngIf="!quoteIsVideo" [src]="quoteMediaPreview" alt="Preview">
+                                <video *ngIf="quoteIsVideo" [src]="quoteMediaPreview" controls></video>
+                                <button type="button" class="remove-media-btn" (click)="removeQuoteMedia()">×</button>
+                              </div>
+
+                              <div class="repost-quoted-card">
+                                <div class="repost-quoted-author">
+                                  <img [src]="post.author.profilePhotoUrl || 'assets/icons/profile-pic.svg'" alt="">
+                                  <strong>{{ post.author.username }}</strong>
+                                  <span>· {{ post.timeAgo }}</span>
+                                </div>
+                                <p class="repost-quoted-text" *ngIf="post.title">{{ post.title }}</p>
+                                <div class="repost-quoted-media" *ngIf="post.videoUrl">
+                                  <img *ngIf="isImageMedia(post); else quoteVideo" [src]="post.videoUrl" alt="">
+                                  <ng-template #quoteVideo>
+                                    <video [src]="post.videoUrl" muted></video>
+                                  </ng-template>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="quote-compose-footer">
+                          <input type="file" #quoteMediaInput accept="image/*,video/*" hidden (change)="onQuoteMediaSelected($event)">
+                          <button type="button" class="action-btn media-btn" (click)="quoteMediaInput.click()" title="Add Media">
+                            <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                              <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <ng-template #clipPostCard>
+            <div class="media-post-repost-host">
+              <app-explore-post-card
+                [post]="post"
+                [playingPostId]="playingPostId"
+                [canManagePost]="canManageCommunity()"
+                (togglePlayEvent)="togglePlay($event)"
+                (toggleLikeEvent)="toggleLike($event)"
+                (toggleFavoriteEvent)="toggleFavorite($event)"
+                (openCommentsEvent)="openComments($event)"
+                (repostPostEvent)="openMediaRepostPanel($event)"
+                [showRepost]="true"
+                (deletePostEvent)="deletePost($event)"
+                (toggleMuteEvent)="onToggleMute($event)"
+                (seekToEvent)="onSeekTo($event)"
+                (timeUpdateEvent)="onTimeUpdate($event)"
+                (metadataLoadedEvent)="onMetadataLoaded($event)">
+              </app-explore-post-card>
+
+              @if (isRepostPanelOpen && postToRepost?.id === post.id) {
+                <div class="repost-panel media-repost-panel" [ngStyle]="repostPanelPosition" (click)="$event.stopPropagation()">
+                  @if (repostMode === 'SELECT') {
+                    <button type="button" class="repost-option" (click)="selectRepostMode('SELECT'); submitInlineRepost()">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                      </svg>
+                      <span>{{ isReposting ? 'Reposting...' : 'Repost' }}</span>
+                    </button>
+                    <button type="button" class="repost-option" (click)="selectRepostMode('QUOTE')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                      <span>Quote</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (isRepostPanelOpen && postToRepost?.id === post.id && repostMode === 'QUOTE') {
+                <div class="quote-overlay" (click)="closeRepostPanel()">
+                  <div class="quote-compose-modal" (click)="$event.stopPropagation()">
+                    <div class="quote-compose-header">
+                      <button type="button" class="repost-close-btn" (click)="closeRepostPanel()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                      <strong>Quote post</strong>
+                      <button
+                        type="button"
+                        class="quote-post-btn"
+                        [disabled]="isReposting || !quoteText.trim()"
+                        (click)="submitInlineRepost()">
+                        {{ isReposting ? 'Posting...' : 'Post' }}
+                      </button>
+                    </div>
+
+                    <div class="quote-compose-body">
+                      <div class="quote-compose-row">
+                        <img [src]="currentUserPhoto()" alt="" class="quote-user-avatar">
+                        <div class="quote-compose-input">
+                          <textarea
+                            class="repost-quote-textarea"
+                            [(ngModel)]="quoteText"
+                            rows="4"
+                            maxlength="500"
+                            placeholder="Add your thoughts..."></textarea>
+
+                          <div class="quote-media-preview" *ngIf="quoteMediaFile">
+                            <img *ngIf="!quoteIsVideo" [src]="quoteMediaPreview" alt="Preview">
+                            <video *ngIf="quoteIsVideo" [src]="quoteMediaPreview" controls></video>
+                            <button type="button" class="remove-media-btn" (click)="removeQuoteMedia()">Ã—</button>
+                          </div>
+
+                          <div class="repost-quoted-card">
+                            <div class="repost-quoted-author">
+                              <img [src]="post.author.profilePhotoUrl || 'assets/icons/profile-pic.svg'" alt="">
+                              <strong>{{ post.author.username }}</strong>
+                              <span>Â· {{ post.timeAgo }}</span>
+                            </div>
+                            <p class="repost-quoted-text" *ngIf="post.title">{{ post.title }}</p>
+                            <div class="repost-quoted-media" *ngIf="post.videoUrl">
+                              <img *ngIf="isImageMedia(post); else mediaQuoteVideo" [src]="post.videoUrl" alt="">
+                              <ng-template #mediaQuoteVideo>
+                                <video [src]="post.videoUrl" muted></video>
+                              </ng-template>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="quote-compose-footer">
+                      <input type="file" #mediaQuoteMediaInput accept="image/*,video/*" hidden (change)="onQuoteMediaSelected($event)">
+                      <button type="button" class="action-btn media-btn" (click)="mediaQuoteMediaInput.click()" title="Add Media">
+                        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                          <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </ng-template>
+        </article>
+
+        <div class="empty-posts" *ngIf="posts.length === 0">
+          <h2>No posts yet</h2>
+          <p>Start the conversation with a text post or share a public clip for this community.</p>
+        </div>
+      </div>
+    </div>
+
+    <aside class="about-card">
+      <h2>{{ community.name }}</h2>
+      <p>{{ community.description || 'No description yet.' }}</p>
+      <dl>
+        <div>
+          <dt>Members</dt>
+          <dd>{{ community.memberCount || 0 }}</dd>
+        </div>
+        <div>
+          <dt>Posts</dt>
+          <dd>{{ community.postCount || 0 }}</dd>
+        </div>
+        <div>
+          <dt>Visibility</dt>
+          <dd>Public</dd>
+        </div>
+      </dl>
+      <div class="rules">
+        <h3>Rules</h3>
+        <ol>
+          <li *ngFor="let rule of rulesList()">{{ rule }}</li>
+        </ol>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<app-post-detail
+  *ngIf="selectedPostDetailId"
+  [postId]="selectedPostDetailId"
+  [embedded]="true"
+  (closed)="closePostDetail()">
+</app-post-detail>
+
+<div class="modal-backdrop" *ngIf="isEditModalOpen" (click)="closeEditModal()">
+  <section class="edit-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Community</h2>
+        <p>Admins, moderators, and the founder can update community details.</p>
+      </div>
+      <button type="button" class="icon-btn" (click)="closeEditModal()" aria-label="Close">x</button>
+    </div>
+
+    <button class="image-picker" type="button" (click)="thumbnailInput.click()">
+      <img *ngIf="editThumbnailPreview; else imagePlaceholder" [src]="editThumbnailPreview" alt="Community thumbnail">
+      <ng-template #imagePlaceholder>
+        <strong>Select thumbnail</strong>
+      </ng-template>
+    </button>
+    <input #thumbnailInput type="file" accept="image/*" hidden (change)="onEditThumbnailSelected($event)">
+
+    <label>
+      <span>Name</span>
+      <input type="text" [(ngModel)]="editForm.name" maxlength="100">
+    </label>
+    <label>
+      <span>Description</span>
+      <textarea rows="3" [(ngModel)]="editForm.description"></textarea>
+    </label>
+    <label>
+      <span>Rules</span>
+      <textarea rows="5" [(ngModel)]="editForm.rules" placeholder="One rule per line"></textarea>
+    </label>
+
+    <div class="modal-actions">
+      <button type="button" class="outline-btn" [disabled]="isSubmitting" (click)="closeEditModal()">Cancel</button>
+      <button type="button" class="join-btn" [disabled]="isSubmitting || !editForm.name.trim()" (click)="saveCommunity()">
+        {{ isUploadingThumbnail ? 'Uploading...' : (isSubmitting ? 'Saving...' : 'Save changes') }}
+      </button>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">Loading community...</div>
+</ng-template>
+
+<ng-template #postsLoadingState>
+  <div class="loading-posts">Loading posts...</div>
+</ng-template>
+
+
+<!-- Comments Modal -->
+  @if (activePostForComments) {
+    <div class="comments-backdrop" (click)="closeComments()">
+
+      <div class="comments-modal" (click)="$event.stopPropagation()">
+
+        <div class="comments-header">
+          <h3>Comments</h3>
+          <button class="close-btn" (click)="closeComments()">✕</button>
+        </div>
+
+        <div class="comments-list">
+          @for (comment of comments; track comment.id) {
+            <div class="comment-item" [class.tos-violation]="isTosViolation(comment.text)">
+              <div class="comment-avatar">
+                @if (comment.profilePhoto) {
+                  <img [src]="comment.profilePhoto" alt="profile" class="avatar-img">
+                } @else {
+                  <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
+                }
+              </div>
+
+              <div class="comment-body">
+                <div class="comment-user">
+                  <span class="comment-username">{{ comment.username }}</span>
+                  <span class="comment-time">{{ comment.timeAgo }}</span>
+                  @if (canEditComment(comment)) {
+                    <div class="comment-actions">
+                      @if (comment.userId !== authService.getCurrentUserId()) {
+                        <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                      }
+                      <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(comment)" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(comment)" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" title="Reply">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 17 4 12 9 7"></polyline>
+                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="comment-actions">
+                      <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" title="Reply">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 17 4 12 9 7"></polyline>
+                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                @if (editingCommentId === comment.id) {
+                  <div class="edit-comment-area">
+                    <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(comment)">
+                    <button class="save-comment-btn" (click)="saveComment(comment)">Save</button>
+                  </div>
+                } @else {
+                  <p class="comment-text">
+                    @if (comment.replyTargetUserId) {
+                      <a [routerLink]="['/profile', comment.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
+                    }
+                    {{ comment.cleanText }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            @if (comment.replies && comment.replies.length > 0) {
+              <div class="nested-replies" style="margin-left: 3rem; margin-top: -0.5rem; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 1rem;">
+                @for (reply of comment.replies; track reply.id) {
+                  <div class="comment-item reply-item" [class.tos-violation]="isTosViolation(reply.text)" style="margin-bottom: 0.5rem;">
+                    <div class="comment-avatar reply-avatar" style="width: 24px; height: 24px;">
+                      @if (reply.profilePhoto) {
+                        <img [src]="reply.profilePhoto" alt="profile" class="avatar-img thumb">
+                      } @else {
+                        <div class="comment-avatar-placeholder" style="width: 24px; height: 24px; font-size: 10px;">{{ reply.username.charAt(0) }}</div>
+                      }
+                    </div>
+
+                    <div class="comment-body">
+                      <div class="comment-user">
+                        <span class="comment-username">{{ reply.username }}</span>
+                        <span class="comment-time">{{ reply.timeAgo }}</span>
+                        @if (canEditComment(reply)) {
+                          <div class="comment-actions">
+                            @if (reply.userId !== authService.getCurrentUserId()) {
+                              <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                            }
+                            <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(reply)" title="Edit">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121(0) 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                              </svg>
+                            </button>
+                            <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(reply)" title="Delete">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" title="Reply">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="comment-actions">
+                            <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" targetLabel="comment" label="Report" [compact]="true"></app-report-button>
+                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" title="Reply">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      @if (editingCommentId === reply.id) {
+                        <div class="edit-comment-area">
+                          <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(reply)">
+                          <button class="save-comment-btn" (click)="saveComment(reply)">Save</button>
+                        </div>
+                      } @else {
+                        <p class="comment-text">
+                          @if (reply.replyTargetUserId) {
+                            <a [routerLink]="['/profile', reply.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
+                          }
+                          {{ reply.cleanText }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          } @empty {
+            <div class="empty-comments" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">
+              <p>No comments yet. Start the conversation!</p>
+            </div>
+          }
+        </div>
+
+        <div class="comment-input-area" [class.is-replying]="replyingToComment">
+          @if (replyingToComment) {
+            <div class="reply-badge" style="position: absolute; top: -25px; left: 15px; font-size: 12px; color: var(--accent); background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
+              Replying to @{{ replyingToComment.username }}
+              <span (click)="cancelReply()" style="cursor: pointer; font-weight: bold; padding: 0 4px;">✕</span>
+            </div>
+          }
+          <div class="comment-avatar" style="margin-top: auto">
+            @if (currentUserPhotoUrl) {
+              <img [src]="currentUserPhotoUrl" alt="me" class="avatar-img">
+            } @else {
+              <div class="comment-avatar-placeholder">P</div>
+            }
+          </div>
+          <input type="text" class="comment-input" [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
+                 [(ngModel)]="newCommentText"
+                 (keyup.enter)="postComment()">
+          <button class="comment-post-btn" (click)="postComment()">Post</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Moderation Modal -->
+    @if (showModerateModal) {
+      <div class="modal-overlay" (click)="closeModerateModal()">
+        <div class="confirm-modal" (click)="$event.stopPropagation()">
+          <h2>Moderate Comment</h2>
+          <p>Choose an action for this comment by <strong>{{commentToModerate?.username}}</strong>.</p>
+
+          <div class="modal-actions">
+            <button class="modal-tos-btn" (click)="moderateTosViolation()">Mark as TOS Violation</button>
+            <button class="modal-delete-btn" (click)="moderateDelete()">Delete Completely</button>
+            <button class="modal-cancel-btn" (click)="closeModerateModal()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <app-confirm-dialog
+    *ngIf="showDeleteConfirm"
+    [title]="'Delete Community?'"
+    [message]="'Are you sure you want to delete this community? This action cannot be undone.'"
+    type="danger"
+    (confirmed)="confirmDeleteCommunity()"
+    (cancelled)="showDeleteConfirm = false">
+  </app-confirm-dialog>

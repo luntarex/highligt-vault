@@ -4,12 +4,31 @@
     <p>Review clips flagged by automatic checks before they appear publicly.</p>
   </div>
 
-  <div class="queue-shell" *ngIf="!isLoading; else loadingState">
+  <!-- Tabs -->
+  <div class="tabs-nav">
+    <button type="button" [class.active]="activeSection === 'uploads'" (click)="setSection('uploads')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Upload moderation
+      <span class="badge">{{ queue.length }}</span>
+    </button>
+    <button type="button" [class.active]="activeSection === 'reports'" (click)="setSection('reports')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      Report moderation
+      <span class="badge">{{ reports.length }}</span>
+    </button>
+    <button type="button" [class.active]="activeSection === 'communities'" (click)="setSection('communities')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Community moderation
+      <span class="badge">{{ communityQueue.length }}</span>
+    </button>
+  </div>
+
+  <div class="queue-shell" *ngIf="activeSection === 'uploads' && !isLoading; else uploadLoadingState">
     <aside class="queue-list">
       <div class="queue-header">
         <span>Pending Clips</span>
-        <button class="refresh-btn" [disabled]="isRefreshing" (click)="loadQueue()">
-          {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+        <button class="icon-refresh-btn" [disabled]="isRefreshing" (click)="loadQueue()" [title]="isRefreshing ? 'Refreshing...' : 'Refresh'">
+          <svg [class.spin]="isRefreshing" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         </button>
       </div>
 
@@ -148,14 +167,17 @@
       </div>
     </section>
 
+  </div>
+
+  <section class="reports-section" *ngIf="activeSection === 'reports'">
     <aside class="reports-list">
       <div class="reports-header">
         <div>
           <span>Open Reports</span>
           <small>{{ reports.length }} pending</small>
         </div>
-        <button class="refresh-btn" [disabled]="reportsLoading" (click)="loadReports()">
-          {{ reportsLoading ? 'Loading...' : 'Refresh' }}
+        <button class="icon-refresh-btn" [disabled]="reportsLoading" (click)="loadReports()" [title]="reportsLoading ? 'Loading...' : 'Refresh'">
+          <svg [class.spin]="reportsLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         </button>
       </div>
 
@@ -221,6 +243,23 @@
               <ng-template #commentLoading>
                 <p class="reported-comment-missing">The reported comment is loading or no longer available.</p>
               </ng-template>
+
+              <div class="comment-report-actions">
+                <button
+                  type="button"
+                  class="delete-comment-btn"
+                  [disabled]="isReportActionBusy(report)"
+                  (click)="moderateReportedComment(report, false)">
+                  Delete comment
+                </button>
+                <button
+                  type="button"
+                  class="violation-comment-btn"
+                  [disabled]="isReportActionBusy(report)"
+                  (click)="moderateReportedComment(report, true)">
+                  Remove as violation
+                </button>
+              </div>
             </div>
 
             <div class="report-detail-grid" *ngIf="report.targetType !== 'COMMENT'">
@@ -278,13 +317,13 @@
           <div class="report-actions">
             <button
               class="resolve-report-btn"
-              [disabled]="isResolvingReportId === report.id"
+              [disabled]="isReportActionBusy(report)"
               (click)="resolveReport(report, false)">
               Resolve
             </button>
             <button
               class="dismiss-report-btn"
-              [disabled]="isResolvingReportId === report.id"
+              [disabled]="isReportActionBusy(report)"
               (click)="resolveReport(report, true)">
               Dismiss
             </button>
@@ -301,11 +340,66 @@
         <div class="loading-card report-loading">Loading reports...</div>
       </ng-template>
     </aside>
-  </div>
+  </section>
+
+  <section class="communities-section" *ngIf="activeSection === 'communities'">
+    <div class="reports-header">
+      <div>
+        <span>Community Requests</span>
+        <small>{{ communityQueue.length }} pending</small>
+      </div>
+      <button class="icon-refresh-btn" [disabled]="communitiesLoading" (click)="loadCommunityQueue()" [title]="communitiesLoading ? 'Loading...' : 'Refresh'">
+        <svg [class.spin]="communitiesLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+    </div>
+
+    <div class="community-mod-grid" *ngIf="!communitiesLoading; else communitiesLoadingState">
+      <article class="community-mod-card" *ngFor="let community of communityQueue">
+        <img [src]="community.thumbnailUrl || 'assets/icons/comments.svg'" [alt]="community.name">
+        <div class="community-mod-body">
+          <div class="community-mod-top">
+            <div>
+              <h3>{{ community.name }}</h3>
+              <span>Founder: {{ community.founderUsername || ('User #' + community.founderId) }}</span>
+            </div>
+            <span class="status-pill">{{ community.moderationStatus }}</span>
+          </div>
+          <p>{{ community.description || 'No description was provided.' }}</p>
+          <textarea
+            [(ngModel)]="communityReasonById[community.id]"
+            rows="2"
+            placeholder="Moderator note..."></textarea>
+          <div class="actions">
+            <button
+              class="approve-btn"
+              [disabled]="isDecidingCommunityId === community.id"
+              (click)="decideCommunity(community, true)">
+              Approve
+            </button>
+            <button
+              class="reject-btn"
+              [disabled]="isDecidingCommunityId === community.id"
+              (click)="decideCommunity(community, false)">
+              Reject
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <div class="empty-card" *ngIf="communityQueue.length === 0">
+        <h3>No community requests</h3>
+        <p>New community submissions will appear here.</p>
+      </div>
+    </div>
+
+    <ng-template #communitiesLoadingState>
+      <div class="loading-card">Loading community requests...</div>
+    </ng-template>
+  </section>
 </div>
 
-<ng-template #loadingState>
-  <div class="loading-card">Loading moderation queue...</div>
+<ng-template #uploadLoadingState>
+  <div class="loading-card" *ngIf="activeSection === 'uploads'">Loading moderation queue...</div>
 </ng-template>
 
 <ng-template #emptySelection>

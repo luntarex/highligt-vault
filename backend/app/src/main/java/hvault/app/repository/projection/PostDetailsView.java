@@ -7,6 +7,8 @@ public interface PostDetailsView {
     String getCaption();
     LocalDateTime getCreatedAt();
     Long getClipId();
+    Long getCommunityId();
+    String getCommunityName();
     String getClipTitle();
     String getVideoUrl();
     Double getDuration();
@@ -18,4 +20,6 @@ public interface PostDetailsView {
     String getAuthorPhoto();
     Long getLikes();
     Long getComments();
+    Long getOriginalPostId();
+    String getRepostType();
 }

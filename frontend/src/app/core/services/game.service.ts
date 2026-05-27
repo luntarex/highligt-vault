@@ -28,8 +28,8 @@ export class GameService {
     );
   }
 
-  addGame(name: string): Observable<any> {
-    return this.http.post<any>(this.apiUrl, { name });
+  addGame(name: string, coverUrl?: string): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { name, coverUrl });
   }
 }
 
