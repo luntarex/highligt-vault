@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Comment } from '../../core/models/comment';
@@ -17,7 +17,11 @@ import { ReportButtonComponent } from '../../shared/report-button/report-button'
   templateUrl: './post-detail.html',
   styleUrls: ['./post-detail.css']
 })
-export class PostDetail implements OnInit, OnDestroy {
+export class PostDetail implements OnInit, OnChanges, OnDestroy {
+  @Input() postId: string | number | null = null;
+  @Input() embedded = false;
+  @Output() closed = new EventEmitter<void>();
+
   post: ExplorePost | null = null;
   comments: Comment[] = [];
   newCommentText = '';
@@ -40,6 +44,11 @@ export class PostDetail implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
+    if (this.postId) {
+      this.loadPost(String(this.postId));
+      return;
+    }
+
     this.route.paramMap.subscribe(params => {
       const postId = params.get('id');
       if (!postId) {
@@ -48,6 +57,12 @@ export class PostDetail implements OnInit, OnDestroy {
       }
       this.loadPost(postId);
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['postId'] && !changes['postId'].firstChange && this.postId) {
+      this.loadPost(String(this.postId));
+    }
   }
 
   ngOnDestroy(): void {
@@ -77,6 +92,11 @@ export class PostDetail implements OnInit, OnDestroy {
   }
 
   closePost(): void {
+    if (this.embedded) {
+      this.closed.emit();
+      return;
+    }
+
     if (window.history.length > 1) {
       window.history.back();
       return;
@@ -176,6 +196,56 @@ export class PostDetail implements OnInit, OnDestroy {
     return comment.userId === this.authService.getCurrentUserId() || this.authService.isAdmin();
   }
 
+  isTextPost(): boolean {
+    return !this.post?.videoUrl || this.post.postType === 'TEXT' || !this.post.clipId;
+  }
+
+  isImagePost(): boolean {
+    const url = this.post?.videoUrl || '';
+    if (!url) return false;
+
+    if (this.isKnownImageUrl(url)) return true;
+    if (this.isKnownVideoUrl(url)) return false;
+
+    return this.post?.postType === 'CLIP' && Number(this.post?.duration || 0) === 0;
+  }
+
+  isVideoPost(): boolean {
+    return Boolean(this.post?.videoUrl) && !this.isImagePost();
+  }
+
+  communityLabel(): string {
+    return this.post?.communityName || 'Community';
+  }
+
+  hasCommunityLink(): boolean {
+    return Boolean(this.post?.communityId);
+  }
+
+  openLinkedPostDetail(postId: string | number, event?: Event): void {
+    event?.stopPropagation();
+    if (this.embedded) {
+      this.loadPost(String(postId));
+      return;
+    }
+
+    this.router.navigate(['/post', postId]);
+  }
+
+  isImageMedia(post: ExplorePost | null | undefined): boolean {
+    const url = post?.videoUrl || '';
+    if (!url) return false;
+
+    if (this.isKnownImageUrl(url)) return true;
+    if (this.isKnownVideoUrl(url)) return false;
+
+    return post?.postType === 'CLIP' && Number(post?.duration || 0) === 0;
+  }
+
+  originalCommunityLabel(post: ExplorePost | null | undefined): string {
+    return post?.communityName || 'Community';
+  }
+
   onTogglePlay(event?: Event): void {
     event?.stopPropagation();
     const video = this.videoRef?.nativeElement;
@@ -270,5 +340,13 @@ export class PostDetail implements OnInit, OnDestroy {
     const diffMonths = Math.floor(diffDays / 30);
     if (diffMonths < 12) return `${diffMonths}mo ago`;
     return `${Math.floor(diffDays / 365)}y ago`;
+  }
+
+  private isKnownImageUrl(url: string): boolean {
+    return /\/image\/upload\//i.test(url) || /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:$|[?#])/i.test(url);
+  }
+
+  private isKnownVideoUrl(url: string): boolean {
+    return /\/video\/upload\//i.test(url) || /\.(m3u8|mov|mp4|mpeg|mpg|ogg|ogv|webm)(?:$|[?#])/i.test(url);
   }
 }

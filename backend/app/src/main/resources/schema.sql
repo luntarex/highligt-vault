@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS clip_tags (
 CREATE TABLE IF NOT EXISTS posts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    clip_id BIGINT NOT NULL,
+    clip_id BIGINT NULL,
+    community_id BIGINT NULL,
     caption TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -171,6 +172,36 @@ CREATE TABLE IF NOT EXISTS user_favorites (
     FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS communities (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    thumbnail_url VARCHAR(255),
+    type VARCHAR(30) DEFAULT 'USER',
+    game_id BIGINT NULL,
+    founder_id BIGINT NULL,
+    moderation_status VARCHAR(30) DEFAULT 'PENDING_REVIEW',
+    moderation_reason TEXT,
+    rules TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE SET NULL,
+    FOREIGN KEY (founder_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS community_members (
+    community_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    role VARCHAR(30) DEFAULT 'MEMBER',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (community_id, user_id),
+    FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE posts MODIFY COLUMN clip_id BIGINT NULL;
+ALTER TABLE posts ADD COLUMN community_id BIGINT NULL;
+ALTER TABLE posts ADD CONSTRAINT fk_posts_community FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE;
+
 CREATE TABLE IF NOT EXISTS violated_comments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     original_comment_id BIGINT,
@@ -234,6 +265,7 @@ ALTER TABLE clips ADD COLUMN reviewed_at TIMESTAMP NULL;
 ALTER TABLE clips ADD COLUMN removed_reason TEXT;
 ALTER TABLE clips ADD COLUMN removed_at TIMESTAMP NULL;
 ALTER TABLE clips ADD COLUMN visibility_status VARCHAR(30) DEFAULT 'PRIVATE';
+ALTER TABLE communities ADD COLUMN rules TEXT;
 UPDATE clips
 SET visibility_status = CASE
     WHEN is_public = true THEN 'PUBLIC'
@@ -247,6 +279,7 @@ ALTER TABLE clips DROP COLUMN is_public;
 CREATE INDEX idx_posts_created_at ON posts(created_at);
 CREATE INDEX idx_posts_user_created ON posts(user_id, created_at);
 CREATE INDEX idx_posts_clip ON posts(clip_id);
+CREATE INDEX idx_posts_community_created ON posts(community_id, created_at);
 
 CREATE INDEX idx_clips_public_feed ON clips(visibility_status, moderation_status, is_deleted, created_at);
 CREATE INDEX idx_clips_uploader_active ON clips(uploader_id, is_deleted, created_at);
@@ -262,6 +295,9 @@ CREATE INDEX idx_messages_user_latest_receiver ON messages(receiver_id, created_
 
 CREATE INDEX idx_favorites_user_created ON user_favorites(user_id, created_at);
 CREATE INDEX idx_favorites_clip ON user_favorites(clip_id);
+CREATE INDEX idx_communities_status_created ON communities(moderation_status, created_at);
+CREATE INDEX idx_communities_game ON communities(game_id);
+CREATE INDEX idx_community_members_user ON community_members(user_id, community_id);
 CREATE INDEX idx_clip_groups_user_created ON clip_groups(user_id, created_at);
 CREATE INDEX idx_clip_group_items_clip ON clip_group_items(clip_id);
 
@@ -269,3 +305,7 @@ CREATE INDEX idx_follows_followed ON follows(followed_id, follower_id);
 CREATE INDEX idx_moderation_results_target_created ON moderation_results(target_type, target_id, created_at);
 CREATE INDEX idx_content_reports_open_target ON content_reports(status, target_type, target_id, created_at);
 CREATE INDEX idx_content_reports_reporter_target ON content_reports(reporter_id, target_type, target_id, status);
+
+ALTER TABLE posts ADD COLUMN original_post_id BIGINT NULL;
+ALTER TABLE posts ADD COLUMN repost_type VARCHAR(30) NULL;
+ALTER TABLE posts ADD CONSTRAINT fk_posts_original_post FOREIGN KEY (original_post_id) REFERENCES posts(id) ON DELETE SET NULL;

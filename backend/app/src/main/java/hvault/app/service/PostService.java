@@ -4,9 +4,11 @@ import hvault.app.dto.CreatePostResponse;
 import hvault.app.dto.PostAuthorResponse;
 import hvault.app.dto.PostFeedResponse;
 import hvault.app.entity.Clip;
+import hvault.app.entity.Community;
 import hvault.app.entity.Post;
 import hvault.app.enums.VisibilityStatus;
 import hvault.app.repository.PostRepository;
+import hvault.app.repository.CommunityRepository;
 import hvault.app.repository.projection.PostDetailsView;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -19,15 +21,18 @@ import java.util.NoSuchElementException;
 public class PostService {
     private final PostRepository postRepository;
     private final hvault.app.repository.ClipRepository clipRepository;
+    private final CommunityRepository communityRepository;
     private final ModerationScannerService moderationScannerService;
 
     public PostService(
         PostRepository postRepository,
         hvault.app.repository.ClipRepository clipRepository,
+        CommunityRepository communityRepository,
         ModerationScannerService moderationScannerService
     ) {
         this.postRepository = postRepository;
         this.clipRepository = clipRepository;
+        this.communityRepository = communityRepository;
         this.moderationScannerService = moderationScannerService;
     }
 
@@ -78,9 +83,54 @@ public class PostService {
             .toList();
     }
 
+    public List<PostFeedResponse> getPostsByGameId(Long gameId, Long currentUserId) {
+        if (gameId == null) {
+            return List.of();
+        }
+        return postRepository.findPostsByGameId(gameId).stream()
+            .map(row -> toPostFeedResponse(row, currentUserId))
+            .toList();
+    }
+
+    public List<PostFeedResponse> getCommunityPosts(Long communityId, Long gameId, Long currentUserId) {
+        return postRepository.findCommunityPosts(communityId, gameId).stream()
+            .map(row -> toPostFeedResponse(row, currentUserId))
+            .toList();
+    }
+
     public PostFeedResponse getPostById(Long postId, Long currentUserId) {
         PostDetailsView row = postRepository.findByPostIdWithDetails(postId);
         return row == null ? null : toPostFeedResponse(row, currentUserId);
+    }
+
+    public PostFeedResponse createCommunityTextPost(Long communityId, Long userId, String content, Long originalPostId, String repostType, Long clipId, boolean admin) {
+        requireCommunityMemberOrAdmin(communityId, userId, admin);
+
+        if (clipId == null) {
+            if ("SELECT".equals(repostType)) {
+                // Direct repost: content can be empty
+            } else {
+                // Normal text post or QUOTE repost: content must not be blank
+                if (content == null || content.trim().isEmpty()) {
+                    throw new IllegalArgumentException("Post content cannot be empty");
+                }
+            }
+        } else {
+            requireClipOwnerOrAdmin(clipId, userId, admin);
+            moderationScannerService.scanClipForPublishing(clipId, content);
+        }
+
+        Post post = new Post();
+        post.setUserId(userId);
+        post.setCommunityId(communityId);
+        post.setCaption(content != null && !content.trim().isEmpty() ? content.trim() : null);
+        post.setOriginalPostId(originalPostId);
+        post.setRepostType(repostType);
+        post.setClipId(clipId);
+        post.setCreatedAt(LocalDateTime.now());
+
+        Long postId = postRepository.save(post).getId();
+        return getPostById(postId, userId);
     }
 
     public void likePost(Long postId, Long userId) {
@@ -98,8 +148,8 @@ public class PostService {
     public void deletePost(Long postId, Long currentUserId, boolean admin) {
         requirePostOwnerOrAdmin(postId, currentUserId, admin);
         Long clipId = postRepository.getClipIdByPostId(postId);
+        postRepository.deletePost(postId);
         if (clipId != null) {
-            postRepository.deletePost(postId);
             clipRepository.updateVisibilityStatus(clipId, VisibilityStatus.PRIVATE);
         }
     }
@@ -119,7 +169,10 @@ public class PostService {
 
         PostFeedResponse response = new PostFeedResponse();
         response.setId(postId.toString());
-        response.setClipId(clipId.toString());
+        response.setClipId(clipId == null ? null : clipId.toString());
+        response.setCommunityId(row.getCommunityId() == null ? null : row.getCommunityId().toString());
+        response.setCommunityName(row.getCommunityName());
+        response.setPostType(clipId == null ? "TEXT" : "CLIP");
         response.setTitle(row.getCaption());
         response.setGame(row.getGameName());
         response.setVideoUrl(row.getVideoUrl());
@@ -130,8 +183,36 @@ public class PostService {
         response.setComments(row.getComments());
         response.setCreatedAt(row.getCreatedAt() != null ? row.getCreatedAt().toString() : null);
         response.setIsLiked(currentUserId != null && postRepository.isLikedByUser(postId, currentUserId));
-        response.setIsFavorited(currentUserId != null && clipRepository.isFavorited(currentUserId, clipId));
+        response.setIsFavorited(currentUserId != null && clipId != null && clipRepository.isFavorited(currentUserId, clipId));
         response.setAuthor(new PostAuthorResponse(row.getAuthorId(), row.getAuthorName(), row.getAuthorPhoto()));
+
+        response.setRepostType(row.getRepostType());
+        if (row.getOriginalPostId() != null) {
+            PostDetailsView originalRow = postRepository.findByPostIdWithDetails(row.getOriginalPostId());
+            if (originalRow != null) {
+                // Map the original post without recursing into ITS original post
+                PostFeedResponse original = new PostFeedResponse();
+                original.setId(originalRow.getId().toString());
+                original.setClipId(originalRow.getClipId() == null ? null : originalRow.getClipId().toString());
+                original.setCommunityId(originalRow.getCommunityId() == null ? null : originalRow.getCommunityId().toString());
+                original.setCommunityName(originalRow.getCommunityName());
+                original.setPostType(originalRow.getClipId() == null ? "TEXT" : "CLIP");
+                original.setTitle(originalRow.getCaption());
+                original.setGame(originalRow.getGameName());
+                original.setVideoUrl(originalRow.getVideoUrl());
+                original.setDuration(originalRow.getDuration());
+                original.setStartTime(originalRow.getStartTime());
+                original.setEndTime(originalRow.getEndTime());
+                original.setLikes(originalRow.getLikes());
+                original.setComments(originalRow.getComments());
+                original.setCreatedAt(originalRow.getCreatedAt() != null ? originalRow.getCreatedAt().toString() : null);
+                original.setIsLiked(currentUserId != null && postRepository.isLikedByUser(originalRow.getId(), currentUserId));
+                original.setIsFavorited(currentUserId != null && originalRow.getClipId() != null && clipRepository.isFavorited(currentUserId, originalRow.getClipId()));
+                original.setAuthor(new PostAuthorResponse(originalRow.getAuthorId(), originalRow.getAuthorName(), originalRow.getAuthorPhoto()));
+                response.setOriginalPost(original);
+            }
+        }
+
         return response;
     }
 
@@ -152,8 +233,25 @@ public class PostService {
         }
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new NoSuchElementException("Post not found."));
-        if (currentUserId == null || !currentUserId.equals(post.getUserId())) {
+        if (currentUserId == null || (!currentUserId.equals(post.getUserId()) && !isCommunityManagerForPost(postId, currentUserId))) {
             throw new AccessDeniedException("You do not have permission to modify this post.");
+        }
+    }
+
+    private boolean isCommunityManagerForPost(Long postId, Long currentUserId) {
+        Long communityId = postRepository.getCommunityIdByPostId(postId);
+        if (communityId == null) {
+            return false;
+        }
+        String role = communityRepository.findMemberRole(communityId, currentUserId);
+        return "OWNER".equals(role) || "ADMIN".equals(role) || "MODERATOR".equals(role);
+    }
+
+    private void requireCommunityMemberOrAdmin(Long communityId, Long userId, boolean admin) {
+        Community community = communityRepository.findById(communityId)
+            .orElseThrow(() -> new NoSuchElementException("Community not found."));
+        if (!admin && (userId == null || communityRepository.findMemberRole(community.getId(), userId) == null)) {
+            throw new AccessDeniedException("Join this community before posting.");
         }
     }
 }

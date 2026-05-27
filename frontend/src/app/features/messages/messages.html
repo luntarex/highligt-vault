@@ -164,9 +164,15 @@
             <a
               *ngIf="msg.sharedPost"
               class="shared-post-card"
+              [class.text-shared-post]="isSharedTextPost(msg.sharedPost)"
               [routerLink]="postLink(msg.sharedPost.id)"
               (click)="$event.stopPropagation()">
-              <div class="shared-post-thumb">
+              <div class="shared-post-thumb" *ngIf="!isSharedTextPost(msg.sharedPost)">
+                <img
+                  *ngIf="isSharedImagePost(msg.sharedPost); else sharedVideoThumb"
+                  [src]="msg.sharedPost.videoUrl"
+                  [alt]="msg.sharedPost.title || 'Shared post'">
+                <ng-template #sharedVideoThumb>
                 <video
                   *ngIf="msg.sharedPost.videoUrl"
                   [src]="msg.sharedPost.videoUrl"
@@ -174,11 +180,12 @@
                   playsinline
                   preload="metadata">
                 </video>
+                </ng-template>
               </div>
               <div class="shared-post-info">
                 <span class="shared-eyebrow">Shared post</span>
-                <strong>{{ msg.sharedPost.title || 'Untitled post' }}</strong>
-                <span>{{ msg.sharedPost.author.username }} · {{ msg.sharedPost.game }}</span>
+                <strong>{{ msg.sharedPost.title || 'Community post' }}</strong>
+                <span>{{ msg.sharedPost.author.username }} · {{ sharedCommunityLabel(msg.sharedPost) }}</span>
               </div>
             </a>
             <div

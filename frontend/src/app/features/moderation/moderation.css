@@ -427,6 +427,48 @@
   color: hsl(0, 0%, 62%);
 }
 
+.comment-report-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.comment-report-actions button {
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 9px 10px;
+  transition: all 0.2s ease;
+}
+
+.comment-report-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.delete-comment-btn {
+  border: 1px solid rgba(245, 158, 11, 0.62);
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+.violation-comment-btn {
+  border: 1px solid rgba(239, 68, 68, 0.65);
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+.delete-comment-btn:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.18);
+  color: white;
+}
+
+.violation-comment-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  color: white;
+}
+
 .report-detail-grid strong {
   display: block;
   overflow: hidden;
@@ -944,7 +986,187 @@ textarea {
   }
 
   .detail-grid,
-  .actions {
+  .actions,
+  .comment-report-actions {
     grid-template-columns: 1fr;
   }
+}
+
+/* Tabs Nav Matching user-list-page */
+.tabs-nav {
+  width: 100%;
+  max-width: 1480px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border-radius: 12px;
+  background: transparent;
+  flex: 0 0 auto;
+}
+
+.tabs-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: hsl(0, 0%, 75%);
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.tabs-nav button:hover {
+  background-color: hsl(0, 0%, 16%);
+  color: white;
+}
+
+.tabs-nav button.active {
+  background-color: hsl(0, 0%, 16%);
+  color: white;
+  font-weight: 900;
+  box-shadow: inset 0 -3px 0 #a855f7;
+}
+
+.tabs-nav .badge {
+  min-width: 22px;
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 12px;
+}
+
+/* Refresh Icon Button */
+.icon-refresh-btn {
+  background: transparent;
+  color: #a855f7;
+  border: 1.5px solid #a855f7;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.icon-refresh-btn:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Card Smoothing */
+.queue-list,
+.reports-list,
+.details-card,
+.video-card,
+.loading-card,
+.empty-card,
+.report-card,
+.community-mod-card {
+  transition: all 0.3s ease;
+}
+
+.queue-list:hover,
+.reports-list:hover,
+.details-card:hover,
+.video-card:hover,
+.loading-card:hover,
+.empty-card:hover,
+.report-card:hover,
+.community-mod-card:hover {
+  transform: translateY(-3px);
+  border-color: #a855f7;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Community Mod Grid */
+.community-mod-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  padding-right: 4px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.community-mod-card {
+  border: 1px solid hsl(0, 0%, 20%);
+  border-radius: 14px;
+  background: var(--bg-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.community-mod-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: hsl(0, 0%, 12%);
+}
+
+.community-mod-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+}
+
+.community-mod-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.community-mod-top h3 {
+  margin: 0 0 4px 0;
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.community-mod-top span {
+  color: hsl(0, 0%, 65%);
+  font-size: 12px;
+}
+
+.community-mod-body p {
+  margin: 0;
+  color: hsl(0, 0%, 75%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.community-mod-body textarea {
+  width: 100%;
+  border: 1px solid hsl(0, 0%, 25%);
+  background: hsl(0, 0%, 12%);
+  color: white;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
 }

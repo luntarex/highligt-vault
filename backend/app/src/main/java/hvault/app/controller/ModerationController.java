@@ -6,6 +6,7 @@ import hvault.app.enums.ModerationStatus;
 import hvault.app.security.SecurityUtil;
 import hvault.app.service.ModerationScanResult;
 import hvault.app.service.ModerationService;
+import hvault.app.service.CommunityService;
 import hvault.app.service.ReportService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ModerationController {
     private final ModerationService moderationService;
     private final ReportService reportService;
+    private final CommunityService communityService;
 
-    public ModerationController(ModerationService moderationService, ReportService reportService) {
+    public ModerationController(ModerationService moderationService, ReportService reportService, CommunityService communityService) {
         this.moderationService = moderationService;
         this.reportService = reportService;
+        this.communityService = communityService;
     }
 
     @GetMapping("/queue")
@@ -95,5 +98,28 @@ public class ModerationController {
     ) {
         reportService.resolveReport(id, SecurityUtil.requireCurrentUserId(authentication), resolution, dismissed);
         return ResponseEntity.ok(new ApiMessageResponse("Report resolved"));
+    }
+
+    @GetMapping("/communities")
+    public ResponseEntity<?> getPendingCommunities() {
+        return ResponseEntity.ok(communityService.getPendingCommunities());
+    }
+
+    @PostMapping("/communities/{id}/approve")
+    public ResponseEntity<ApiMessageResponse> approveCommunity(
+        @PathVariable Long id,
+        @RequestParam(required = false, defaultValue = "Approved after moderator review.") String reason
+    ) {
+        communityService.decideCommunity(id, true, reason);
+        return ResponseEntity.ok(new ApiMessageResponse("Community approved"));
+    }
+
+    @PostMapping("/communities/{id}/reject")
+    public ResponseEntity<ApiMessageResponse> rejectCommunity(
+        @PathVariable Long id,
+        @RequestParam(required = false, defaultValue = "Rejected after moderator review.") String reason
+    ) {
+        communityService.decideCommunity(id, false, reason);
+        return ResponseEntity.ok(new ApiMessageResponse("Community rejected"));
     }
 }

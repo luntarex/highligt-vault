@@ -65,6 +65,16 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'communities',
+    loadComponent: () => import('./features/communities/communities').then(m => m.Communities),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'communities/:id',
+    loadComponent: () => import('./features/community-detail/community-detail').then(m => m.CommunityDetail),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'post/:id',
     loadComponent: () => import('./features/post-detail/post-detail').then(m => m.PostDetail),
     canActivate: [AuthGuard]
@@ -75,7 +85,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'users',
+    path: 'admin',
     loadComponent: () => import('./features/users-list-page/users-list-page').then(m => m.UsersListPage),
     canActivate: [AdminGuard]
   },

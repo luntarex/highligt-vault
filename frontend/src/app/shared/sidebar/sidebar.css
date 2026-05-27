@@ -1,7 +1,7 @@
 .sidebar-container {
     width: 260px;
     height: 100vh;
-    background-color: hsl(0, 0%, 10%);
+    background-color: #1e1e1e;
     border-right: 1px solid hsl(0, 0%, 18%);
     padding: 24px 12px;
     display: flex;

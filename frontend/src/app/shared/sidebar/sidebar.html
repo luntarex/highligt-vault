@@ -24,6 +24,12 @@
       </a>
     </li>
     <li>
+      <a routerLink="/communities" routerLinkActive="active">
+        <img src="assets/icons/comments.svg" alt="Communities" class="nav-icon">
+        <span class="link-text">Communities</span>
+      </a>
+    </li>
+    <li>
       <a routerLink="/library" routerLinkActive="active">
         <img src="assets/icons/notebook.svg" alt="Library" class="nav-icon">
         <span class="link-text">Library</span>
@@ -46,9 +52,9 @@
 
     @if(authService.isAdmin()){
     <li>
-      <a routerLink="/users" routerLinkActive="active">
+      <a routerLink="/admin" routerLinkActive="active">
         <img src="assets/icons/compass.svg" alt="Community" class="nav-icon">
-        <span class="link-text">Users</span>
+        <span class="link-text">Admin Panel</span>
       </a>
     </li>
     <li>
