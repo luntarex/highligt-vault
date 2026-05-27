@@ -179,9 +179,13 @@ textarea:focus {
 
 .content-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: 1fr;
   gap: 22px;
   align-items: start;
+}
+
+.content-shell.has-selection {
+  grid-template-columns: minmax(0, 1fr) 320px;
 }
 
 .community-grid {
@@ -277,6 +281,11 @@ textarea:focus {
 .card-title-row h2 {
   margin: 0;
   font-size: 18px;
+}
+
+.member-count {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .member-count,
