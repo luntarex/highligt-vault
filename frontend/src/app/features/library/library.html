@@ -48,28 +48,97 @@
         </svg>
         {{ isTrashView ? 'Library' : 'Last Deleted' }}
       </button>
+
+      <button
+        class="group-clips-btn"
+        *ngIf="!isTrashView"
+        (click)="toggleGroupMode()"
+        [class.active]="libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        {{ libraryView === 'groups' || libraryView === 'groupDetail' || libraryView === 'selecting' ? 'Library' : 'Group Clips' }}
+      </button>
     </div>
 
     <app-profile-dropdown />
   </header>
 
-  <div *ngIf="clips.length === 0 && !isTrashView" class="empty-library-state">
+  <div *ngIf="clips.length === 0 && !isTrashView && libraryView === 'clips'" class="empty-library-state">
     <p>Upload your first clip</p>
   </div>
 
-  <main class="clips-grid">
+  <div *ngIf="libraryView === 'selecting'" class="selection-toolbar">
+    <span>{{ selectedCount }} selected</span>
+    <button class="selection-action" [disabled]="selectedCount === 0" (click)="openGroupDialog()">Add to Group</button>
+  </div>
+
+  <section *ngIf="libraryView === 'groups'" class="groups-view">
+    <div class="groups-toolbar">
+      <h2>Clip Groups</h2>
+      <button class="selection-action" (click)="startGroupSelection()">New Group</button>
+    </div>
+
+    <div *ngIf="groups.length === 0" class="empty-library-state">
+      <p>No groups yet</p>
+    </div>
+
+    <div class="group-grid" *ngIf="groups.length > 0">
+      <div
+        class="group-card"
+        *ngFor="let group of groups"
+        [class.has-thumbnail]="!!group.thumbnailUrl"
+        role="button"
+        tabindex="0"
+        (click)="openGroup(group)"
+        (keydown.enter)="openGroup(group)">
+        <img *ngIf="group.thumbnailUrl" class="group-thumbnail" [src]="group.thumbnailUrl" alt="" loading="lazy" decoding="async">
+        <span *ngIf="group.thumbnailUrl" class="group-thumbnail-shade"></span>
+        <button class="group-delete-btn" title="Delete Group" (click)="$event.stopPropagation(); deleteGroup(group.id)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </button>
+        <span class="group-icon" *ngIf="!group.thumbnailUrl">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          </svg>
+        </span>
+        <strong>{{ group.name }}</strong>
+        <small>{{ group.clipCount || 0 }} clips</small>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="libraryView === 'groupDetail'" class="group-detail">
+    <div class="groups-toolbar">
+      <button class="back-group-btn" (click)="backToGroups()">Back</button>
+      <h2>{{ selectedGroup?.name }}</h2>
+      <div class="group-detail-actions">
+        <button class="danger-action" (click)="selectedGroup && deleteGroup(selectedGroup.id)">Delete Group</button>
+        <button class="selection-action" (click)="startGroupSelection()">Add Clips</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="clips-grid" *ngIf="libraryView === 'clips' || libraryView === 'selecting' || libraryView === 'groupDetail'">
     <!-- Clips -->
-    <app-clip-card *ngFor="let clip of clips"
+    <app-clip-card *ngFor="let clip of (libraryView === 'groupDetail' ? selectedGroupClips : clips)"
       [clip]="clip"
       [mode]="isTrashView ? 'trash' : 'library'"
+      [selectable]="libraryView === 'selecting'"
+      [selected]="selectedClipIds.has(clip.id)"
+      [showRemoveFromGroup]="libraryView === 'groupDetail'"
       (removeClip)="handleDelete($event)"
       (recoverClip)="handleRecover($event)"
       (hardDeleteClip)="handleHardDelete($event)"
-      (appealClip)="handleAppeal($event)">
+      (appealClip)="handleAppeal($event)"
+      (selectionChange)="handleSelectionChange($event)"
+      (removeFromGroup)="removeClipFromGroup($event)">
     </app-clip-card>
 
     <!-- Upload Card -->
-    <div *ngIf="!isTrashView" class="upload-card" (click)="fileInput.click()">
+    <div *ngIf="!isTrashView && libraryView === 'clips'" class="upload-card" (click)="fileInput.click()">
       <div class="plus-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -81,6 +150,15 @@
 
 
   <input type="file" #fileInput (change)="onFileSelected($event)" accept="video/*" style="display: none;">
+
+  <app-group-dialog
+    *ngIf="showGroupDialog"
+    [groups]="groups"
+    [clipCount]="selectedCount"
+    (createGroup)="createGroup($event)"
+    (addToGroup)="addToGroup($event)"
+    (cancelled)="closeGroupDialog()">
+  </app-group-dialog>
 
   <app-confirm-dialog
     *ngIf="showDeleteModal"

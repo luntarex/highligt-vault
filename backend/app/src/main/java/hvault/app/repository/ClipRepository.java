@@ -84,6 +84,18 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     @Query(value = "DELETE FROM user_favorites WHERE user_id = :userId AND clip_id = :clipId", nativeQuery = true)
     void removeFavorite(@Param("userId") Long userId, @Param("clipId") Long clipId);
 
+    @Transactional
+    @Modifying
+    @Query(value = """
+        DELETE cgi
+        FROM clip_group_items cgi
+        JOIN clip_groups cg ON cgi.group_id = cg.id
+        WHERE cg.user_id = :userId
+          AND cg.type = 'FAVORITES'
+          AND cgi.clip_id = :clipId
+        """, nativeQuery = true)
+    void removeClipFromFavoriteGroups(@Param("userId") Long userId, @Param("clipId") Long clipId);
+
     @Query(value = "SELECT COUNT(*) FROM user_favorites WHERE user_id = :userId AND clip_id = :clipId", nativeQuery = true)
     int countFavorite(@Param("userId") Long userId, @Param("clipId") Long clipId);
 
@@ -212,6 +224,11 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
 
     @Transactional
     @Modifying
+    @Query(value = "DELETE FROM clip_group_items WHERE clip_id = :clipId", nativeQuery = true)
+    void deleteClipGroupItemsByClipId(@Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
     @Query(value = "DELETE FROM user_favorites WHERE clip_id = :clipId", nativeQuery = true)
     void deleteFavoritesByClipId(@Param("clipId") Long clipId);
 
@@ -230,6 +247,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
         deletePostsByClipId(id);
         deleteClipTags(id);
         deletePlaylistItemsByClipId(id);
+        deleteClipGroupItemsByClipId(id);
         deleteFavoritesByClipId(id);
         deleteClipRow(id);
     }
