@@ -69,8 +69,17 @@ public class ClipMetadataSuggestionService {
     @Value("${app.metadata.ai.audio.enabled:true}")
     private boolean audioEnabled;
 
-    @Value("${app.metadata.ai.audio.max-samples:2}")
+    @Value("${app.metadata.ai.audio.max-samples:3}")
     private int maxAudioSamples;
+
+    @Value("${app.metadata.ai.fragment-count:3}")
+    private int metadataFragmentCount;
+
+    @Value("${app.metadata.ai.fragment-seconds:4}")
+    private int metadataFragmentSeconds;
+
+    @Value("${app.metadata.ai.frames-per-fragment:2}")
+    private int metadataFramesPerFragment;
 
     public ClipMetadataSuggestionService(
         GameRepository gameRepository,
@@ -124,8 +133,15 @@ public class ClipMetadataSuggestionService {
                 metadataPreparationExecutor
             );
 
-            frameFuture.join().stream()
-                .limit(3)
+            List<String> fragmentFrames = frameFuture.join();
+            if (!fragmentFrames.isEmpty()) {
+                content.add(Map.of(
+                    "type", "input_text",
+                    "text", "The following images are sampled from short fragments across the clip timeline in chronological order. Use them to detect special events that a single thumbnail may miss, such as knife kills, flicks, defuses, swings, clutches, fails, reactions, and objective changes."
+                ));
+            }
+            fragmentFrames.stream()
+                .limit(Math.max(1, metadataFragmentCount) * Math.max(1, metadataFramesPerFragment))
                 .forEach(frame -> content.add(Map.of(
                     "type", "input_image",
                     "image_url", frame,
@@ -197,7 +213,13 @@ public class ClipMetadataSuggestionService {
 
     private List<String> extractMetadataFrames(ClipMetadataSuggestionRequest request) {
         try {
-            return frameExtractionService.extractFrameDataUrls(request.getVideoUrl());
+            return frameExtractionService.extractFragmentFrameDataUrls(
+                request.getVideoUrl(),
+                request.getDuration() == null ? null : request.getDuration().floatValue(),
+                metadataFragmentCount,
+                metadataFramesPerFragment,
+                metadataFragmentSeconds
+            );
         } catch (Exception e) {
             logger.warn("Metadata frame extraction failed: {}", safeMessage(e));
             return List.of();
@@ -212,10 +234,10 @@ public class ClipMetadataSuggestionService {
         try {
             List<AudioModerationSample> samples = audioExtractionService.extractAudioSamples(
                 request.getVideoUrl(),
-                request.getDuration() == null ? null : request.getDuration().floatValue()
-            ).stream()
-                .limit(Math.max(0, maxAudioSamples))
-                .toList();
+                request.getDuration() == null ? null : request.getDuration().floatValue(),
+                Math.max(1, Math.min(metadataFragmentCount, maxAudioSamples)),
+                metadataFragmentSeconds
+            );
 
             return audioTranscriptionService.transcribeSamplesForMetadata(samples);
         } catch (Exception e) {
@@ -231,6 +253,8 @@ public class ClipMetadataSuggestionService {
             + "Audio may include voice comms, reactions, game sounds, announcers, or silence. "
             + "Pick the most accurate game from the existing game list when possible; otherwise use Other. "
             + "Think semantically before writing the JSON: infer the clip's moment type, stakes, player action, game mechanic, outcome, emotion, and any audio cue. "
+            + "For tactical shooters, also infer the player's side and objective state from the HUD, minimap, spike/bomb indicators, team icons, score banner, and objective text before choosing words. "
+            + "Use attack-side language for attackers, defense-side language for defenders, and post-plant language only when the objective is planted. "
             + "Do not output this reasoning; use it only to create better metadata. "
             + "Treat the glossary and game terms as hints, not as a closed list. If the clip shows an unfamiliar game or mechanic, infer the nearest gaming concept from the evidence. "
             + "Use this gaming knowledge when interpreting visuals, captions, filenames, and speech: "
@@ -253,6 +277,7 @@ public class ClipMetadataSuggestionService {
             + buildPreferredTags()
             + ". "
             + "Use only the most important tags; prefer specific moment, mechanic, emotion, or outcome tags over generic game-name tags. "
+            + "Avoid bland role tags like hold, attack, defense, site, or round. Use those ideas in the title or note only when they clarify the moment. "
             + "Avoid generic filler tags like highlight, gameplay, teamplay, valorant, clip, video, gaming, attack, defense, plant, or round unless they are the main point of the clip. "
             + "If audio reveals the moment type, tag the actual moment or emotion, such as reaction, clutch, rage, ace, comeback, or funny. Do not use comms as a tag. "
             + "Do not invent unsafe, hateful, sexual, or non-gaming tags. "
@@ -273,7 +298,9 @@ public class ClipMetadataSuggestionService {
             + "wallbang=damage or kill through cover; entry=first aggressive fight into space; "
             + "eco=low economy round; save=keeping gear instead of fighting; trade=teammate responds after a kill; "
             + "comms=voice communication; reaction=audible player response; whiff=missed easy shots; "
-            + "beam=accurate tracking; snipe=long-range precision kill; outplay=winning through smarter movement or timing";
+            + "beam=accurate tracking; snipe=long-range precision kill; outplay=winning through smarter movement or timing; "
+            + "attacker=team trying to take site and plant the spike/bomb; defender=team trying to stop the plant or hold site; "
+            + "anchor=defender holding a site, so avoid anchor for attacking-side clips unless clearly describing an enemy";
     }
 
     private String buildPreferredTags() {
@@ -283,6 +310,8 @@ public class ClipMetadataSuggestionService {
     private String buildGameSpecificVocabulary() {
         return "Valorant terms: agents like Jett, Sage, Reyna, Raze, Sova, Killjoy, Cypher, Omen, Brimstone, Viper, Phoenix; "
             + "maps/sites like Ascent A, Ascent B, Haven C, Bind Hookah, Split Heaven, Icebox Mid; "
+            + "attacker language like site take, push, entry, clear, execute, swing punish, spike plant, post-plant; "
+            + "defender language like anchor, hold, stall, retake, defuse; "
             + "moments like spike plant, spike defuse, post-plant, retake, entry, smoke, flash, recon, lineup, sheriff, operator, vandal, phantom. "
             + "CS2 terms: Mirage, Dust2, Inferno, Nuke, Ancient, Overpass, A site, B site, mid, connector, banana, palace, ramp; "
             + "moments like ace, clutch, AWP flick, deagle one-tap, spray transfer, smoke, flash, molly, retake, defuse, eco, force buy. "
