@@ -35,6 +35,15 @@ public class FfmpegAudioExtractionService {
     }
 
     public List<AudioModerationSample> extractAudioSamples(String videoUrl, Float videoDurationSeconds) {
+        return extractAudioSamples(videoUrl, videoDurationSeconds, segmentCount, segmentSeconds);
+    }
+
+    public List<AudioModerationSample> extractAudioSamples(
+        String videoUrl,
+        Float videoDurationSeconds,
+        int requestedSegmentCount,
+        int requestedSegmentSeconds
+    ) {
         if (!enabled || videoUrl == null || videoUrl.isBlank()) {
             return List.of();
         }
@@ -43,8 +52,8 @@ public class FfmpegAudioExtractionService {
         try {
             tempDir = Files.createTempDirectory("hvault-moderation-audio-");
             List<AudioModerationSample> samples = new ArrayList<>();
-            int safeSegmentCount = Math.max(1, segmentCount);
-            int safeSegmentSeconds = Math.max(1, segmentSeconds);
+            int safeSegmentCount = Math.max(1, requestedSegmentCount);
+            int safeSegmentSeconds = Math.max(1, requestedSegmentSeconds);
             List<Integer> startSeconds = calculateStartSeconds(videoDurationSeconds, safeSegmentCount, safeSegmentSeconds);
 
             for (int i = 0; i < startSeconds.size(); i++) {
