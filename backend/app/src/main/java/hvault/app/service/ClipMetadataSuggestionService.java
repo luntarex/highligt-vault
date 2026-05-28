@@ -31,6 +31,32 @@ public class ClipMetadataSuggestionService {
     private static final Logger logger = LoggerFactory.getLogger(ClipMetadataSuggestionService.class);
     private static final int MAX_TAGS = 3;
     private static final AtomicInteger METADATA_THREAD_COUNTER = new AtomicInteger();
+    private static final Set<String> BLOCKED_TAGS = Set.of(
+        "attack",
+        "defense",
+        "hold",
+        "site",
+        "round",
+        "trade",
+        "entry",
+        "eco",
+        "save",
+        "smoke",
+        "flash",
+        "rotate",
+        "rotation",
+        "post plant",
+        "post-plant",
+        "plant",
+        "comms",
+        "clip",
+        "video",
+        "gaming",
+        "gameplay",
+        "highlight",
+        "teamplay",
+        "valorant"
+    );
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -249,42 +275,29 @@ public class ClipMetadataSuggestionService {
     private String buildPrompt(ClipMetadataSuggestionRequest request, List<String> games, String userExamples) {
         String gameList = games.isEmpty() ? "No existing games are configured." : String.join(", ", games);
         return "You create clean metadata for gaming highlight clips. "
-            + "Use the filename, duration, thumbnail, frames, and audio samples when available. "
-            + "Audio may include voice comms, reactions, game sounds, announcers, or silence. "
-            + "Pick the most accurate game from the existing game list when possible; otherwise use Other. "
-            + "Think semantically before writing the JSON: infer the clip's moment type, stakes, player action, game mechanic, outcome, emotion, and any audio cue. "
-            + "For tactical shooters, also infer the player's side and objective state from the HUD, minimap, spike/bomb indicators, team icons, score banner, and objective text before choosing words. "
-            + "Use attack-side language for attackers, defense-side language for defenders, and post-plant language only when the objective is planted. "
-            + "Do not output this reasoning; use it only to create better metadata. "
-            + "Treat the glossary and game terms as hints, not as a closed list. If the clip shows an unfamiliar game or mechanic, infer the nearest gaming concept from the evidence. "
-            + "Use this gaming knowledge when interpreting visuals, captions, filenames, and speech: "
+            + "Watch the chronological fragment images and read any audio transcript as evidence. "
+            + "Name the exciting moment a viewer would remember, not every object on screen. "
+            + "Pick the most accurate game from this existing list when possible; otherwise use Other: " + gameList + ". "
+            + "For Valorant or CS-style clips, infer attacker/defender side and objective state from HUD, minimap, spike/bomb indicators, team icons, and objective text before choosing words. "
+            + "Use attack-side wording for attackers, defense-side wording for defenders, and post-plant wording only when the objective is planted. "
+            + "Use these terms only as understanding hints, not as a checklist: "
             + buildGamingGlossary()
             + " "
-            + "Use these game-specific vocabularies as examples of domain language when the clip appears to match a game: "
+            + "Helpful game language examples: "
             + buildGameSpecificVocabulary()
             + " "
-            + "Title strategy: describe the meaningful moment, not just visible objects. Prefer titles shaped like actor or agent plus action plus context, mechanic plus outcome, or stakes plus result. "
-            + "If uncertain, use a broad but still useful gaming concept like clutch, outplay, chase, comeback, save, reaction, fail, or funny moment. "
-            + "Write a short catchy title as a natural title-case sentence, not a lowercase keyword list. "
-            + "Good title examples: \"Sage Holds C Site\", \"Odin Locks Down Site\", \"Ninja Defuse\", \"Low HP Post-Plant Clutch\", \"Los Santos Night Stroll\", \"Box Fight Edit Course\", \"AWP Flick on Mirage\". "
-            + "Do not copy raw filenames, folder names, random ids, upload ids, dates, or paths into the title. "
-            + "Do not output titles like \"R/Zqvkh...\", \"Desktop 2026...\", \"sage c site hold\", or \"low hp post-plant clu\". "
-            + "Keep titles under 55 characters and make them readable on a clip card. "
-            + "Write a concise note that explains what makes the moment worth saving, using visual and audio evidence when available. "
-            + "Write 1 to 3 lower-case tags. Tags should feel entertaining, special, and filter-worthy, not like tactical notes or every object in the clip. "
-            + "Use tactical terms such as trade, entry, eco, save, smoke, flash, rotate, or post-plant to understand the clip, but avoid them as tags unless they are clearly the exciting point. "
-            + "Prefer highlight-worthy tags inspired by this vocabulary, but create a better concise gaming tag when the evidence supports it: "
+            + "Title: short title-case phrase under 55 characters, focused on the special event. "
+            + "Good title patterns: \"Knife Kill on B Site\", \"1v3 Sheriff Clutch\", \"Ninja Defuse\", \"AWP Flick on Mirage\", \"Box Fight Outplay\". "
+            + "Avoid defender-coded words like anchor or hold when the player is attacking. "
+            + "Do not copy raw filenames, folder names, ids, dates, or paths into the title. "
+            + "Notes: one concise sentence explaining why the moment matters, using visual or audio evidence when useful. "
+            + "Tags: choose 1 to 3 lower-case, entertaining, filter-worthy tags. Prefer special moments and outcomes: "
             + buildPreferredTags()
             + ". "
-            + "Use only the most important tags; prefer specific moment, mechanic, emotion, or outcome tags over generic game-name tags. "
-            + "Avoid bland role tags like hold, attack, defense, site, or round. Use those ideas in the title or note only when they clarify the moment. "
-            + "Avoid generic filler tags like highlight, gameplay, teamplay, valorant, clip, video, gaming, attack, defense, plant, or round unless they are the main point of the clip. "
-            + "If audio reveals the moment type, tag the actual moment or emotion, such as reaction, clutch, rage, ace, comeback, or funny. Do not use comms as a tag. "
-            + "Do not invent unsafe, hateful, sexual, or non-gaming tags. "
-            + "Return only JSON matching the schema. "
-            + "Existing games: " + gameList + ". "
-            + "Use these manually approved metadata examples as style guidance. Infer the user's style principles from them instead of copying them literally: "
+            + "Do not use bland/context tags like hold, trade, entry, eco, save, attack, defense, site, round, plant, comms, clip, video, gameplay, highlight, teamplay, or game names. "
+            + "Use manual examples as style guidance, but prioritize what the current clip actually shows: "
             + (userExamples.isBlank() ? "No examples yet." : userExamples) + ". "
+            + "Return only JSON matching the schema. "
             + "Filename: " + safe(request.getFileName()) + ". "
             + "Relative folder path: " + safe(request.getRelativePath()) + ". "
             + "Duration seconds: " + (request.getDuration() == null ? "unknown" : request.getDuration()) + ".";
@@ -491,22 +504,28 @@ public class ClipMetadataSuggestionService {
     private List<String> tagsFromFileName(String fileName) {
         Set<String> tags = new LinkedHashSet<>();
         String lower = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
-        for (String candidate : List.of("funny", "ace", "clutch", "fail", "sniper", "win", "comeback", "ranked")) {
+        for (String candidate : List.of("knife kill", "ace", "clutch", "1v3", "1v4", "1v5", "funny", "fail", "sniper", "trickshot", "comeback", "rage")) {
             if (lower.contains(candidate)) {
                 addTag(tags, candidate);
             }
         }
         if (tags.isEmpty()) {
-            addTag(tags, "clip");
+            addTag(tags, "outplay");
         }
         return tags.stream().limit(MAX_TAGS).toList();
     }
 
     private void addTag(Set<String> tags, String value) {
         String tag = cleanText(value, 30).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9 -]", "").trim();
-        if (!tag.isBlank()) {
+        if (!tag.isBlank() && !isBlockedTag(tag)) {
             tags.add(tag);
         }
+    }
+
+    private boolean isBlockedTag(String tag) {
+        return BLOCKED_TAGS.contains(tag)
+            || tag.length() < 3
+            || tag.matches(".*\\b(attack|defense|site|round|clip|video|gameplay|highlight)\\b.*");
     }
 
     private String cleanTitle(String value) {
