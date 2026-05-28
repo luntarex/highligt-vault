@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommunityService {
     private static final String TYPE_GAME = "GAME";
     private static final String TYPE_USER = "USER";
+    private static final String FALLBACK_GAME_NAME = "Other";
     private static final String ROLE_OWNER = "OWNER";
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_MODERATOR = "MODERATOR";
@@ -166,7 +167,7 @@ public class CommunityService {
     private void ensureGameCommunities() {
         Set<Long> existingGameIds = new HashSet<>(communityRepository.findCommunityGameIds());
         for (Game game : gameRepository.findAll()) {
-            if (game.getId() == null || existingGameIds.contains(game.getId())) {
+            if (game.getId() == null || existingGameIds.contains(game.getId()) || isFallbackGame(game.getName())) {
                 continue;
             }
             Community community = new Community();
@@ -179,6 +180,10 @@ public class CommunityService {
             community.setCreatedAt(LocalDateTime.now());
             communityRepository.save(community);
         }
+    }
+
+    private boolean isFallbackGame(String gameName) {
+        return gameName == null || FALLBACK_GAME_NAME.equalsIgnoreCase(gameName.trim());
     }
 
     private Community requireCommunity(Long communityId) {
