@@ -3,6 +3,10 @@ package hvault.app.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -13,6 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PreDestroy;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -23,6 +28,17 @@ public class OpenAiAudioTranscriptionService {
     private static final String TRANSCRIPTIONS_URL = "https://api.openai.com/v1/audio/transcriptions";
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private static final AtomicInteger TRANSCRIPTION_THREAD_COUNTER = new AtomicInteger();
+    private final ExecutorService transcriptionExecutor = Executors.newFixedThreadPool(4, runnable -> {
+        Thread thread = new Thread(runnable, "whisper-transcribe-" + TRANSCRIPTION_THREAD_COUNTER.incrementAndGet());
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    @PreDestroy
+    public void shutdownTranscriptionExecutor() {
+        transcriptionExecutor.shutdown();
+    }
 
     @Value("${app.moderation.ai.enabled:false}")
     private boolean enabled;
@@ -49,12 +65,21 @@ public class OpenAiAudioTranscriptionService {
             return Optional.empty();
         }
 
-        List<String> transcripts = new ArrayList<>();
-        for (AudioModerationSample sample : samples) {
-            transcribeSample(sample)
-                .filter(text -> !text.isBlank())
-                .ifPresent(text -> transcripts.add("[audio " + sample.startSecond() + "s] " + text));
-        }
+        // Launch all Whisper transcriptions in parallel
+        List<CompletableFuture<Optional<String>>> futures = samples.stream()
+            .map(sample -> CompletableFuture.supplyAsync(
+                () -> transcribeSample(sample)
+                    .filter(text -> !text.isBlank())
+                    .map(text -> "[audio " + sample.startSecond() + "s] " + text),
+                transcriptionExecutor
+            ))
+            .toList();
+
+        List<String> transcripts = futures.stream()
+            .map(CompletableFuture::join)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
 
         if (transcripts.isEmpty()) {
             return Optional.empty();
@@ -71,6 +96,7 @@ public class OpenAiAudioTranscriptionService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("model", transcriptionModel);
             body.add("response_format", "json");
+            body.add("prompt", "Gaming highlight clip. May contain reactions, callouts, laughter, rage.");
             body.add("file", new ByteArrayResource(sample.bytes()) {
                 @Override
                 public String getFilename() {

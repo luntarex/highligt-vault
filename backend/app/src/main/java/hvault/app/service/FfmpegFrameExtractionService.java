@@ -1,12 +1,14 @@
 package hvault.app.service;
 
+import static hvault.app.service.FfmpegSamplingUtils.calculateStartSeconds;
+import static hvault.app.service.FfmpegSamplingUtils.cleanup;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,9 @@ public class FfmpegFrameExtractionService {
 
     @Value("${app.moderation.ffmpeg.timeout-seconds:20}")
     private long timeoutSeconds;
+
+    @Value("${app.metadata.ai.frame-scale:768}")
+    private int metadataFrameScale;
 
     public List<String> extractFrameDataUrls(String videoUrl) {
         if (!enabled || videoUrl == null || videoUrl.isBlank()) {
@@ -136,11 +141,31 @@ public class FfmpegFrameExtractionService {
         int framesPerFragment,
         int fragmentIndex
     ) {
+        // Try scene-change detection first for smarter frame selection
+        List<String> sceneFrames = extractFramesWithSceneDetection(
+            videoUrl, startSecond, fragmentSeconds, framesPerFragment, fragmentIndex
+        );
+        if (!sceneFrames.isEmpty()) {
+            return sceneFrames;
+        }
+
+        // Fallback to fixed-interval sampling
+        return extractFramesWithFixedInterval(
+            videoUrl, startSecond, fragmentSeconds, framesPerFragment, fragmentIndex
+        );
+    }
+
+    private List<String> extractFramesWithSceneDetection(
+        String videoUrl,
+        int startSecond,
+        int fragmentSeconds,
+        int framesPerFragment,
+        int fragmentIndex
+    ) {
         Path tempDir = null;
         try {
-            tempDir = Files.createTempDirectory("hvault-metadata-fragment-frames-");
-            Path outputPattern = tempDir.resolve("fragment-%02d-frame-%%03d.jpg".formatted(fragmentIndex));
-            double fps = Math.max(1.0, framesPerFragment) / Math.max(1.0, fragmentSeconds);
+            tempDir = Files.createTempDirectory("hvault-metadata-scene-frames-");
+            Path outputPattern = tempDir.resolve("scene-%02d-frame-%%03d.jpg".formatted(fragmentIndex));
 
             ProcessBuilder processBuilder = new ProcessBuilder(
                 ffmpegPath,
@@ -155,7 +180,9 @@ public class FfmpegFrameExtractionService {
                 "-t",
                 String.valueOf(fragmentSeconds),
                 "-vf",
-                "fps=" + fps + ",scale=512:-1",
+                "select='gt(scene,0.3)',scale=" + metadataFrameScale + ":-1",
+                "-vsync",
+                "vfr",
                 "-frames:v",
                 String.valueOf(framesPerFragment),
                 outputPattern.toString()
@@ -187,48 +214,63 @@ public class FfmpegFrameExtractionService {
         }
     }
 
-    private List<Integer> calculateStartSeconds(Float videoDurationSeconds, int safeFragmentCount, int safeFragmentSeconds) {
-        if (videoDurationSeconds == null || videoDurationSeconds <= 0) {
-            return fixedIntervalStartSeconds(safeFragmentCount);
-        }
+    private List<String> extractFramesWithFixedInterval(
+        String videoUrl,
+        int startSecond,
+        int fragmentSeconds,
+        int framesPerFragment,
+        int fragmentIndex
+    ) {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("hvault-metadata-fragment-frames-");
+            Path outputPattern = tempDir.resolve("fragment-%02d-frame-%%03d.jpg".formatted(fragmentIndex));
+            double fps = Math.max(1.0, framesPerFragment) / Math.max(1.0, fragmentSeconds);
 
-        double maxStart = Math.max(0, videoDurationSeconds - safeFragmentSeconds);
-        if (maxStart == 0) {
-            return List.of(0);
-        }
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                ffmpegPath,
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-y",
+                "-ss",
+                String.valueOf(startSecond),
+                "-i",
+                videoUrl,
+                "-t",
+                String.valueOf(fragmentSeconds),
+                "-vf",
+                "fps=" + fps + ",scale=" + metadataFrameScale + ":-1",
+                "-frames:v",
+                String.valueOf(framesPerFragment),
+                outputPattern.toString()
+            );
+            processBuilder.redirectErrorStream(true);
 
-        List<Integer> starts = new ArrayList<>();
-        if (safeFragmentCount == 1) {
-            starts.add((int) Math.round(maxStart / 2.0));
-        } else {
-            for (int i = 0; i < safeFragmentCount; i++) {
-                double ratio = (double) i / (safeFragmentCount - 1);
-                starts.add((int) Math.round(maxStart * ratio));
+            Process process = processBuilder.start();
+            boolean finished = process.waitFor(Math.min(timeoutSeconds, Duration.ofSeconds(10).toSeconds()), TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                return List.of();
             }
-        }
-
-        return starts.stream().distinct().toList();
-    }
-
-    private List<Integer> fixedIntervalStartSeconds(int safeFragmentCount) {
-        List<Integer> starts = new ArrayList<>();
-        for (int i = 0; i < safeFragmentCount; i++) {
-            starts.add(i * 10);
-        }
-        return starts;
-    }
-
-    private void cleanup(Path tempDir) {
-        if (tempDir == null) {
-            return;
-        }
-        try (var paths = Files.walk(tempDir)) {
-            List<Path> sortedPaths = new ArrayList<>(paths.sorted(Comparator.reverseOrder()).toList());
-            for (Path path : sortedPaths) {
-                Files.deleteIfExists(path);
+            if (process.exitValue() != 0) {
+                return List.of();
             }
-        } catch (IOException ignored) {
-            // Temp frame cleanup failure should not block moderation.
+
+            try (var stream = Files.list(tempDir)) {
+                return stream
+                    .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".jpg"))
+                    .sorted()
+                    .limit(framesPerFragment)
+                    .map(this::toJpegDataUrl)
+                    .toList();
+            }
+        } catch (Exception e) {
+            return List.of();
+        } finally {
+            cleanup(tempDir);
         }
     }
+
+
 }

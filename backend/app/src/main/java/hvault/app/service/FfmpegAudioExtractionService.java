@@ -1,14 +1,12 @@
 package hvault.app.service;
 
-import java.io.IOException;
+import static hvault.app.service.FfmpegSamplingUtils.calculateStartSeconds;
+import static hvault.app.service.FfmpegSamplingUtils.cleanup;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,6 +27,9 @@ public class FfmpegAudioExtractionService {
 
     @Value("${app.moderation.ffmpeg.timeout-seconds:20}")
     private long timeoutSeconds;
+
+    @Value("${app.moderation.ffmpeg.audio-segment-timeout-seconds:10}")
+    private long audioSegmentTimeoutSeconds;
 
     public List<AudioModerationSample> extractAudioSamples(String videoUrl) {
         return extractAudioSamples(videoUrl, null);
@@ -79,36 +80,6 @@ public class FfmpegAudioExtractionService {
         }
     }
 
-    private List<Integer> calculateStartSeconds(Float videoDurationSeconds, int safeSegmentCount, int safeSegmentSeconds) {
-        if (videoDurationSeconds == null || videoDurationSeconds <= 0) {
-            return fixedIntervalStartSeconds(safeSegmentCount);
-        }
-
-        double maxStart = Math.max(0, videoDurationSeconds - safeSegmentSeconds);
-        if (maxStart == 0) {
-            return List.of(0);
-        }
-
-        Set<Integer> starts = new LinkedHashSet<>();
-        if (safeSegmentCount == 1) {
-            starts.add((int) Math.round(maxStart / 2.0));
-        } else {
-            for (int i = 0; i < safeSegmentCount; i++) {
-                double ratio = (double) i / (safeSegmentCount - 1);
-                starts.add((int) Math.round(maxStart * ratio));
-            }
-        }
-
-        return new ArrayList<>(starts);
-    }
-
-    private List<Integer> fixedIntervalStartSeconds(int safeSegmentCount) {
-        List<Integer> starts = new ArrayList<>();
-        for (int i = 0; i < safeSegmentCount; i++) {
-            starts.add(i * 10);
-        }
-        return starts;
-    }
 
     private boolean extractAudioSegment(String videoUrl, Path outputPath, int startSecond, int durationSeconds) {
         try {
@@ -140,7 +111,7 @@ public class FfmpegAudioExtractionService {
             processBuilder.redirectErrorStream(true);
 
             Process process = processBuilder.start();
-            boolean finished = process.waitFor(Math.min(timeoutSeconds, Duration.ofSeconds(10).toSeconds()), TimeUnit.SECONDS);
+            boolean finished = process.waitFor(audioSegmentTimeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 return false;
@@ -150,18 +121,5 @@ public class FfmpegAudioExtractionService {
             return false;
         }
     }
-
-    private void cleanup(Path tempDir) {
-        if (tempDir == null) {
-            return;
-        }
-        try (var paths = Files.walk(tempDir)) {
-            List<Path> sortedPaths = new ArrayList<>(paths.sorted(Comparator.reverseOrder()).toList());
-            for (Path path : sortedPaths) {
-                Files.deleteIfExists(path);
-            }
-        } catch (IOException ignored) {
-            // Temp audio cleanup failure should not block moderation.
-        }
-    }
 }
+

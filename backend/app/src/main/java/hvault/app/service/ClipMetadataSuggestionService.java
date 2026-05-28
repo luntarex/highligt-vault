@@ -104,8 +104,14 @@ public class ClipMetadataSuggestionService {
     @Value("${app.metadata.ai.fragment-seconds:4}")
     private int metadataFragmentSeconds;
 
-    @Value("${app.metadata.ai.frames-per-fragment:2}")
+    @Value("${app.metadata.ai.frames-per-fragment:3}")
     private int metadataFramesPerFragment;
+
+    @Value("${app.metadata.ai.frame-scale:768}")
+    private int metadataFrameScale;
+
+    @Value("${app.metadata.ai.frame-detail:high}")
+    private String metadataFrameDetail;
 
     public ClipMetadataSuggestionService(
         GameRepository gameRepository,
@@ -139,50 +145,55 @@ public class ClipMetadataSuggestionService {
         }
 
         try {
-            List<Map<String, Object>> content = new ArrayList<>();
-            content.add(Map.of("type", "input_text", "text", buildPrompt(request, games, userExamples)));
+            SamplingStrategy strategy = resolveSamplingStrategy(request.getDuration());
 
-            if (request.getThumbnailUrl() != null && !request.getThumbnailUrl().isBlank()) {
-                content.add(Map.of(
-                    "type", "input_image",
-                    "image_url", request.getThumbnailUrl(),
-                    "detail", "low"
-                ));
-            }
+            List<Map<String, Object>> systemContent = new ArrayList<>();
+            systemContent.add(Map.of("type", "input_text", "text", buildSystemPrompt(games)));
+
+            List<Map<String, Object>> userContent = new ArrayList<>();
+            userContent.add(Map.of("type", "input_text", "text", buildUserPrompt(request, userExamples)));
 
             CompletableFuture<List<String>> frameFuture = CompletableFuture.supplyAsync(
-                () -> extractMetadataFrames(request),
+                () -> extractMetadataFrames(request, strategy),
                 metadataPreparationExecutor
             );
             CompletableFuture<Optional<String>> audioTranscriptFuture = CompletableFuture.supplyAsync(
-                () -> extractMetadataAudioTranscript(request),
+                () -> extractMetadataAudioTranscript(request, strategy),
                 metadataPreparationExecutor
             );
 
             List<String> fragmentFrames = frameFuture.join();
             if (!fragmentFrames.isEmpty()) {
-                content.add(Map.of(
+                userContent.add(Map.of(
                     "type", "input_text",
                     "text", "The following images are sampled from short fragments across the clip timeline in chronological order. Use them to detect special events that a single thumbnail may miss, such as knife kills, flicks, defuses, swings, clutches, fails, reactions, and objective changes."
                 ));
             }
             fragmentFrames.stream()
-                .limit(Math.max(1, metadataFragmentCount) * Math.max(1, metadataFramesPerFragment))
-                .forEach(frame -> content.add(Map.of(
+                .limit(Math.max(1, strategy.fragmentCount()) * Math.max(1, strategy.framesPerFragment()))
+                .forEach(frame -> userContent.add(Map.of(
                     "type", "input_image",
                     "image_url", frame,
-                    "detail", "low"
+                    "detail", metadataFrameDetail
                 )));
+
+            if (request.getThumbnailUrl() != null && !request.getThumbnailUrl().isBlank()) {
+                userContent.add(Map.of(
+                    "type", "input_image",
+                    "image_url", request.getThumbnailUrl(),
+                    "detail", metadataFrameDetail
+                ));
+            }
 
             audioTranscriptFuture.join()
                 .map(value -> cleanText(value, 1800))
                 .filter(value -> !value.isBlank())
-                .ifPresent(value -> content.add(Map.of(
+                .ifPresent(value -> userContent.add(Map.of(
                     "type", "input_text",
                     "text", "Audio transcript for metadata only. Use speech, callouts, reactions, cheering, and sound cues to improve the title, note, and tags: " + value
                 )));
 
-            String response = postSuggestionRequestWithFallback(content);
+            String response = postSuggestionRequestWithFallback(systemContent, userContent);
 
             return normalize(parseSuggestion(response), fallback, games);
         } catch (Exception e) {
@@ -191,17 +202,32 @@ public class ClipMetadataSuggestionService {
         }
     }
 
+    private record SamplingStrategy(int fragmentCount, int framesPerFragment, int audioSamples, boolean fullAudio) {}
+
+    private SamplingStrategy resolveSamplingStrategy(Double duration) {
+        if (duration == null) {
+            return new SamplingStrategy(metadataFragmentCount, metadataFramesPerFragment, maxAudioSamples, false);
+        }
+        if (duration <= 30.0) {
+            return new SamplingStrategy(Math.max(10, metadataFragmentCount * 2), metadataFramesPerFragment, 1, true);
+        } else if (duration <= 120.0) {
+            return new SamplingStrategy(metadataFragmentCount, metadataFramesPerFragment, maxAudioSamples, false);
+        } else {
+            return new SamplingStrategy(metadataFragmentCount, metadataFramesPerFragment, maxAudioSamples, false);
+        }
+    }
+
     private boolean hasConfiguredProvider() {
         return hasText(apiKey) || hasText(fallbackApiKey);
     }
 
-    private String postSuggestionRequestWithFallback(List<Map<String, Object>> content) throws Exception {
+    private String postSuggestionRequestWithFallback(List<Map<String, Object>> systemContent, List<Map<String, Object>> userContent) throws Exception {
         AiMetadataProvider primary = new AiMetadataProvider("primary", responsesUrl, apiKey, model);
         AiMetadataProvider fallbackProvider = new AiMetadataProvider("fallback-openai", fallbackResponsesUrl, fallbackApiKey, fallbackModel);
 
         if (primary.configured()) {
             try {
-                return postSuggestionRequest(primary, content);
+                return postSuggestionRequest(primary, systemContent, userContent);
             } catch (Exception e) {
                 if (!fallbackProvider.configured()) {
                     throw e;
@@ -211,20 +237,23 @@ public class ClipMetadataSuggestionService {
         }
 
         if (fallbackProvider.configured()) {
-            return postSuggestionRequest(fallbackProvider, content);
+            return postSuggestionRequest(fallbackProvider, systemContent, userContent);
         }
 
         throw new IllegalStateException("No AI metadata provider is configured.");
     }
 
-    private String postSuggestionRequest(AiMetadataProvider provider, List<Map<String, Object>> content) throws Exception {
+    private String postSuggestionRequest(AiMetadataProvider provider, List<Map<String, Object>> systemContent, List<Map<String, Object>> userContent) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(provider.apiKey());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> payload = Map.of(
             "model", provider.model(),
-            "input", List.of(Map.of("role", "user", "content", content)),
+            "input", List.of(
+                Map.of("role", "system", "content", systemContent),
+                Map.of("role", "user", "content", userContent)
+            ),
             "text", Map.of("format", metadataSchema()),
             "max_output_tokens", 500
         );
@@ -237,13 +266,13 @@ public class ClipMetadataSuggestionService {
         );
     }
 
-    private List<String> extractMetadataFrames(ClipMetadataSuggestionRequest request) {
+    private List<String> extractMetadataFrames(ClipMetadataSuggestionRequest request, SamplingStrategy strategy) {
         try {
             return frameExtractionService.extractFragmentFrameDataUrls(
                 request.getVideoUrl(),
                 request.getDuration() == null ? null : request.getDuration().floatValue(),
-                metadataFragmentCount,
-                metadataFramesPerFragment,
+                strategy.fragmentCount(),
+                strategy.framesPerFragment(),
                 metadataFragmentSeconds
             );
         } catch (Exception e) {
@@ -252,17 +281,21 @@ public class ClipMetadataSuggestionService {
         }
     }
 
-    private Optional<String> extractMetadataAudioTranscript(ClipMetadataSuggestionRequest request) {
+    private Optional<String> extractMetadataAudioTranscript(ClipMetadataSuggestionRequest request, SamplingStrategy strategy) {
         if (!audioEnabled) {
             return Optional.empty();
         }
 
         try {
+            Float duration = request.getDuration() == null ? null : request.getDuration().floatValue();
+            int requestedSamples = Math.max(1, Math.min(strategy.fragmentCount(), strategy.audioSamples()));
+            int segmentSeconds = strategy.fullAudio() && duration != null ? duration.intValue() : metadataFragmentSeconds;
+
             List<AudioModerationSample> samples = audioExtractionService.extractAudioSamples(
                 request.getVideoUrl(),
-                request.getDuration() == null ? null : request.getDuration().floatValue(),
-                Math.max(1, Math.min(metadataFragmentCount, maxAudioSamples)),
-                metadataFragmentSeconds
+                duration,
+                requestedSamples,
+                segmentSeconds
             );
 
             return audioTranscriptionService.transcribeSamplesForMetadata(samples);
@@ -272,7 +305,7 @@ public class ClipMetadataSuggestionService {
         }
     }
 
-    private String buildPrompt(ClipMetadataSuggestionRequest request, List<String> games, String userExamples) {
+    private String buildSystemPrompt(List<String> games) {
         String gameList = games.isEmpty() ? "No existing games are configured." : String.join(", ", games);
         return "You create clean metadata for gaming highlight clips. "
             + "Watch the chronological fragment images and read any audio transcript as evidence. "
@@ -288,16 +321,20 @@ public class ClipMetadataSuggestionService {
             + " "
             + "Title: short title-case phrase under 55 characters, focused on the special event. "
             + "Good title patterns: \"Knife Kill on B Site\", \"1v3 Sheriff Clutch\", \"Ninja Defuse\", \"AWP Flick on Mirage\", \"Box Fight Outplay\". "
+            + "Bad title patterns: \"Valorant Gameplay Clip\", \"Desktop 2024 03 15\", \"outplay\", \"Gaming Highlight\". "
             + "Avoid defender-coded words like anchor or hold when the player is attacking. "
             + "Do not copy raw filenames, folder names, ids, dates, or paths into the title. "
             + "Notes: one concise sentence explaining why the moment matters, using visual or audio evidence when useful. "
-            + "Tags: choose 1 to 3 lower-case, entertaining, filter-worthy tags. Prefer special moments and outcomes: "
+            + "Tags: provide exactly 3 lower-case, entertaining, filter-worthy tags, ranked by excitement. Prefer special moments and outcomes: "
             + buildPreferredTags()
             + ". "
             + "Do not use bland/context tags like hold, trade, entry, eco, save, attack, defense, site, round, plant, comms, clip, video, gameplay, highlight, teamplay, or game names. "
-            + "Use manual examples as style guidance, but prioritize what the current clip actually shows: "
+            + "Return only JSON matching the schema.";
+    }
+
+    private String buildUserPrompt(ClipMetadataSuggestionRequest request, String userExamples) {
+        return "Use manual examples as style guidance, but prioritize what the current clip actually shows: "
             + (userExamples.isBlank() ? "No examples yet." : userExamples) + ". "
-            + "Return only JSON matching the schema. "
             + "Filename: " + safe(request.getFileName()) + ". "
             + "Relative folder path: " + safe(request.getRelativePath()) + ". "
             + "Duration seconds: " + (request.getDuration() == null ? "unknown" : request.getDuration()) + ".";
@@ -308,9 +345,8 @@ public class ClipMetadataSuggestionService {
             + "1vX=one player against multiple opponents; retake=reclaiming a site/objective; "
             + "post-plant=after spike/bomb is planted; defuse=stopping planted objective; "
             + "lineup=pre-planned ability or grenade setup; flick=fast aim adjustment; "
-            + "wallbang=damage or kill through cover; entry=first aggressive fight into space; "
-            + "eco=low economy round; save=keeping gear instead of fighting; trade=teammate responds after a kill; "
-            + "comms=voice communication; reaction=audible player response; whiff=missed easy shots; "
+            + "wallbang=damage or kill through cover; "
+            + "reaction=audible player response; whiff=missed easy shots; "
             + "beam=accurate tracking; snipe=long-range precision kill; outplay=winning through smarter movement or timing; "
             + "attacker=team trying to take site and plant the spike/bomb; defender=team trying to stop the plant or hold site; "
             + "anchor=defender holding a site, so avoid anchor for attacking-side clips unless clearly describing an enemy";
@@ -351,6 +387,7 @@ public class ClipMetadataSuggestionService {
         JsonNode root = objectMapper.readTree(response);
         String text = findOutputText(root);
         if (text == null || text.isBlank()) {
+            logger.warn("Could not find standard text field in AI response, falling back to parsing raw response: {}", response);
             text = response;
         }
 
