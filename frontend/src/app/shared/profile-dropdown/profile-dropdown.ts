@@ -5,17 +5,19 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { User } from '../../core/models/user';
+import { ImportFoldersDialog } from '../import-folders-dialog/import-folders-dialog';
 
 @Component({
   selector: 'app-profile-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ImportFoldersDialog],
   templateUrl: './profile-dropdown.html',
   styleUrls: ['./profile-dropdown.css']
 })
 export class ProfileDropdown implements OnInit {
   user: User | null = null;
   isProfileMenuOpen: boolean = false;
+  showSettingsDialog = false;
 
   constructor(
     private authService: AuthService,
@@ -52,5 +54,17 @@ export class ProfileDropdown implements OnInit {
   signOut(): void {
     this.authService.logout();
     this.router.navigate(['/welcome']);
+  }
+
+  openSettings(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isProfileMenuOpen = false;
+    this.showSettingsDialog = true;
+    this.cdr.detectChanges();
+  }
+
+  closeSettings(): void {
+    this.showSettingsDialog = false;
+    this.cdr.detectChanges();
   }
 }

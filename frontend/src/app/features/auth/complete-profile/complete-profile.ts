@@ -1,16 +1,17 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ProfileService } from '../../../core/services/profile.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { ToastService } from '../../../core/services/toast.service';
 import { UploadService } from '../../../core/services/upload.service';
+import { ImportFoldersDialog } from '../../../shared/import-folders-dialog/import-folders-dialog';
 
 @Component({
   selector: 'app-complete-profile',
-  imports: [FormsModule, NgClass],
+  imports: [CommonModule, FormsModule, ImportFoldersDialog],
   templateUrl: './complete-profile.html',
   styleUrl: './complete-profile.css',
 })
@@ -22,6 +23,7 @@ export class CompleteProfile implements OnInit {
 
   username: string = '';
   saving: boolean = false;
+  showImportFoldersDialog = false;
 
   constructor(
     private profileService: ProfileService,
@@ -98,5 +100,15 @@ export class CompleteProfile implements OnInit {
         this.toast.error('Failed to save profile. Please try again.');
       }
     });
+  }
+
+  openImportFolders(): void {
+    this.showImportFoldersDialog = true;
+    this.cdr.detectChanges();
+  }
+
+  closeImportFolders(): void {
+    this.showImportFoldersDialog = false;
+    this.cdr.detectChanges();
   }
 }

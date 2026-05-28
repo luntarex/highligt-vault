@@ -1,0 +1,43 @@
+<div class="dialog-backdrop" (click)="close()">
+  <section class="dialog" (click)="$event.stopPropagation()">
+    <header class="dialog-header">
+      <div>
+        <h2>Import Folders</h2>
+        <p>Saved folders are used when Library import starts.</p>
+      </div>
+      <button class="icon-btn" type="button" (click)="close()" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="support-note" *ngIf="!importFolderService.isSupported()">
+      {{ importFolderService.supportMessage() }}
+    </div>
+
+    <div class="folder-list" *ngIf="folders.length > 0">
+      <div class="folder-row" *ngFor="let folder of folders">
+        <span class="folder-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          </svg>
+        </span>
+        <span class="folder-name">{{ folder.path }}</span>
+        <button class="remove-btn" type="button" (click)="removeFolder(folder.id)">Remove</button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="folders.length === 0">
+      No import folders saved yet.
+    </div>
+
+    <footer class="dialog-actions">
+      <button class="secondary-btn" type="button" (click)="close()">Done</button>
+      <button class="primary-btn" type="button" (click)="addFolder()" [disabled]="isAdding || !importFolderService.isSupported()">
+        {{ isAdding ? 'Adding...' : 'Add Folder' }}
+      </button>
+    </footer>
+  </section>
+</div>

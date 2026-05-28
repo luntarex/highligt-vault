@@ -27,6 +27,9 @@ public class OpenAiAudioTranscriptionService {
     @Value("${app.moderation.ai.enabled:false}")
     private boolean enabled;
 
+    @Value("${app.metadata.ai.audio.transcription.enabled:true}")
+    private boolean metadataTranscriptionEnabled;
+
     @Value("${openai.api-key:}")
     private String apiKey;
 
@@ -34,7 +37,15 @@ public class OpenAiAudioTranscriptionService {
     private String transcriptionModel;
 
     public Optional<String> transcribeSamples(List<AudioModerationSample> samples) {
-        if (!enabled || apiKey == null || apiKey.isBlank() || samples == null || samples.isEmpty()) {
+        return transcribeSamples(samples, enabled);
+    }
+
+    public Optional<String> transcribeSamplesForMetadata(List<AudioModerationSample> samples) {
+        return transcribeSamples(samples, metadataTranscriptionEnabled);
+    }
+
+    private Optional<String> transcribeSamples(List<AudioModerationSample> samples, boolean allowed) {
+        if (!allowed || apiKey == null || apiKey.isBlank() || samples == null || samples.isEmpty()) {
             return Optional.empty();
         }
 

@@ -30,6 +30,16 @@
       <small class="char-count">{{ description.length }} / 300</small>
     </div>
 
+    <div class="form-group">
+      <label>Import Folders</label>
+      <button class="folder-settings-btn" type="button" (click)="openImportFolders()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        Manage Import Folders
+      </button>
+    </div>
+
     <!-- Save Button -->
     <button
       class="submit-btn"
@@ -39,4 +49,9 @@
       {{ saving ? 'Saving...' : 'Save Profile' }}
     </button>
   </div>
+
+  <app-import-folders-dialog
+    *ngIf="showImportFoldersDialog"
+    (closed)="closeImportFolders()">
+  </app-import-folders-dialog>
 </div>

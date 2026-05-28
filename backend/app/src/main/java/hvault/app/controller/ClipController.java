@@ -4,11 +4,14 @@ import hvault.app.dto.ApiMessageResponse;
 import hvault.app.dto.AppealClipRequest;
 import hvault.app.dto.ClipCreateResponse;
 import hvault.app.dto.ClipCreateRequest;
+import hvault.app.dto.ClipMetadataSuggestionRequest;
+import hvault.app.dto.ClipMetadataSuggestionResponse;
 import hvault.app.dto.ClipResponse;
 import hvault.app.dto.ClipUpdateRequest;
 import hvault.app.enums.ModerationStatus;
 import hvault.app.enums.VisibilityStatus;
 import hvault.app.security.SecurityUtil;
+import hvault.app.service.ClipMetadataSuggestionService;
 import hvault.app.service.ClipService;
 import hvault.app.service.ModerationScanResult;
 import hvault.app.service.ModerationScannerService;
@@ -35,10 +38,16 @@ public class ClipController {
 
     private final ClipService clipService;
     private final ModerationScannerService moderationScannerService;
+    private final ClipMetadataSuggestionService clipMetadataSuggestionService;
 
-    public ClipController(ClipService clipService, ModerationScannerService moderationScannerService) {
+    public ClipController(
+        ClipService clipService,
+        ModerationScannerService moderationScannerService,
+        ClipMetadataSuggestionService clipMetadataSuggestionService
+    ) {
         this.clipService = clipService;
         this.moderationScannerService = moderationScannerService;
+        this.clipMetadataSuggestionService = clipMetadataSuggestionService;
     }
 
     /**
@@ -127,6 +136,15 @@ public class ClipController {
     public ResponseEntity<ClipCreateResponse> createClip(@Valid @RequestBody ClipCreateRequest request, Authentication authentication) {
         Long clipId = clipService.createClip(request, SecurityUtil.requireCurrentUserId(authentication));
         return ResponseEntity.ok(new ClipCreateResponse("Clip created successfully", clipId));
+    }
+
+    @PostMapping("/metadata/suggest")
+    public ResponseEntity<ClipMetadataSuggestionResponse> suggestMetadata(
+        @RequestBody ClipMetadataSuggestionRequest request,
+        Authentication authentication
+    ) {
+        Long currentUserId = SecurityUtil.requireCurrentUserId(authentication);
+        return ResponseEntity.ok(clipMetadataSuggestionService.suggest(request, currentUserId));
     }
 
     /**
