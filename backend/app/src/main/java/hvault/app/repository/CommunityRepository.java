@@ -55,6 +55,7 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
                 AND c.moderation_status IN ('PENDING_REVIEW', 'NEEDS_MANUAL_REVIEW')
             )
         )
+        AND NOT (c.type = 'GAME' AND LOWER(COALESCE(g.name, c.name)) = 'other')
         GROUP BY c.id, c.name, c.description, c.thumbnail_url, g.cover_url, c.type, c.game_id, c.founder_id,
                  u.username, c.moderation_status, c.moderation_reason, c.rules, viewer.role, c.created_at
         ORDER BY c.created_at DESC
@@ -94,6 +95,7 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
         LEFT JOIN community_members cm ON cm.community_id = c.id
         LEFT JOIN community_members viewer ON viewer.community_id = c.id AND viewer.user_id = :viewerId
         WHERE c.id = :communityId
+          AND NOT (c.type = 'GAME' AND LOWER(COALESCE(g.name, c.name)) = 'other')
         GROUP BY c.id, c.name, c.description, c.thumbnail_url, g.cover_url, c.type, c.game_id, c.founder_id,
                  u.username, c.moderation_status, c.moderation_reason, c.rules, viewer.role, c.created_at
         """, nativeQuery = true)
