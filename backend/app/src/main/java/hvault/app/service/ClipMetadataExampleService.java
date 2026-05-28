@@ -37,12 +37,17 @@ public class ClipMetadataExampleService {
             return "";
         }
 
-        return repository.findTop20ByUserIdOrderByApprovedAtDesc(userId).stream()
-            .limit(12)
+        String examples = repository.findTop20ByUserIdOrderByApprovedAtDesc(userId).stream()
+            .limit(6)
             .map(this::toPromptExample)
             .filter(example -> !example.isBlank())
             .reduce((left, right) -> left + " | " + right)
             .orElse("");
+
+        if (examples.isBlank()) {
+            return "";
+        }
+        return "Style reference (your approved titles):\n" + examples;
     }
 
     private String toPromptExample(ClipMetadataExample example) {
