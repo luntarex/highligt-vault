@@ -61,11 +61,18 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     const token = localStorage.getItem('auth_token');
-    return !!token && token !== 'dummy';
+    if (!token || token === 'dummy') {
+      return false;
+    }
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+    return true;
   }
 
   isAdmin(): boolean {
-    return localStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === '1';
+    return this.isLoggedIn() && (localStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === '1');
   }
 
   getCurrentUserId(): number {
@@ -83,15 +90,41 @@ export class AuthService {
   private getUserIdFromToken(): number {
     const token = localStorage.getItem('auth_token');
     if (!token || token === 'dummy') return 0;
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return 0;
+    }
 
     try {
-      const payloadPart = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
-      if (!payloadPart) return 0;
-      const payload = JSON.parse(atob(payloadPart));
+      const payload = this.getTokenPayload(token);
       const parsedId = payload?.sub ? parseInt(payload.sub, 10) : NaN;
       return Number.isFinite(parsedId) ? parsedId : 0;
     } catch {
       return 0;
+    }
+  }
+
+  isTokenExpired(token = localStorage.getItem('auth_token')): boolean {
+    const payload = this.getTokenPayload(token);
+    if (!payload?.exp) {
+      return true;
+    }
+    return Math.floor(Date.now() / 1000) >= Number(payload.exp);
+  }
+
+  private getTokenPayload(token: string | null): any | null {
+    if (!token || token === 'dummy') {
+      return null;
+    }
+
+    try {
+      const payloadPart = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
+      if (!payloadPart) {
+        return null;
+      }
+      return JSON.parse(atob(payloadPart));
+    } catch {
+      return null;
     }
   }
 }
