@@ -22,7 +22,24 @@ import hvault.app.dto.VideoUploadResponse;
 @Service
 public class VideoUploadService {
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "m4v");
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(
+        "mp4",
+        "m4v",
+        "mov",
+        "webm",
+        "mkv",
+        "avi",
+        "wmv",
+        "flv",
+        "mpg",
+        "mpeg",
+        "3gp",
+        "3g2",
+        "ogv",
+        "ts",
+        "mts",
+        "m2ts"
+    );
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
     @Value("${cloudinary.cloud-name}")
@@ -78,11 +95,16 @@ public class VideoUploadService {
             throw new IllegalArgumentException("This file is too large. Please upload a smaller file.");
         }
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith(expectedType + "/")) {
-            throw new IllegalArgumentException("Only " + expectedType + " uploads are supported.");
-        }
         String extension = extensionOf(file.getOriginalFilename());
-        if (extension.isBlank() || !allowedExtensions.contains(extension)) {
+        boolean allowedByContentType = hasExpectedContentType(contentType, expectedType);
+        boolean allowedByExtension = !extension.isBlank() && allowedExtensions.contains(extension);
+        if (expectedType.equals("video")) {
+            if (!allowedByContentType && !(isGenericContentType(contentType) && allowedByExtension)) {
+                throw new IllegalArgumentException("Only video uploads are supported.");
+            }
+            return;
+        }
+        if (!allowedByContentType || !allowedByExtension) {
             throw new IllegalArgumentException("Unsupported " + expectedType + " file type.");
         }
     }
@@ -96,6 +118,20 @@ public class VideoUploadService {
             return "";
         }
         return filename.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean hasExpectedContentType(String contentType, String expectedType) {
+        return contentType != null
+            && contentType.toLowerCase(Locale.ROOT).startsWith(expectedType + "/");
+    }
+
+    private boolean isGenericContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            return true;
+        }
+        String normalized = contentType.toLowerCase(Locale.ROOT);
+        return normalized.equals("application/octet-stream")
+            || normalized.equals("binary/octet-stream");
     }
 
     private String capitalize(String value) {
