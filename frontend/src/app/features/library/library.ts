@@ -21,7 +21,16 @@ import { ImportFoldersDialog } from '../../shared/import-folders-dialog/import-f
 interface ImportResult {
   imported: boolean;
   hiddenByModeration: boolean;
+  metadataFallbackName?: string;
   failedName?: string;
+}
+
+interface ImportMetadata {
+  title: string;
+  game: string;
+  notes: string;
+  tags: string[];
+  usedFallback: boolean;
 }
 
 @Component({
@@ -34,8 +43,27 @@ export class Library implements OnInit {
 
   games = ['All Games'];
   private readonly defaultTags = ['Ace', 'Clutch', 'Funny', 'Fail', 'Sniper', 'Win'];
-  private readonly videoExtensions = new Set(['mp4', 'webm', 'mov', 'm4v']);
+  private readonly videoExtensions = new Set([
+    'mp4',
+    'm4v',
+    'mov',
+    'webm',
+    'mkv',
+    'avi',
+    'wmv',
+    'flv',
+    'mpg',
+    'mpeg',
+    '3gp',
+    '3g2',
+    'ogv',
+    'ts',
+    'mts',
+    'm2ts'
+  ]);
   private readonly aiImportConcurrency = 3;
+  private readonly aiMetadataAttempts = 2;
+  private readonly aiMetadataRetryDelayMs = 1200;
   tags = ['All Tags', ...this.defaultTags];
   sortOptions = ['Date', 'Duration'];
 
@@ -529,6 +557,10 @@ export class Library implements OnInit {
 
     const imported = results.filter(result => result?.imported).length;
     const hiddenByModeration = results.filter(result => result?.hiddenByModeration).length;
+    const metadataFallbackNames = results
+      .filter(result => result?.metadataFallbackName)
+      .map(result => result.metadataFallbackName as string);
+    const metadataFallbacks = metadataFallbackNames.length;
     const failedNames = results
       .filter(result => result && !result.imported && result.failedName)
       .map(result => result.failedName as string);
@@ -540,7 +572,17 @@ export class Library implements OnInit {
     this.cdr.detectChanges();
 
     if (imported > 0) {
-      this.toast.success(`${imported} clip${imported === 1 ? '' : 's'} imported with AI metadata.`);
+      const aiMetadataCount = imported - metadataFallbacks;
+      if (aiMetadataCount > 0) {
+        this.toast.success(`${aiMetadataCount} clip${aiMetadataCount === 1 ? '' : 's'} imported with AI metadata.`);
+      }
+    }
+    if (metadataFallbacks > 0) {
+      const preview = metadataFallbackNames.slice(0, 3).join(', ');
+      this.toast.info(
+        `${metadataFallbacks} clip${metadataFallbacks === 1 ? '' : 's'} imported, but AI metadata was unavailable so filename-based metadata was used${preview ? `: ${preview}` : ''}.`,
+        9000
+      );
     }
     if (hiddenByModeration > 0) {
       this.toast.info(`${hiddenByModeration} imported clip${hiddenByModeration === 1 ? '' : 's'} need moderation review and may not appear in Library yet.`, 6000);
@@ -560,13 +602,7 @@ export class Library implements OnInit {
 
     try {
       const upload = await firstValueFrom(this.clipService.uploadVideo(file));
-      const metadata = await firstValueFrom(this.clipService.suggestClipMetadata({
-        fileName: file.name,
-        relativePath,
-        videoUrl: upload.secureUrl,
-        thumbnailUrl: upload.thumbnailUrl,
-        duration: upload.duration
-      }));
+      const metadata = await this.suggestMetadataOrFallback(file, relativePath, upload);
 
       const duration = upload.duration || 0;
       const clip: Clip = {
@@ -597,11 +633,56 @@ export class Library implements OnInit {
         // The clip is still saved if moderation scan is temporarily unavailable.
       }
 
-      return { imported: true, hiddenByModeration };
+      return {
+        imported: true,
+        hiddenByModeration,
+        metadataFallbackName: metadata.usedFallback ? relativePath : undefined
+      };
     } catch (err) {
       console.error('AI import failed:', err);
       return { imported: false, hiddenByModeration: false, failedName: relativePath };
     }
+  }
+
+  private async suggestMetadataOrFallback(
+    file: File,
+    relativePath: string,
+    upload: { secureUrl: string; thumbnailUrl?: string; duration?: number }
+  ): Promise<ImportMetadata> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= this.aiMetadataAttempts; attempt++) {
+      try {
+        const metadata = await firstValueFrom(this.clipService.suggestClipMetadata({
+          fileName: file.name,
+          relativePath,
+          videoUrl: upload.secureUrl,
+          thumbnailUrl: upload.thumbnailUrl,
+          duration: upload.duration
+        }));
+        return { ...metadata, usedFallback: false };
+      } catch (err) {
+        lastError = err;
+        console.warn(`AI metadata suggestion attempt ${attempt} failed:`, err);
+        if (attempt < this.aiMetadataAttempts) {
+          await this.delay(this.aiMetadataRetryDelayMs);
+        }
+      }
+    }
+
+    console.warn('AI metadata suggestion failed after retry; importing with fallback metadata:', lastError);
+    const sourceName = relativePath || file.name;
+    return {
+      title: this.titleFromFileName(sourceName),
+      game: 'Other',
+      notes: `Imported automatically from ${sourceName}.`,
+      tags: [],
+      usedFallback: true
+    };
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private updateImportStatus(completed: number, total: number, running: number, currentPath?: string): void {
