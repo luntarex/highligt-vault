@@ -68,6 +68,14 @@ export class ClipCard {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
+  getDisplayDuration(): number {
+    const start = this.clip.startTime ?? 0;
+    const fullDuration = this.clip.duration ?? 0;
+    const end = this.clip.endTime && this.clip.endTime > start ? this.clip.endTime : fullDuration;
+    const selected = end - start;
+    return selected > 0 ? selected : fullDuration;
+  }
+
   isModerationLocked(): boolean {
     return this.mode === 'library'
       && (this.clip.visibilityStatus === 'HIDDEN'

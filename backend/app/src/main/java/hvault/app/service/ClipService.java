@@ -154,7 +154,26 @@ public class ClipService {
             ? clipData.getVisibilityStatus()
             : VisibilityStatus.PRIVATE;
 
-        clipRepository.updateClip(id, clipData.getTitle(), clipData.getNotes(), gameId, visibilityStatus);
+        float duration = resolveDuration(clipData, existingClip);
+        float startTime = sanitizeTime(clipData.getStartTime(), 0f, duration);
+        float endTime = sanitizeTime(clipData.getEndTime(), duration, duration);
+        if (endTime <= startTime) {
+            endTime = duration;
+            if (endTime <= startTime) {
+                startTime = 0f;
+            }
+        }
+
+        clipRepository.updateClip(
+            id,
+            clipData.getTitle(),
+            duration,
+            startTime,
+            endTime,
+            clipData.getNotes(),
+            gameId,
+            visibilityStatus
+        );
 
         if (visibilityStatus != VisibilityStatus.PUBLIC) {
             postService.deletePostsByClipId(id);
@@ -368,6 +387,23 @@ public class ClipService {
 
     private Double toDouble(Float value) {
         return value == null ? null : value.doubleValue();
+    }
+
+    private float resolveDuration(ClipUpdateRequest clipData, Clip existingClip) {
+        float existingDuration = existingClip.getDuration() != null ? existingClip.getDuration() : 0f;
+        if (clipData.getDuration() == null) {
+            return existingDuration;
+        }
+        return Math.max(0f, clipData.getDuration().floatValue());
+    }
+
+    private float sanitizeTime(Double value, float fallback, float max) {
+        float resolved = value == null ? fallback : value.floatValue();
+        resolved = Math.max(0f, resolved);
+        if (max > 0f) {
+            resolved = Math.min(resolved, max);
+        }
+        return resolved;
     }
 
     private boolean toBoolean(Number value) {

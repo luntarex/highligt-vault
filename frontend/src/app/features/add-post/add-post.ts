@@ -25,6 +25,8 @@ export class AddPostPage implements OnInit {
   currentTime = 0;
   duration = 0;
   private animationFrameId: number | null = null;
+  private trimStart = 0;
+  private trimEnd = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -129,14 +131,28 @@ export class AddPostPage implements OnInit {
   }
 
   onTimeUpdate(video: HTMLVideoElement) {
+    if (this.trimEnd > this.trimStart && video.currentTime >= this.trimEnd) {
+      video.currentTime = this.trimStart;
+      if (!video.paused) {
+        video.pause();
+      }
+      this.isPlaying = false;
+      this.stopProgressLoop();
+    }
+
     if (!this.isPlaying) {
-      this.currentTime = video.currentTime;
+      this.currentTime = Math.max(0, video.currentTime - this.trimStart);
       this.cdr.detectChanges();
     }
   }
 
   onMetadataLoaded(video: HTMLVideoElement) {
-    this.duration = video.duration;
+    this.trimStart = this.clip?.startTime ?? 0;
+    const clipEnd = this.clip?.endTime ?? 0;
+    this.trimEnd = clipEnd > this.trimStart ? Math.min(clipEnd, video.duration) : video.duration;
+    this.duration = Math.max(0, this.trimEnd - this.trimStart);
+    video.currentTime = this.trimStart;
+    this.currentTime = 0;
     this.cdr.detectChanges();
   }
 
@@ -160,7 +176,17 @@ export class AddPostPage implements OnInit {
   private startProgressLoop(video: HTMLVideoElement) {
     this.stopProgressLoop();
     const update = () => {
-      this.currentTime = video.currentTime;
+      if (this.trimEnd > this.trimStart && video.currentTime >= this.trimEnd) {
+        video.currentTime = this.trimStart;
+        video.pause();
+        this.isPlaying = false;
+        this.currentTime = 0;
+        this.cdr.detectChanges();
+        this.stopProgressLoop();
+        return;
+      }
+
+      this.currentTime = Math.max(0, video.currentTime - this.trimStart);
       this.cdr.detectChanges();
       this.animationFrameId = requestAnimationFrame(update);
     };
@@ -180,8 +206,8 @@ export class AddPostPage implements OnInit {
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
-    video.currentTime = percentage * this.duration;
-    this.currentTime = video.currentTime;
+    video.currentTime = this.trimStart + (percentage * this.duration);
+    this.currentTime = Math.max(0, video.currentTime - this.trimStart);
     this.cdr.detectChanges();
   }
 
