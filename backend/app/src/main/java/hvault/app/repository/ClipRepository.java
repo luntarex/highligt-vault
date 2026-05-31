@@ -289,19 +289,21 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     @Modifying
     @Query(value = """
         UPDATE clips
-        SET title = :title, notes = :notes, game_id = :gameId,
+        SET title = :title, duration = :duration, start_time = :startTime, end_time = :endTime,
+            notes = :notes, game_id = :gameId,
             moderation_status = :moderationStatus, visibility_status = :visibilityStatus,
             moderation_reason = NULL, reviewed_by = NULL, reviewed_at = NULL
         WHERE id = :id
         """, nativeQuery = true)
     void updateClipFields(@Param("id") Long id, @Param("title") String title, @Param("notes") String notes,
+                          @Param("duration") Float duration, @Param("startTime") Float startTime, @Param("endTime") Float endTime,
                           @Param("gameId") Long gameId, @Param("moderationStatus") String moderationStatus,
                           @Param("visibilityStatus") String visibilityStatus);
 
-    default void updateClip(Long id, String title, String notes, Long gameId, VisibilityStatus visibilityStatus) {
+    default void updateClip(Long id, String title, Float duration, Float startTime, Float endTime, String notes, Long gameId, VisibilityStatus visibilityStatus) {
         VisibilityStatus finalVisibilityStatus = visibilityStatus != null ? visibilityStatus : VisibilityStatus.PRIVATE;
         String moderationStatus = finalVisibilityStatus == VisibilityStatus.PUBLIC ? "AUTO_APPROVED" : "DRAFT";
-        updateClipFields(id, title, notes, gameId, moderationStatus, finalVisibilityStatus.name());
+        updateClipFields(id, title, notes, duration, startTime, endTime, gameId, moderationStatus, finalVisibilityStatus.name());
     }
 
     @Transactional

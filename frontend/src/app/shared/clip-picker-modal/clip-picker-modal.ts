@@ -56,4 +56,12 @@ export class ClipPickerModal {
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
+
+  getDisplayDuration(clip: Clip): number {
+    const start = clip.startTime ?? 0;
+    const clipDuration = clip.duration ?? 0;
+    const end = clip.endTime && clip.endTime > start ? clip.endTime : clipDuration;
+    const selected = end - start;
+    return selected > 0 ? selected : clipDuration;
+  }
 }

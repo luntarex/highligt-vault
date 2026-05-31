@@ -11,6 +11,9 @@ public class ClipUpdateRequest {
     @Size(max = 100)
     private String title;
 
+    private Double duration;
+    private Double startTime;
+    private Double endTime;
     private String notes;
     private String game;
     private VisibilityStatus visibilityStatus;

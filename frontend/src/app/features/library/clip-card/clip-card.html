@@ -6,7 +6,7 @@
     <img [src]="clip.thumbnailUrl" class="thumbnail-img" alt="Clip Thumbnail" loading="lazy" decoding="async">
 
     <span class="badge game-badge">{{ clip.game }}</span>
-    <span class="badge duration-badge">{{ formatDuration(clip.duration) }}</span>
+    <span class="badge duration-badge">{{ formatDuration(getDisplayDuration()) }}</span>
     <span *ngIf="isModerationLocked()" class="badge moderation-badge">{{ moderationLabel() }}</span>
 
     <button

@@ -44,7 +44,7 @@
             <div class="clip-meta">
                 <span class="game-name">{{ clip.game || 'Unknown Game' }}</span>
                 <span class="meta-separator">·</span>
-                <span class="duration">{{ formatDuration(clip.duration) }}</span>
+                <span class="duration">{{ formatDuration(getDisplayDuration(clip)) }}</span>
             </div>
         </div>
 
