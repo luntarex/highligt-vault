@@ -24,11 +24,12 @@ import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { CommentsModalComponent } from '../../shared/comments-modal/comments-modal';
 import { SharePanelComponent } from '../../shared/share-panel/share-panel';
 import { RepostOverlayComponent } from '../../shared/repost-overlay/repost-overlay';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-community-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, BackLink, ExplorePostCard, PostDetail, ProfileDropdown, ReportButtonComponent, ConfirmDialog, CommentsModalComponent, SharePanelComponent, RepostOverlayComponent, RouterLink],
+  imports: [CommonModule, FormsModule, BackLink, ExplorePostCard, PostDetail, ProfileDropdown, ReportButtonComponent, ConfirmDialog, CommentsModalComponent, SharePanelComponent, RepostOverlayComponent, RouterLink, TranslocoModule],
   templateUrl: './community-detail.html',
   styleUrl: './community-detail.css'
 })
@@ -98,7 +99,8 @@ export class CommunityDetail implements OnInit {
     private profileService: ProfileService,
     private messageService: MessageService,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {
     this.authService.userPhoto$.subscribe(url => {
       this.currentUserPhotoUrl = url || 'assets/icons/profile-pic.svg';
@@ -681,7 +683,9 @@ export class CommunityDetail implements OnInit {
   }
 
   communityTypeLabel(): string {
-    return this.community?.type === 'GAME' ? 'Game community' : 'User-made community';
+    return this.community?.type === 'GAME'
+      ? this.transloco.translate('communities.gameCommunity')
+      : this.transloco.translate('communities.userMadeCommunity');
   }
 
   rulesList(): string[] {
@@ -729,7 +733,7 @@ export class CommunityDetail implements OnInit {
     const date = new Date(dateStr);
     const diffMs = Date.now() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return this.transloco.translate('communityDetail.justNow');
     if (diffMins < 60) return `${diffMins}m`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h`;

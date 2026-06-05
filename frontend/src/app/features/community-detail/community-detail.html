@@ -1,3 +1,4 @@
+<ng-container *transloco="let t">
 <main class="community-detail-page" *ngIf="!isLoading && community; else loadingState">
   <div class="profile-dropdown-anchor">
     <app-profile-dropdown />
@@ -19,7 +20,7 @@
       <div class="title-block">
         <span>{{ communityTypeLabel() }}</span>
         <h1>{{ community.name }}</h1>
-        <p>{{ community.description || 'No description yet.' }}</p>
+        <p>{{ community.description || t('communities.noDescription') }}</p>
       </div>
       <div class="header-actions">
         <div class="community-options-wrapper" *ngIf="canManageCommunity()">
@@ -30,21 +31,21 @@
               <circle cx="12" cy="19" r="1"></circle>
             </svg>
           </button>
-          
+
           <div class="community-options-menu" *ngIf="isCommunityOptionsOpen" (click)="$event.stopPropagation()">
             <button type="button" class="menu-item" (click)="openEditModal(); isCommunityOptionsOpen = false">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
-              Edit Community
+              {{ t('communityDetail.editCommunity') }}
             </button>
             <button *ngIf="canDeleteCommunity()" type="button" class="menu-item danger" (click)="deleteCommunity(); isCommunityOptionsOpen = false">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
-              Delete Community
+              {{ t('communityDetail.deleteCommunity') }}
             </button>
           </div>
         </div>
@@ -54,7 +55,7 @@
           [class.joined]="community.joined"
           [disabled]="community.viewerRole === 'OWNER' || isSubmitting"
           (click)="toggleJoin()">
-          {{ community.joined ? 'Joined' : 'Join' }}
+          {{ community.joined ? t('communities.joinedBtn') : t('communities.join') }}
         </button>
       </div>
     </div>
@@ -63,18 +64,18 @@
   <section class="detail-layout">
     <div class="main-feed">
       <div class="feed-toolbar">
-        <button type="button" [class.active]="sortFilter === 'best'" (click)="setSortFilter('best')">Best</button>
-        <button type="button" [class.active]="sortFilter === 'new'" (click)="setSortFilter('new')">New</button>
+        <button type="button" [class.active]="sortFilter === 'best'" (click)="setSortFilter('best')">{{ t('communityDetail.best') }}</button>
+        <button type="button" [class.active]="sortFilter === 'new'" (click)="setSortFilter('new')">{{ t('communityDetail.sortNew') }}</button>
       </div>
 
       <div class="pinned-row">
         <article>
-          <strong>Welcome to {{ community.name }}</strong>
-          <span>{{ community.description || 'Community highlights and discussions will live here.' }}</span>
+          <strong>{{ t('communityDetail.welcomeTo', { name: community.name }) }}</strong>
+          <span>{{ community.description || t('communityDetail.welcomeHint') }}</span>
         </article>
         <article>
-          <strong>Community posts</strong>
-          <span>{{ community.postCount || 0 }} posts available</span>
+          <strong>{{ t('communityDetail.communityPosts') }}</strong>
+          <span>{{ t('communityDetail.postsAvailable', { count: community.postCount || 0 }) }}</span>
         </article>
       </div>
 
@@ -87,7 +88,7 @@
           <textarea
             rows="2"
             [(ngModel)]="newPostText"
-            placeholder="What is happening?"
+            [placeholder]="t('communityDetail.whatIsHappening')"
             [disabled]="isCreatingPost"></textarea>
 
           <div class="media-preview" *ngIf="selectedMediaFile">
@@ -109,7 +110,7 @@
               class="publish-btn"
               [disabled]="isCreatingPost || (!newPostText.trim() && !selectedMediaFile)"
               (click)="createCommunityPost()">
-              {{ isCreatingPost ? 'Publishing...' : 'Publish Post' }}
+              {{ isCreatingPost ? t('communityDetail.publishing') : t('communityDetail.publishPost') }}
             </button>
           </div>
         </div>
@@ -143,9 +144,9 @@
             </header>
 
             <div *ngIf="editingPostId === post.id; else textPostBody" class="post-edit-row">
-              <input type="text" [(ngModel)]="editingPostTitle" placeholder="Post text">
-              <button type="button" (click)="savePostTitle(post)">Save</button>
-              <button type="button" (click)="cancelEditingPost()">Cancel</button>
+              <input type="text" [(ngModel)]="editingPostTitle" [placeholder]="t('communityDetail.postTextPlaceholder')">
+              <button type="button" (click)="savePostTitle(post)">{{ t('common.save') }}</button>
+              <button type="button" (click)="cancelEditingPost()">{{ t('common.cancel') }}</button>
             </div>
             <ng-template #textPostBody>
               <p>{{ post.title }}</p>
@@ -277,31 +278,31 @@
         </article>
 
         <div class="empty-posts" *ngIf="posts.length === 0">
-          <h2>No posts yet</h2>
-          <p>Start the conversation with a text post or share a public clip for this community.</p>
+          <h2>{{ t('communityDetail.noPosts') }}</h2>
+          <p>{{ t('communityDetail.noPostsHint') }}</p>
         </div>
       </div>
     </div>
 
     <aside class="about-card">
       <h2>{{ community.name }}</h2>
-      <p>{{ community.description || 'No description yet.' }}</p>
+      <p>{{ community.description || t('communities.noDescription') }}</p>
       <dl>
         <div>
-          <dt>Members</dt>
+          <dt>{{ t('communities.membersLabel') }}</dt>
           <dd>{{ community.memberCount || 0 }}</dd>
         </div>
         <div>
-          <dt>Posts</dt>
+          <dt>{{ t('communities.postsLabel') }}</dt>
           <dd>{{ community.postCount || 0 }}</dd>
         </div>
         <div>
-          <dt>Visibility</dt>
-          <dd>Public</dd>
+          <dt>{{ t('communityDetail.visibility') }}</dt>
+          <dd>{{ t('communityDetail.public') }}</dd>
         </div>
       </dl>
       <div class="rules">
-        <h3>Rules</h3>
+        <h3>{{ t('communityDetail.rules') }}</h3>
         <ol>
           <li *ngFor="let rule of rulesList()">{{ rule }}</li>
         </ol>
@@ -321,8 +322,8 @@
   <section class="edit-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div>
-        <h2>Edit Community</h2>
-        <p>Admins, moderators, and the founder can update community details.</p>
+        <h2>{{ t('communityDetail.editCommunity') }}</h2>
+        <p>{{ t('communityDetail.editModalSubtitle') }}</p>
       </div>
       <button type="button" class="icon-btn" (click)="closeEditModal()" aria-label="Close">x</button>
     </div>
@@ -330,41 +331,40 @@
     <button class="image-picker" type="button" (click)="thumbnailInput.click()">
       <img *ngIf="editThumbnailPreview; else imagePlaceholder" [src]="editThumbnailPreview" alt="Community thumbnail">
       <ng-template #imagePlaceholder>
-        <strong>Select thumbnail</strong>
+        <strong>{{ t('communities.selectThumbnail') }}</strong>
       </ng-template>
     </button>
     <input #thumbnailInput type="file" accept="image/*" hidden (change)="onEditThumbnailSelected($event)">
 
     <label>
-      <span>Name</span>
+      <span>{{ t('communities.nameLabel') }}</span>
       <input type="text" [(ngModel)]="editForm.name" maxlength="100">
     </label>
     <label>
-      <span>Description</span>
+      <span>{{ t('communities.descriptionLabel') }}</span>
       <textarea rows="3" [(ngModel)]="editForm.description"></textarea>
     </label>
     <label>
-      <span>Rules</span>
-      <textarea rows="5" [(ngModel)]="editForm.rules" placeholder="One rule per line"></textarea>
+      <span>{{ t('communityDetail.rules') }}</span>
+      <textarea rows="5" [(ngModel)]="editForm.rules" [placeholder]="t('communityDetail.oneRulePerLine')"></textarea>
     </label>
 
     <div class="modal-actions">
-      <button type="button" class="outline-btn" [disabled]="isSubmitting" (click)="closeEditModal()">Cancel</button>
+      <button type="button" class="outline-btn" [disabled]="isSubmitting" (click)="closeEditModal()">{{ t('common.cancel') }}</button>
       <button type="button" class="join-btn" [disabled]="isSubmitting || !editForm.name.trim()" (click)="saveCommunity()">
-        {{ isUploadingThumbnail ? 'Uploading...' : (isSubmitting ? 'Saving...' : 'Save changes') }}
+        {{ isUploadingThumbnail ? t('communityDetail.uploading') : (isSubmitting ? t('communityDetail.saving') : t('communityDetail.saveChanges')) }}
       </button>
     </div>
   </section>
 </div>
 
 <ng-template #loadingState>
-  <div class="loading-state">Loading community...</div>
+  <div class="loading-state">{{ t('communityDetail.loading') }}</div>
 </ng-template>
 
 <ng-template #postsLoadingState>
-  <div class="loading-posts">Loading posts...</div>
+  <div class="loading-posts">{{ t('communityDetail.loadingPosts') }}</div>
 </ng-template>
-
 
 <!-- Comments Modal -->
   <app-comments-modal
@@ -375,9 +375,10 @@
 
   <app-confirm-dialog
     *ngIf="showDeleteConfirm"
-    [title]="'Delete Community?'"
-    [message]="'Are you sure you want to delete this community? This action cannot be undone.'"
+    [title]="t('communityDetail.deleteCommunityTitle')"
+    [message]="t('communityDetail.deleteCommunityMessage')"
     type="danger"
     (confirmed)="confirmDeleteCommunity()"
     (cancelled)="showDeleteConfirm = false">
   </app-confirm-dialog>
+</ng-container>
