@@ -5,10 +5,11 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../../core/utils/error-message';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

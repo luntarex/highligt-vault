@@ -1,4 +1,4 @@
-<div class="modal-overlay">
+<div class="modal-overlay" *transloco="let t">
   <div class="modal-content">
     <div class="modal-header">
       <div>
@@ -12,7 +12,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Search clips..."
+        [placeholder]="t('clipPicker.searchClips')"
         [(ngModel)]="searchQuery"
         (input)="onSearch()"
       >
@@ -55,11 +55,11 @@
 
     <div class="modal-footer">
       <div class="selection-status">
-        {{ selectedClipIds.size }} clips selected
+        {{ t('clipPicker.clipsSelected', { count: selectedClipIds.size }) }}
       </div>
       <div class="action-buttons">
-        <button class="btn-cancel" (click)="onCancel()">Cancel</button>
-        <button class="btn-confirm" (click)="onConfirm()">Confirm</button>
+        <button class="btn-cancel" (click)="onCancel()">{{ t('common.cancel') }}</button>
+        <button class="btn-confirm" (click)="onConfirm()">{{ t('clipPicker.confirm') }}</button>
       </div>
     </div>
   </div>

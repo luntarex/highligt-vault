@@ -8,10 +8,11 @@ import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { ToastService } from '../../../core/services/toast.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { ImportFoldersDialog } from '../../../shared/import-folders-dialog/import-folders-dialog';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-complete-profile',
-  imports: [CommonModule, FormsModule, ImportFoldersDialog],
+  imports: [CommonModule, FormsModule, ImportFoldersDialog, TranslocoModule],
   templateUrl: './complete-profile.html',
   styleUrl: './complete-profile.css',
 })

@@ -8,10 +8,11 @@ import { GameService } from '../../core/services/game.service';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
 import { UploadService } from '../../core/services/upload.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-users-list-page',
-  imports: [FormsModule, CommonModule, RouterModule],
+  imports: [FormsModule, CommonModule, RouterModule, TranslocoModule],
   templateUrl: './users-list-page.html',
   styleUrl: './users-list-page.css',
 })

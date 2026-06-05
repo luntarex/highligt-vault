@@ -9,11 +9,12 @@ import { CommentService } from '../../core/services/comment.service';
 import { ExploreService } from '../../core/services/explore.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ReportButtonComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ReportButtonComponent, TranslocoModule],
   templateUrl: './post-detail.html',
   styleUrls: ['./post-detail.css']
 })
@@ -39,7 +40,8 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     private commentService: CommentService,
     public authService: AuthService,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {}
 
   ngOnInit(): void {
@@ -215,7 +217,7 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   }
 
   communityLabel(): string {
-    return this.post?.communityName || 'Community';
+    return this.post?.communityName || this.transloco.translate('communities.community');
   }
 
   hasCommunityLink(): boolean {
@@ -243,7 +245,7 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   }
 
   originalCommunityLabel(post: ExplorePost | null | undefined): string {
-    return post?.communityName || 'Community';
+    return post?.communityName || this.transloco.translate('communities.community');
   }
 
   onTogglePlay(event?: Event): void {

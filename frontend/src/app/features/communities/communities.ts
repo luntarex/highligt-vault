@@ -9,11 +9,12 @@ import { UploadService } from '../../core/services/upload.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-communities',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink, ProfileDropdown],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, ProfileDropdown, TranslocoModule],
   templateUrl: './communities.html',
   styleUrl: './communities.css'
 })
@@ -38,7 +39,8 @@ export class Communities implements OnInit {
     private communityService: CommunityService,
     private uploadService: UploadService,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {}
 
   ngOnInit(): void {
@@ -155,9 +157,11 @@ export class Communities implements OnInit {
   }
 
   statusText(community: Community): string {
-    if (community.type === 'GAME') return 'Game community';
-    if (community.moderationStatus === 'PENDING_REVIEW') return 'Waiting for moderation';
-    return community.founderUsername ? `Founded by ${community.founderUsername}` : 'Community';
+    if (community.type === 'GAME') return this.transloco.translate('communities.gameCommunity');
+    if (community.moderationStatus === 'PENDING_REVIEW') return this.transloco.translate('communities.waitingModeration');
+    return community.founderUsername
+      ? this.transloco.translate('communities.foundedBy', { name: community.founderUsername })
+      : this.transloco.translate('communities.community');
   }
 
   private submitCommunity(thumbnailUrl: string): void {

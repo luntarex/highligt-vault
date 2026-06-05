@@ -139,3 +139,49 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.metadata-language {
+  margin: 0.5rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid hsl(0, 0%, 22%);
+  border-radius: 0.6rem;
+  background: hsl(0, 0%, 12%);
+}
+
+.metadata-language label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.metadata-language-hint {
+  margin: 0.25rem 0 0.6rem;
+  font-size: 0.78rem;
+  color: hsl(0, 0%, 60%);
+}
+
+.metadata-language-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lang-pill {
+  background: transparent;
+  border: 1px solid hsl(0, 0%, 28%);
+  color: hsl(0, 0%, 75%);
+  border-radius: 1rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-pill:hover {
+  color: white;
+  border-color: hsl(0, 0%, 45%);
+}
+
+.lang-pill.active {
+  background: hsl(213, 90%, 55%);
+  border-color: hsl(213, 90%, 55%);
+  color: white;
+}

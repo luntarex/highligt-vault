@@ -1,21 +1,21 @@
-<div class="auth-container">
+<div class="auth-container" *transloco="let t">
 <div class="auth-header">
   <img src="">
   <h2>Vibe Vault</h2>
-  <p>Create your account to get started</p>
+  <p>{{ t('auth.registerSubtitle') }}</p>
 </div>
 <div class="auth-card">
   <form #registerForm="ngForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label>Username</label>
+      <label>{{ t('auth.username') }}</label>
       <input type="text" [(ngModel)]="registerRequest.username" name="username" required placeholder="player_one">
     </div>
     <div class="form-group">
-      <label>Email</label>
+      <label>{{ t('auth.email') }}</label>
       <input type="email" [(ngModel)]="registerRequest.email" name="email" required placeholder="you@example.com">
     </div>
     <div class="form-group">
-      <label>Password</label>
+      <label>{{ t('auth.password') }}</label>
       <div class="input-with-icon">
         <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="registerRequest.password" placeholder="••••••••" required>
 
@@ -26,7 +26,7 @@
       </div>
     </div>
       <div class = "form-group">
-        <label >Confirm Password</label>
+        <label >{{ t('auth.confirmPassword') }}</label>
         <div class="input-with-icon">
           <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="registerRequest.confirmPassword" name="confirmPassword" required placeholder="******">
           <button type="button" class="icon-btn" (click)="toggleConfirmPasswordVisibility()">
@@ -35,7 +35,7 @@
           </button>
         </div>
         <small class="error-text" *ngIf="registerRequest.password && registerRequest.confirmPassword && registerRequest.password !== registerRequest.confirmPassword">
-          Passwords do not match.
+          {{ t('auth.passwordsMismatch') }}
         </small>
       </div>
 
@@ -43,7 +43,7 @@
 
   <button type="submit" class="submit-btn" [disabled]="!registerForm.valid">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-        Create Account
+        {{ t('auth.createAccount') }}
       </button>
   </form>
 </div>

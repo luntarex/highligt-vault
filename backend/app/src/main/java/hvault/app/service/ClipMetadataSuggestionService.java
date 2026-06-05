@@ -146,9 +146,10 @@ public class ClipMetadataSuggestionService {
 
         try {
             SamplingStrategy strategy = resolveSamplingStrategy(request.getDuration());
+            String language = resolveLanguage(request.getLanguage());
 
             List<Map<String, Object>> systemContent = new ArrayList<>();
-            systemContent.add(Map.of("type", "input_text", "text", buildSystemPrompt(games)));
+            systemContent.add(Map.of("type", "input_text", "text", buildSystemPrompt(games, language)));
 
             List<Map<String, Object>> userContent = new ArrayList<>();
             userContent.add(Map.of("type", "input_text", "text", buildUserPrompt(request, userExamples)));
@@ -305,9 +306,31 @@ public class ClipMetadataSuggestionService {
         }
     }
 
-    private String buildSystemPrompt(List<String> games) {
+    private String resolveLanguage(String language) {
+        if (language == null) {
+            return "en";
+        }
+        String normalized = language.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("tr")) {
+            return "tr";
+        }
+        return "en";
+    }
+
+    private String languageDirective(String language) {
+        if ("tr".equals(language)) {
+            return " Write the title, notes, and all tags in Turkish (Türkçe). "
+                + "Use natural, fluent Turkish that a Turkish gamer would use, keeping widely-known gaming terms "
+                + "(such as ace, clutch, no-scope, wallbang, defuse) as they are commonly written in Turkish gaming culture. "
+                + "Keep game names, agent names, map names, and weapon names in their original form. ";
+        }
+        return " Write the title, notes, and all tags in English. ";
+    }
+
+    private String buildSystemPrompt(List<String> games, String language) {
         String gameList = games.isEmpty() ? "No existing games are configured." : String.join(", ", games);
         return "You create clean metadata for gaming highlight clips. "
+            + languageDirective(language)
             + "Watch the chronological fragment images and read any audio transcript as evidence. "
             + "Name the exciting moment a viewer would remember, not every object on screen. "
             + "Pick the most accurate game from this existing list when possible; otherwise use Other: " + gameList + ". "
@@ -553,7 +576,7 @@ public class ClipMetadataSuggestionService {
     }
 
     private void addTag(Set<String> tags, String value) {
-        String tag = cleanText(value, 30).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9 -]", "").trim();
+        String tag = cleanText(value, 30).toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{Nd} -]", "").trim();
         if (!tag.isBlank() && !isBlockedTag(tag)) {
             tags.add(tag);
         }

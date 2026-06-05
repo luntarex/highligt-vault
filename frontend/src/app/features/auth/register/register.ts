@@ -6,10 +6,11 @@ import { RouterModule, Router } from '@angular/router';
 import { RegisterRequest } from '../../../core/models/user';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslocoModule],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })

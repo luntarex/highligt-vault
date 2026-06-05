@@ -1,8 +1,8 @@
-<div class="favorites-container">
+<div class="favorites-container" *transloco="let t">
   <header class="favorites-header">
      <div class="header-content">
-       <h1 class="favorites-title">Favorites</h1>
-       <p class="favorites-subtitle">Your saved highlights, all in one place.</p>
+       <h1 class="favorites-title">{{ t('favorites.title') }}</h1>
+       <p class="favorites-subtitle">{{ t('favorites.subtitle') }}</p>
      </div>
      <div class="header-actions">
        <button
@@ -10,7 +10,7 @@
          class="group-mode-btn"
          [class.active]="isGroupMode"
          (click)="toggleGroupMode()">
-         {{ isGroupMode ? 'Cancel' : 'Group Clips' }}
+         {{ isGroupMode ? t('common.cancel') : t('favorites.groupClips') }}
        </button>
        <app-back-link></app-back-link>
      </div>
@@ -18,13 +18,13 @@
 
   <main class="favorites-content">
     <div *ngIf="isGroupMode" class="selection-toolbar">
-      <span>{{ selectedCount }} selected</span>
-      <button class="btn-primary" [disabled]="selectedCount === 0" (click)="openGroupDialog()">Add to Group</button>
+      <span>{{ t('library.selectedCount', { count: selectedCount }) }}</span>
+      <button class="btn-primary" [disabled]="selectedCount === 0" (click)="openGroupDialog()">{{ t('library.addToGroup') }}</button>
     </div>
 
     <section *ngIf="!isLoading && !selectedGroup && groups.length > 0 && !isGroupMode" class="groups-view">
       <div class="groups-toolbar">
-        <h2>Groups</h2>
+        <h2>{{ t('favorites.groups') }}</h2>
       </div>
 
       <div class="group-grid">
@@ -38,7 +38,7 @@
           (keydown.enter)="openGroup(group)">
           <img *ngIf="group.thumbnailUrl" class="group-thumbnail" [src]="group.thumbnailUrl" alt="" loading="lazy" decoding="async">
           <span *ngIf="group.thumbnailUrl" class="group-thumbnail-shade"></span>
-          <button class="group-delete-btn" title="Delete Group" (click)="$event.stopPropagation(); deleteGroup(group.id)">
+          <button class="group-delete-btn" [title]="t('library.deleteGroup')" (click)="$event.stopPropagation(); deleteGroup(group.id)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
             </svg>
@@ -49,22 +49,22 @@
             </svg>
           </span>
           <strong>{{ group.name }}</strong>
-          <small>{{ group.clipCount || 0 }} clips</small>
+          <small>{{ t('group.clipsCount', { count: group.clipCount || 0 }) }}</small>
         </div>
       </div>
     </section>
 
     <section *ngIf="selectedGroup" class="group-detail">
       <div class="groups-toolbar">
-        <button class="back-group-btn" (click)="closeSelectedGroup()">Back</button>
+        <button class="back-group-btn" (click)="closeSelectedGroup()">{{ t('common.back') }}</button>
         <h2>{{ selectedGroup.name }}</h2>
-        <button class="danger-action" (click)="deleteGroup(selectedGroup.id)">Delete Group</button>
+        <button class="danger-action" (click)="deleteGroup(selectedGroup.id)">{{ t('library.deleteGroup') }}</button>
       </div>
     </section>
 
     <div *ngIf="isLoading" class="loading-state">
       <div class="spinner"></div>
-      <p>Loading favorites...</p>
+      <p>{{ t('favorites.loading') }}</p>
     </div>
 
     <div *ngIf="!isLoading && favoriteClips.length === 0" class="empty-state">
@@ -73,9 +73,9 @@
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
       </div>
-      <h2>No favorites yet</h2>
-      <p>Clips you mark as favorite will show up here.</p>
-      <a routerLink="/explore" class="btn-primary">Explore Clips</a>
+      <h2>{{ t('favorites.empty') }}</h2>
+      <p>{{ t('favorites.emptyHint') }}</p>
+      <a routerLink="/explore" class="btn-primary">{{ t('favorites.exploreClips') }}</a>
     </div>
 
     <div *ngIf="!isLoading && favoriteClips.length > 0" class="clips-grid">
@@ -105,10 +105,10 @@
 
   <app-confirm-dialog
     *ngIf="showRemoveModal"
-    title="Remove from Favorites"
-    message="Are you sure you want to remove this clip from your favorites?"
-    confirmText="Remove"
-    cancelText="Cancel"
+    [title]="t('favorites.removeTitle')"
+    [message]="t('favorites.removeConfirm')"
+    [confirmText]="t('favorites.remove')"
+    [cancelText]="t('common.cancel')"
     type="danger"
     (confirmed)="onConfirmRemove()"
     (cancelled)="onCancelRemove()">

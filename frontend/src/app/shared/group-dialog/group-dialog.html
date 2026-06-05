@@ -1,13 +1,13 @@
-<div class="modal-overlay" (click)="onCancel()">
+<div class="modal-overlay" (click)="onCancel()" *transloco="let t">
   <div class="modal-container" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         </svg>
-        Add to Group
+        {{ t('group.addToGroup') }}
       </h2>
-      <button class="close-btn" (click)="onCancel()" title="Close">
+      <button class="close-btn" (click)="onCancel()" [title]="t('common.close')">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <p class="selected-count">{{ clipCount }} selected clip{{ clipCount === 1 ? '' : 's' }}</p>
+    <p class="selected-count">{{ t('group.selectedClips', { count: clipCount }) }}</p>
 
     <div class="group-options" *ngIf="groups.length > 0">
       <button
@@ -26,40 +26,40 @@
         (click)="selectExisting(group.id)">
         <span>
           <strong>{{ group.name }}</strong>
-          <small>{{ group.clipCount || 0 }} clips</small>
+          <small>{{ t('group.clipsCount', { count: group.clipCount || 0 }) }}</small>
         </span>
         <span class="radio-dot"></span>
       </button>
     </div>
 
     <button type="button" class="new-group-toggle" [class.active]="isCreatingNew" (click)="selectNew()">
-      <span>Create new group</span>
+      <span>{{ t('group.createNew') }}</span>
       <span class="radio-dot"></span>
     </button>
 
     <div class="new-group-form" *ngIf="isCreatingNew">
-      <label for="group-name">Group Name</label>
+      <label for="group-name">{{ t('group.groupName') }}</label>
       <input
         id="group-name"
         type="text"
         [(ngModel)]="groupName"
         maxlength="50"
-        placeholder="Favorite clutches"
+        [placeholder]="t('group.namePlaceholder')"
         (keydown.enter)="onSubmit()">
 
-      <label for="group-description">Description <span>optional</span></label>
+      <label for="group-description">{{ t('group.description') }} <span>{{ t('group.optional') }}</span></label>
       <textarea
         id="group-description"
         [(ngModel)]="groupDescription"
         maxlength="200"
         rows="3"
-        placeholder="What belongs in this group?"></textarea>
+        [placeholder]="t('group.descriptionPlaceholder')"></textarea>
     </div>
 
     <div class="modal-footer">
-      <button class="btn-cancel" (click)="onCancel()">Cancel</button>
+      <button class="btn-cancel" (click)="onCancel()">{{ t('common.cancel') }}</button>
       <button class="btn-create" [disabled]="isCreatingNew && !groupName.trim()" (click)="onSubmit()">
-        Save Group
+        {{ t('group.saveGroup') }}
       </button>
     </div>
   </div>

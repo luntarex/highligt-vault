@@ -33,6 +33,7 @@ export interface ClipMetadataSuggestionRequest {
   videoUrl: string;
   thumbnailUrl?: string;
   duration?: number;
+  language?: string;
 }
 
 export interface ClipMetadataSuggestionResponse {

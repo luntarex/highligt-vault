@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Clip } from '../../core/models/clip';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-clip-picker-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './clip-picker-modal.html',
   styleUrls: ['./clip-picker-modal.css']
 })
