@@ -16,9 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ClipRepository extends JpaRepository<Clip, Long> {
-    Optional<Clip> findFirstByFileHashOrderByCreatedAtDesc(String fileHash);
-
-    int countByCloudinaryPublicIdAndIdNot(String cloudinaryPublicId, Long id);
 
     @Query(value = """
         SELECT DISTINCT c.id, c.title, c.video_url, c.thumbnail_url, c.duration,

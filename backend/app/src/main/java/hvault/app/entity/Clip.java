@@ -33,12 +33,6 @@ public class Clip {
     @Column(name = "video_url", nullable = false)
     private String videoUrl;
 
-    @Column(name = "cloudinary_public_id")
-    private String cloudinaryPublicId;
-
-    @Column(name = "file_hash", length = 64)
-    private String fileHash;
-
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
