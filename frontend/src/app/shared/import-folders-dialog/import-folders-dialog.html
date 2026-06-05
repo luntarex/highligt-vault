@@ -1,17 +1,32 @@
-<div class="dialog-backdrop" (click)="close()">
+<div class="dialog-backdrop" (click)="close()" *transloco="let t">
   <section class="dialog" (click)="$event.stopPropagation()">
     <header class="dialog-header">
       <div>
-        <h2>Import Folders</h2>
-        <p>Saved folders are used when Library import starts.</p>
+        <h2>{{ t('importFolders.title') }}</h2>
+        <p>{{ t('importFolders.subtitle') }}</p>
       </div>
-      <button class="icon-btn" type="button" (click)="close()" aria-label="Close">
+      <button class="icon-btn" type="button" (click)="close()" [attr.aria-label]="t('common.close')">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 6 6 18"></path>
           <path d="m6 6 12 12"></path>
         </svg>
       </button>
     </header>
+
+    <div class="metadata-language">
+      <label>{{ t('importFolders.aiLanguageLabel') }}</label>
+      <p class="metadata-language-hint">{{ t('importFolders.aiLanguageHint') }}</p>
+      <div class="metadata-language-options">
+        <button
+          *ngFor="let lang of languageService.available"
+          type="button"
+          class="lang-pill"
+          [class.active]="languageService.metadataLanguage() === lang.code"
+          (click)="setMetadataLanguage(lang.code)">
+          {{ lang.label }}
+        </button>
+      </div>
+    </div>
 
     <div class="support-note" *ngIf="!importFolderService.isSupported()">
       {{ importFolderService.supportMessage() }}
@@ -25,18 +40,18 @@
           </svg>
         </span>
         <span class="folder-name">{{ folder.path }}</span>
-        <button class="remove-btn" type="button" (click)="removeFolder(folder.id)">Remove</button>
+        <button class="remove-btn" type="button" (click)="removeFolder(folder.id)">{{ t('importFolders.remove') }}</button>
       </div>
     </div>
 
     <div class="empty-state" *ngIf="folders.length === 0">
-      No import folders saved yet.
+      {{ t('importFolders.empty') }}
     </div>
 
     <footer class="dialog-actions">
-      <button class="secondary-btn" type="button" (click)="close()">Done</button>
+      <button class="secondary-btn" type="button" (click)="close()">{{ t('importFolders.done') }}</button>
       <button class="primary-btn" type="button" (click)="addFolder()" [disabled]="isAdding || !importFolderService.isSupported()">
-        {{ isAdding ? 'Adding...' : 'Add Folder' }}
+        {{ isAdding ? t('importFolders.adding') : t('importFolders.addFolder') }}
       </button>
     </footer>
   </section>

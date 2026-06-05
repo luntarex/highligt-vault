@@ -1,4 +1,4 @@
-<main class="communities-page">
+<main class="communities-page" *transloco="let t">
   <div class="profile-dropdown-anchor">
     <app-profile-dropdown />
   </div>
@@ -7,7 +7,7 @@
 
   <header class="page-header">
     <div>
-      <h1>Communities</h1>
+      <h1>{{ t('communities.title') }}</h1>
     </div>
   </header>
 
@@ -19,13 +19,13 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </span>
-      <input type="text" [(ngModel)]="query" placeholder="Search communities..." class="search-input">
+      <input type="text" [(ngModel)]="query" [placeholder]="t('communities.search')" class="search-input">
     </div>
     <div class="filter-tabs">
-      <button type="button" [class.active]="typeFilter === 'ALL'" (click)="typeFilter = 'ALL'">All</button>
-      <button type="button" [class.active]="typeFilter === 'GAME'" (click)="typeFilter = 'GAME'">Games</button>
-      <button type="button" [class.active]="typeFilter === 'USER'" (click)="typeFilter = 'USER'">User-made</button>
-      <button type="button" [class.active]="typeFilter === 'JOINED'" (click)="typeFilter = 'JOINED'">Joined</button>
+      <button type="button" [class.active]="typeFilter === 'ALL'" (click)="typeFilter = 'ALL'">{{ t('communities.all') }}</button>
+      <button type="button" [class.active]="typeFilter === 'GAME'" (click)="typeFilter = 'GAME'">{{ t('communities.games') }}</button>
+      <button type="button" [class.active]="typeFilter === 'USER'" (click)="typeFilter = 'USER'">{{ t('communities.userMade') }}</button>
+      <button type="button" [class.active]="typeFilter === 'JOINED'" (click)="typeFilter = 'JOINED'">{{ t('communities.joined') }}</button>
     </div>
   </section>
 
@@ -48,14 +48,14 @@
         (click)="selectCommunity(community)">
         <div class="thumb-wrap">
           <img [src]="community.thumbnailUrl || defaultThumbnail(community)" [alt]="community.name">
-          <span class="type-pill">{{ community.type === 'GAME' ? 'Game' : 'Community' }}</span>
+          <span class="type-pill">{{ community.type === 'GAME' ? t('communities.game') : t('communities.community') }}</span>
         </div>
         <div class="card-body">
           <div class="card-title-row">
             <h2>{{ community.name }}</h2>
-            <span class="member-count">{{ community.memberCount || 0 }} members</span>
+            <span class="member-count">{{ t('communities.members', { count: community.memberCount || 0 }) }}</span>
           </div>
-          <p>{{ community.description || 'No description yet.' }}</p>
+          <p>{{ community.description || t('communities.noDescription') }}</p>
           <div class="card-footer">
             <span>{{ statusText(community) }}</span>
             <button
@@ -64,7 +64,7 @@
               [class.joined]="community.joined"
               [disabled]="community.viewerRole === 'OWNER' || isSubmitting"
               (click)="toggleJoin(community, $event)">
-              {{ community.joined ? 'Joined' : 'Join' }}
+              {{ community.joined ? t('communities.joinedBtn') : t('communities.join') }}
             </button>
           </div>
         </div>
@@ -74,39 +74,39 @@
     <aside class="detail-panel" *ngIf="selectedCommunity as community">
       <img [src]="community.thumbnailUrl || defaultThumbnail(community)" [alt]="community.name">
       <div>
-        <span class="detail-kicker">{{ community.type === 'GAME' ? 'Game community' : 'User-made community' }}</span>
+        <span class="detail-kicker">{{ community.type === 'GAME' ? t('communities.gameCommunity') : t('communities.userMadeCommunity') }}</span>
         <h3>{{ community.name }}</h3>
-        <p>{{ community.description || 'No description yet.' }}</p>
+        <p>{{ community.description || t('communities.noDescription') }}</p>
       </div>
       <dl>
         <div>
-          <dt>Members</dt>
+          <dt>{{ t('communities.membersLabel') }}</dt>
           <dd>{{ community.memberCount || 0 }}</dd>
         </div>
         <div>
-          <dt>Posts</dt>
+          <dt>{{ t('communities.postsLabel') }}</dt>
           <dd>{{ community.postCount || 0 }}</dd>
         </div>
         <div *ngIf="community.viewerRole">
-          <dt>Your role</dt>
+          <dt>{{ t('communities.yourRole') }}</dt>
           <dd>{{ community.viewerRole }}</dd>
         </div>
       </dl>
       <p class="coming-next">
-        Text posts, quoting, and community comments will be connected here next.
+        {{ t('communities.comingNext') }}
       </p>
     </aside>
   </section>
 </main>
 
-<div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()">
-  <section class="create-modal" (click)="$event.stopPropagation()">
+<div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()" >
+  <section class="create-modal" (click)="$event.stopPropagation()" *transloco="let t">
     <div class="modal-header">
       <div>
-        <h2>Create Community</h2>
-        <p>Community requests are reviewed before they go public.</p>
+        <h2>{{ t('communities.createTitle') }}</h2>
+        <p>{{ t('communities.createSubtitle') }}</p>
       </div>
-      <button type="button" class="icon-btn" (click)="closeCreateModal()" aria-label="Close">x</button>
+      <button type="button" class="icon-btn" (click)="closeCreateModal()" [attr.aria-label]="t('common.close')">x</button>
     </div>
 
     <button class="image-picker" type="button" (click)="thumbnailInput.click()">
@@ -118,41 +118,41 @@
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </span>
-        <strong>Select thumbnail</strong>
+        <strong>{{ t('communities.selectThumbnail') }}</strong>
       </ng-template>
     </button>
     <input #thumbnailInput type="file" accept="image/*" (change)="onThumbnailSelected($event)" hidden>
 
     <label>
-      <span>Name</span>
-      <input type="text" [(ngModel)]="newCommunity.name" maxlength="100" placeholder="Community name">
+      <span>{{ t('communities.nameLabel') }}</span>
+      <input type="text" [(ngModel)]="newCommunity.name" maxlength="100" [placeholder]="t('communities.namePlaceholder')">
     </label>
     <label>
-      <span>Description</span>
-      <textarea rows="4" [(ngModel)]="newCommunity.description" placeholder="What is this community about?"></textarea>
+      <span>{{ t('communities.descriptionLabel') }}</span>
+      <textarea rows="4" [(ngModel)]="newCommunity.description" [placeholder]="t('communities.descriptionPlaceholder')"></textarea>
     </label>
     <label>
-      <span>Rules</span>
+      <span>{{ t('communities.rulesLabel') }}</span>
       <textarea
         rows="5"
         [(ngModel)]="newCommunity.rules"
         maxlength="2000"
-        placeholder="Write the rules members should follow. Example:&#10;1. Be respectful&#10;2. Keep posts on topic&#10;3. No spam"></textarea>
+        [placeholder]="t('communities.rulesPlaceholder')"></textarea>
     </label>
 
     <div class="modal-actions">
-      <button class="secondary-btn" type="button" [disabled]="isSubmitting" (click)="closeCreateModal()">Cancel</button>
+      <button class="secondary-btn" type="button" [disabled]="isSubmitting" (click)="closeCreateModal()">{{ t('common.cancel') }}</button>
       <button
         class="submit-btn"
         type="button"
         [disabled]="isSubmitting || !newCommunity.name.trim() || !thumbnailFile"
         (click)="createCommunity()">
-        {{ isSubmitting ? 'Submitting...' : 'Submit for review' }}
+        {{ isSubmitting ? t('communities.submitting') : t('communities.submitForReview') }}
       </button>
     </div>
   </section>
 </div>
 
 <ng-template #loadingState>
-  <div class="loading-state">Loading communities...</div>
+  <div class="loading-state">{{ 'communities.loading' | transloco }}</div>
 </ng-template>

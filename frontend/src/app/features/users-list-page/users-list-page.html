@@ -1,18 +1,18 @@
-<div class="users-page">
+<div class="users-page" *transloco="let t">
     <div class="header">
-        <h1>Admin Control Panel</h1>
-        <p>Manage users and platform content</p>
+        <h1>{{ t('admin.title') }}</h1>
+        <p>{{ t('admin.subtitle') }}</p>
     </div>
 
     <!-- Tabs -->
     <div class="tabs-nav">
         <button [class.active]="activeTab === 'users'" (click)="switchTab('users')">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            Users
+            {{ t('admin.usersTab') }}
         </button>
         <button [class.active]="activeTab === 'games'" (click)="switchTab('games')">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path><path d="M15 13h.01"></path><path d="M18 11h.01"></path></svg>
-            Add Game
+            {{ t('admin.addGameTab') }}
         </button>
     </div>
 
@@ -25,19 +25,19 @@
 
                     <div class="user-info">
                         <h3>{{ user.username }}</h3>
-                        <p class="bio">{{ user.description || 'No description available.' }}</p>
+                        <p class="bio">{{ user.description || t('admin.noDescription') }}</p>
 
                         <div class="card-stats">
                             <div class="stat-item">
-                                <span class="stat-label">Posts</span>
+                                <span class="stat-label">{{ t('admin.posts') }}</span>
                                 <span class="stat-value">{{ user.postCount || 0 }}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Clips</span>
+                                <span class="stat-label">{{ t('admin.clips') }}</span>
                                 <span class="stat-value">{{ user.totalClips || 0 }}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Favs</span>
+                                <span class="stat-label">{{ t('admin.favs') }}</span>
                                 <span class="stat-value">{{ user.totalFavorites || 0 }}</span>
                             </div>
                         </div>
@@ -45,13 +45,13 @@
 
                     <div class="actions">
                         <button class="view-btn" (click)="viewProfile(user.id)">
-                            View Profile
+                            {{ t('admin.viewProfile') }}
                         </button>
                         <button class="comments-btn" (click)="viewComments(user.id)">
-                            View Comments
+                            {{ t('admin.viewComments') }}
                         </button>
                         <button *ngIf="!user.isAdmin" class="delete-user-btn" (click)="onRequestDelete(user)">
-                            Delete User
+                            {{ t('admin.deleteUser') }}
                         </button>
                     </div>
                 </div>
@@ -65,12 +65,12 @@
             <div class="modal-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
             </div>
-            <h2>Delete User?</h2>
-            <p>Are you sure you want to delete <strong>{{ userToDelete?.username }}</strong>? This action will deactivate their account.</p>
-            
+            <h2>{{ t('admin.deleteUserTitle') }}</h2>
+            <p>{{ t('admin.deleteUserPrefix') }} <strong>{{ userToDelete?.username }}</strong>{{ t('admin.deleteUserSuffix') }}</p>
+
             <div class="modal-actions">
-                <button class="modal-cancel-btn" (click)="closeDeleteModal()">Cancel</button>
-                <button class="modal-delete-btn" (click)="confirmDelete()">Confirm Delete</button>
+                <button class="modal-cancel-btn" (click)="closeDeleteModal()">{{ t('common.cancel') }}</button>
+                <button class="modal-delete-btn" (click)="confirmDelete()">{{ t('admin.confirmDelete') }}</button>
             </div>
         </div>
     </div>
@@ -78,23 +78,23 @@
     <!-- Games Tab -->
     <div class="tab-content" *ngIf="activeTab === 'games'">
         <div class="admin-section game-form-container">
-            <h2>Add New Game</h2>
-            <p>Games added here will appear in the library filters for all users.</p>
+            <h2>{{ t('admin.addNewGame') }}</h2>
+            <p>{{ t('admin.addGameHint') }}</p>
 
             <div class="add-game-form">
                 <div class="thumbnail-upload" (click)="thumbnailInput.click()">
                     <img *ngIf="gameThumbnailPreview" [src]="gameThumbnailPreview" alt="Game Thumbnail">
                     <div class="upload-placeholder" *ngIf="!gameThumbnailPreview">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                        <span>Add Thumbnail</span>
+                        <span>{{ t('admin.addThumbnail') }}</span>
                     </div>
                 </div>
                 <input type="file" #thumbnailInput hidden accept="image/*" (change)="onGameThumbnailSelected($event)">
                 
                 <div class="game-input-row">
-                    <input type="text" [(ngModel)]="newGameName" placeholder="Enter game name (e.g. League of Legends)" />
+                    <input type="text" [(ngModel)]="newGameName" [placeholder]="t('admin.gameNamePlaceholder')" />
                     <button (click)="addGame()" class="add-btn" [disabled]="!newGameName.trim() || isUploadingGame">
-                        {{ isUploadingGame ? 'Uploading...' : 'Add Game' }}
+                        {{ isUploadingGame ? t('admin.uploading') : t('admin.addGameTab') }}
                     </button>
                 </div>
             </div>

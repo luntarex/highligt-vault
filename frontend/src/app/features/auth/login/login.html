@@ -1,16 +1,16 @@
-<div class = "auth-container">
+<div class = "auth-container" *transloco="let t">
 <div class="auth-header">
   <h2>Vibe Vault</h2>
-  <p>Sign in to your account</p>
+  <p>{{ t('auth.loginSubtitle') }}</p>
 </div>
 <div class = "auth-card">
   <form #loginForm="ngForm" (ngSubmit)="onLogin()">
     <div class="form-group">
-      <label>Username</label>
+      <label>{{ t('auth.username') }}</label>
       <input type="text" [(ngModel)]="loginRequest.username" name="username" required placeholder="player_one">
     </div>
     <div class="form-group">
-      <label>Password</label>
+      <label>{{ t('auth.password') }}</label>
       <div class="input-with-icon">
         <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="loginRequest.password" placeholder="••••••••" required>
 
@@ -25,7 +25,7 @@
     </div>
     <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-      Sign In
+      {{ t('auth.signIn') }}
     </button>
 
   </form>

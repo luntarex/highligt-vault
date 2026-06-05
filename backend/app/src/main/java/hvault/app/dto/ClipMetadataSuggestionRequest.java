@@ -9,4 +9,5 @@ public class ClipMetadataSuggestionRequest {
     private String videoUrl;
     private String thumbnailUrl;
     private Double duration;
+    private String language;
 }

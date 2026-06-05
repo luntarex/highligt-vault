@@ -1,6 +1,6 @@
-<div class="share-panel" (click)="$event.stopPropagation()">
+<div class="share-panel" (click)="$event.stopPropagation()" *transloco="let t">
   <div class="share-panel-header">
-    <strong>Share post</strong>
+    <strong>{{ t('share.sharePost') }}</strong>
     <button type="button" (click)="closePanel($event)">x</button>
   </div>
 
@@ -8,7 +8,7 @@
     <div class="share-url-preview">
       <span>{{ shareUrl }}</span>
     </div>
-    <button type="button" (click)="copyPostLink($event)">Copy</button>
+    <button type="button" (click)="copyPostLink($event)">{{ t('share.copy') }}</button>
   </div>
 
   <div class="share-target-grid">
@@ -46,29 +46,29 @@
     </button>
   </div>
 
-  <div class="share-section-label">Send in messages</div>
+  <div class="share-section-label">{{ t('share.sendInMessages') }}</div>
   <div class="share-message-box">
-    <label [for]="'share-message-' + post.id">Message</label>
+    <label [for]="'share-message-' + post.id">{{ t('share.message') }}</label>
     <textarea
       [id]="'share-message-' + post.id"
       [(ngModel)]="shareMessage"
       maxlength="180"
       rows="2"
-      placeholder="Add a message..."></textarea>
+      [placeholder]="t('share.addMessage')"></textarea>
   </div>
   @if (isLoadingShareUsers) {
-    <p class="share-empty">Loading people...</p>
+    <p class="share-empty">{{ t('share.loadingPeople') }}</p>
   } @else if (shareUsers.length > 0) {
     <div class="share-user-list">
       @for (user of shareUsers; track user.id) {
         <button type="button" class="share-user-row" (click)="sendPostToUser($event, user)">
           <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
           <span>{{ user.username }}</span>
-          <small>{{ isSendingTo(user) ? 'Sending...' : 'Send' }}</small>
+          <small>{{ isSendingTo(user) ? t('share.sending') : t('share.send') }}</small>
         </button>
       }
     </div>
   } @else {
-    <p class="share-empty">Follow someone to send posts in DM.</p>
+    <p class="share-empty">{{ t('share.followToSend') }}</p>
   }
 </div>

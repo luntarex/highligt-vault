@@ -8,11 +8,12 @@ import { ExploreService } from '../../core/services/explore.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { BackLink } from '../../shared/back-link/back-link';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-add-post',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, TranslocoModule],
   templateUrl: './add-post.html',
   styleUrls: ['./add-post.css']
 })

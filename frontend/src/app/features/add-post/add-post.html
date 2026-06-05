@@ -1,7 +1,8 @@
+<ng-container *transloco="let t">
 <div class="page-container" *ngIf="clip">
   <header class="header">
     <app-back-link></app-back-link>
-    <div class="header-title">Create Post</div>
+    <div class="header-title">{{ t('addPost.title') }}</div>
   </header>
 
   <div class="content">
@@ -44,29 +45,29 @@
       </div>
       <div class="clip-details">
          <h2 class="clip-title">{{ clip.title }}</h2>
-         <span class="game-badge">{{ clip.game || 'Unknown Game' }}</span>
+         <span class="game-badge">{{ clip.game || t('addPost.unknownGame') }}</span>
       </div>
     </div>
 
     <div class="form-section">
       <div class="form-group">
-        <label>Caption</label>
-        <textarea 
-          class="custom-input" 
-          [(ngModel)]="caption" 
-          rows="4" 
-          placeholder="Write a catchy caption for your post..."></textarea>
+        <label>{{ t('addPost.caption') }}</label>
+        <textarea
+          class="custom-input"
+          [(ngModel)]="caption"
+          rows="4"
+          [placeholder]="t('addPost.captionPlaceholder')"></textarea>
       </div>
 
       <div class="form-group">
-        <label>Tags</label>
+        <label>{{ t('addPost.tags') }}</label>
         <div class="tag-input-wrapper">
-          <input 
-            type="text" 
-            class="custom-input" 
-            [(ngModel)]="newTag" 
-            (keyup.enter)="addTag()" 
-            placeholder="Add a tag and press enter...">
+          <input
+            type="text"
+            class="custom-input"
+            [(ngModel)]="newTag"
+            (keyup.enter)="addTag()"
+            [placeholder]="t('addPost.tagPlaceholder')">
         </div>
         <div class="tags-display">
           <span *ngFor="let tag of clip.tags; let i = index" class="post-tag">
@@ -80,15 +81,16 @@
           class="submit-btn" 
           [disabled]="isSubmitting || !caption.trim()" 
           (click)="submitPost()">
-          <span *ngIf="!isSubmitting">Post to Feed</span>
+          <span *ngIf="!isSubmitting">{{ t('addPost.postToFeed') }}</span>
           <span *ngIf="isSubmitting" class="spinner-container">
             <svg class="spinner" viewBox="0 0 50 50">
               <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
             </svg>
-            Posting...
+            {{ t('addPost.posting') }}
           </span>
         </button>
       </div>
     </div>
   </div>
 </div>
+</ng-container>

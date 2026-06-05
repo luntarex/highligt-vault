@@ -7,13 +7,13 @@
         <polyline points="7 23 3 19 7 15"></polyline>
         <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
       </svg>
-      <span>{{ isReposting ? 'Reposting...' : 'Repost' }}</span>
+      <span>{{ isReposting ? ('repost.reposting' | transloco) : ('repost.repost' | transloco) }}</span>
     </button>
     <button type="button" class="repost-option" (click)="selectRepostMode('QUOTE')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
-      <span>Quote</span>
+      <span>{{ 'repost.quote' | transloco }}</span>
     </button>
   </div>
 }
@@ -28,13 +28,13 @@
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
-        <strong>Quote post</strong>
+        <strong>{{ 'repost.quotePost' | transloco }}</strong>
         <button
           type="button"
           class="quote-post-btn"
           [disabled]="isReposting || !quoteText.trim()"
           (click)="doSubmit()">
-          {{ isReposting ? 'Posting...' : 'Post' }}
+          {{ isReposting ? ('repost.posting' | transloco) : ('repost.post' | transloco) }}
         </button>
       </div>
 
@@ -47,7 +47,7 @@
               [(ngModel)]="quoteText"
               rows="4"
               maxlength="500"
-              placeholder="Add your thoughts..."></textarea>
+              [placeholder]="'repost.addThoughts' | transloco"></textarea>
 
             <div class="quote-media-preview" *ngIf="quoteMediaFile">
               <img *ngIf="!quoteIsVideo" [src]="quoteMediaPreview" alt="Preview">
@@ -75,7 +75,7 @@
 
       <div class="quote-compose-footer">
         <input type="file" #quoteMediaInput accept="image/*,video/*" hidden (change)="onQuoteMediaSelected($event)">
-        <button type="button" class="action-btn media-btn" (click)="quoteMediaInput.click()" title="Add Media">
+        <button type="button" class="action-btn media-btn" (click)="quoteMediaInput.click()" [title]="'repost.addMedia' | transloco">
           <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <circle cx="8.5" cy="8.5" r="1.5"></circle>

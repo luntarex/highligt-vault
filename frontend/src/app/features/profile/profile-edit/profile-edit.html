@@ -1,13 +1,13 @@
-<div class="edit-profile-container">
+<div class="edit-profile-container" *transloco="let t">
   <div class="profile-edit-inner">
     <header class="edit-header">
       <app-back-link></app-back-link>
-      <h1>Edit Profile</h1>
+      <h1>{{ t('profileEdit.title') }}</h1>
     </header>
 
     <div class="edit-content" *ngIf="user">
       <section class="avatar-section">
-        <label class="section-label">Profile Photo</label>
+        <label class="section-label">{{ t('profileEdit.profilePhoto') }}</label>
         <div class="current-avatar-preview clickable" (click)="fileInput.click()">
           <img [src]="selectedPhotoUrl" alt="Current Avatar">
           <div class="upload-overlay">
@@ -15,21 +15,21 @@
           </div>
         </div>
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-        <p class="section-label" style="text-align: center; text-transform: none; font-size: 0.8rem; margin-top: -15px;">Click to upload new photo</p>
+        <p class="section-label" style="text-align: center; text-transform: none; font-size: 0.8rem; margin-top: -15px;">{{ t('profileEdit.clickToUpload') }}</p>
     </section>
 
     <section class="info-section">
       <div class="form-group">
-        <label>Username</label>
-        <input type="text" [(ngModel)]="username" placeholder="Choose a unique username">
-        <span class="input-hint">Your unique handle in the Vault.</span>
+        <label>{{ t('profileEdit.username') }}</label>
+        <input type="text" [(ngModel)]="username" [placeholder]="t('profileEdit.usernamePlaceholder')">
+        <span class="input-hint">{{ t('profileEdit.usernameHint') }}</span>
       </div>
 
       <div class="form-group">
-        <label>Bio / Description</label>
+        <label>{{ t('profileEdit.bio') }}</label>
         <textarea
           [(ngModel)]="description"
-          placeholder="Tell the vault about yourself..."
+          [placeholder]="t('profileEdit.bioPlaceholder')"
           rows="5"
           maxlength="200"
         ></textarea>
@@ -38,11 +38,11 @@
     </section>
 
     <footer class="edit-actions">
-      <button class="delete-btn" (click)="onDeleteAccount()">Delete Account</button>
+      <button class="delete-btn" (click)="onDeleteAccount()">{{ t('profileEdit.deleteAccount') }}</button>
       <div class="spacer" style="flex: 1;"></div>
-      <button class="cancel-btn" routerLink="/profile">Cancel</button>
+      <button class="cancel-btn" routerLink="/profile">{{ t('common.cancel') }}</button>
       <button class="save-btn" [disabled]="saving" (click)="onSave()">
-        {{ saving ? 'Saving...' : 'Save Changes' }}
+        {{ saving ? t('profileEdit.saving') : t('profileEdit.saveChanges') }}
       </button>
     </footer>
   </div>
@@ -52,12 +52,12 @@
       <div class="modal-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
       </div>
-      <h2>Delete Account?</h2>
-      <p>This action is permanent and your profile will be deactivated. Are you absolutely sure?</p>
+      <h2>{{ t('profileEdit.deleteTitle') }}</h2>
+      <p>{{ t('profileEdit.deleteWarning') }}</p>
 
       <div class="modal-actions">
-        <button class="modal-cancel-btn" (click)="closeDeleteModal()">No, Keep it</button>
-        <button class="modal-delete-btn" (click)="confirmDelete()">Yes, Delete account</button>
+        <button class="modal-cancel-btn" (click)="closeDeleteModal()">{{ t('profileEdit.deleteNo') }}</button>
+        <button class="modal-delete-btn" (click)="confirmDelete()">{{ t('profileEdit.deleteYes') }}</button>
       </div>
     </div>
   </div>

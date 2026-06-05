@@ -1,4 +1,4 @@
-<div class="post-detail-page">
+<div class="post-detail-page" *transloco="let t">
   <div class="post-backdrop"></div>
 
   <div class="post-detail-wrapper animate-in" [class.text-post-wrapper]="!!post && isTextPost()">
@@ -7,7 +7,7 @@
     @if (isLoading) {
       <div class="loading-state">
         <div class="spinner"></div>
-        <p>Loading post...</p>
+        <p>{{ t('postDetail.loading') }}</p>
       </div>
     } @else if (post) {
       <div class="post-detail-layout" [class.text-layout]="isTextPost()">
@@ -154,8 +154,8 @@
               *ngIf="post.author.id !== authService.getCurrentUserId()"
               [targetType]="'POST'"
               [targetId]="post.id"
-              targetLabel="post"
-              label="Report"
+              [targetLabel]="t('postCard.postTarget')"
+              [label]="t('report.report')"
               [compact]="true">
             </app-report-button>
           </div>
@@ -163,7 +163,7 @@
           <div class="comments-section">
             <div class="comments-scroll">
               @if (commentsLoading) {
-                <p class="comments-empty">Loading comments...</p>
+                <p class="comments-empty">{{ t('postDetail.loadingComments') }}</p>
               } @else {
                 @for (comment of comments; track comment.id) {
                   <div class="comment-item">
@@ -180,23 +180,23 @@
                         {{ comment.cleanText || comment.content }}
                       </p>
                       <div class="comment-actions">
-                        <button type="button" class="reply-btn" (click)="setReplyTo(comment)">Reply</button>
+                        <button type="button" class="reply-btn" (click)="setReplyTo(comment)">{{ t('commentsModal.reply') }}</button>
                         <app-report-button
                           *ngIf="comment.userId !== authService.getCurrentUserId()"
                           [targetType]="'COMMENT'"
                           [targetId]="comment.id"
-                          targetLabel="comment"
-                          label="Report"
+                          [targetLabel]="t('report.commentTarget')"
+                          [label]="t('report.report')"
                           [compact]="true">
                         </app-report-button>
                         @if (canEditComment(comment)) {
-                          <button type="button" class="delete-btn" (click)="deleteComment(comment)">Delete</button>
+                          <button type="button" class="delete-btn" (click)="deleteComment(comment)">{{ t('commentsModal.delete') }}</button>
                         }
                       </div>
                     </div>
                   </div>
                 } @empty {
-                  <p class="comments-empty">No comments yet. Start the conversation.</p>
+                  <p class="comments-empty">{{ t('commentsModal.empty') }}</p>
                 }
               }
             </div>
@@ -204,7 +204,7 @@
             <div class="comment-input-box" [class.is-replying]="replyingToComment">
               @if (replyingToComment) {
                 <div class="reply-target-indicator">
-                  Replying to @{{ replyingToComment.username }}
+                  {{ t('commentsModal.replyingTo') }} @{{ replyingToComment.username }}
                   <button type="button" (click)="cancelReply()">x</button>
                 </div>
               }
@@ -213,9 +213,9 @@
                 <input
                   type="text"
                   [(ngModel)]="newCommentText"
-                  [placeholder]="replyingToComment ? 'Write a reply...' : 'Add a comment...'"
+                  [placeholder]="replyingToComment ? t('commentsModal.writeReply') : t('commentsModal.addComment')"
                   (keyup.enter)="postComment()">
-                <button type="button" (click)="postComment()" [disabled]="!newCommentText.trim()">Post</button>
+                <button type="button" (click)="postComment()" [disabled]="!newCommentText.trim()">{{ t('commentsModal.post') }}</button>
               </div>
             </div>
           </div>
@@ -223,9 +223,9 @@
       </div>
     } @else {
       <section class="unavailable-state">
-        <h2>Post unavailable</h2>
-        <p>This post may have been removed, rejected, or made private.</p>
-        <a routerLink="/explore">Back to Explore</a>
+        <h2>{{ t('postDetail.unavailable') }}</h2>
+        <p>{{ t('postDetail.unavailableHint') }}</p>
+        <a routerLink="/explore">{{ t('postDetail.backToExplore') }}</a>
       </section>
     }
   </div>

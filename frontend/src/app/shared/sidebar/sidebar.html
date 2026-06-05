@@ -1,4 +1,4 @@
-<nav class="sidebar-container" [class.collapsed]="isCollapsed">
+<nav class="sidebar-container" [class.collapsed]="isCollapsed" *transloco="let t">
 
   <div class="sidebar-header">
     <a routerLink="/" class="sidebar-logo-link" *ngIf="!isCollapsed">
@@ -6,61 +6,61 @@
     </a>
 
     <button class="toggle-btn" (click)="toggleSidebar()">
-      <img src="assets/icons/chevron-left.svg" alt="Toggle Sidebar" class="toggle-icon">
+      <img src="assets/icons/chevron-left.svg" [alt]="t('sidebar.toggle')" class="toggle-icon">
     </button>
   </div>
 
   <ul class="nav-links">
     <li>
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-        <img src="assets/icons/home.svg" alt="Feed" class="nav-icon">
-        <span class="link-text">Feed</span>
+        <img src="assets/icons/home.svg" [alt]="t('sidebar.feed')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.feed') }}</span>
       </a>
     </li>
     <li>
       <a routerLink="/explore" routerLinkActive="active">
-        <img src="assets/icons/compass.svg" alt="Explore" class="nav-icon">
-        <span class="link-text">Explore</span>
+        <img src="assets/icons/compass.svg" [alt]="t('sidebar.explore')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.explore') }}</span>
       </a>
     </li>
     <li>
       <a routerLink="/communities" routerLinkActive="active">
-        <img src="assets/icons/community-4squares.svg" alt="Communities" class="nav-icon">
-        <span class="link-text">Communities</span>
+        <img src="assets/icons/community-4squares.svg" [alt]="t('sidebar.communities')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.communities') }}</span>
       </a>
     </li>
     <li>
       <a routerLink="/library" routerLinkActive="active">
-        <img src="assets/icons/notebook.svg" alt="Library" class="nav-icon">
-        <span class="link-text">Library</span>
+        <img src="assets/icons/notebook.svg" [alt]="t('sidebar.library')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.library') }}</span>
       </a>
     </li>
 
     <li>
       <a routerLink="/favorites" routerLinkActive="active">
-        <img src="assets/icons/bookmark.svg" alt="Favorites" class="nav-icon">
-        <span class="link-text">Favorites</span>
+        <img src="assets/icons/bookmark.svg" [alt]="t('sidebar.favorites')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.favorites') }}</span>
       </a>
     </li>
 
     <li>
       <a routerLink="/messages" routerLinkActive="active">
-        <img src="assets/icons/message-square.svg" alt="Messages" class="nav-icon">
-        <span class="link-text">Messages</span>
+        <img src="assets/icons/message-square.svg" [alt]="t('sidebar.messages')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.messages') }}</span>
       </a>
     </li>
 
     @if(authService.isAdmin()){
     <li>
       <a routerLink="/admin" routerLinkActive="active">
-        <img src="assets/icons/compass.svg" alt="Community" class="nav-icon">
-        <span class="link-text">Admin Panel</span>
+        <img src="assets/icons/compass.svg" [alt]="t('sidebar.adminPanel')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.adminPanel') }}</span>
       </a>
     </li>
     <li>
       <a routerLink="/moderation" routerLinkActive="active">
-        <img src="assets/icons/notebook.svg" alt="Moderation" class="nav-icon">
-        <span class="link-text">Moderation</span>
+        <img src="assets/icons/notebook.svg" [alt]="t('sidebar.moderation')" class="nav-icon">
+        <span class="link-text">{{ t('sidebar.moderation') }}</span>
       </a>
     </li>
   }
@@ -70,9 +70,21 @@
 
   <div class="sidebar-footer">
     <a routerLink="/about-us" routerLinkActive="active" class="about-link">
-      <img src="assets/icons/search.svg" alt="About Us" class="nav-icon">
-      <span class="link-text">About Us</span>
+      <img src="assets/icons/search.svg" [alt]="t('sidebar.aboutUs')" class="nav-icon">
+      <span class="link-text">{{ t('sidebar.aboutUs') }}</span>
     </a>
+
+    <div class="language-switcher" [class.collapsed]="isCollapsed">
+      <button
+        *ngFor="let lang of languageService.available"
+        type="button"
+        class="lang-btn"
+        [class.active]="languageService.uiLanguage() === lang.code"
+        (click)="setLanguage(lang.code)"
+        [title]="lang.label">
+        {{ lang.code | uppercase }}
+      </button>
+    </div>
   </div>
 
 </nav>

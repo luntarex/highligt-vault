@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Clip } from '../../core/models/clip';
 import { ClipService } from '../../core/services/clip.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-custom-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './custom-upload.html',
   styleUrl: './custom-upload.css',
 })

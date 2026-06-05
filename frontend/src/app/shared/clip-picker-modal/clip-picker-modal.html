@@ -1,9 +1,9 @@
-<div class="modal-overlay">
+<div class="modal-overlay" *transloco="let t">
   <div class="modal-content">
     <div class="modal-header">
       <div>
-        <h2>Select a Clip to Post</h2>
-        <p class="subtitle">Choose an unposted clip from your vault to share on the feed.</p>
+        <h2>{{ t('clipPicker.selectToPost') }}</h2>
+        <p class="subtitle">{{ t('clipPicker.selectToPostHint') }}</p>
       </div>
       <button class="close-icon" (click)="onCancel()">&times;</button>
     </div>
@@ -12,14 +12,14 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Search unposted clips..."
+        [placeholder]="t('clipPicker.searchUnposted')"
         [(ngModel)]="searchQuery"
       >
     </div>
 
     <div class="clip-list">
       <div *ngIf="filteredClips.length === 0" style="padding: 20px; text-align: center; color: #888;">
-        No unposted clips available.
+        {{ t('clipPicker.noUnposted') }}
       </div>
       <div
         class="clip-item"
@@ -42,7 +42,7 @@
         <div class="clip-info">
             <div class="clip-title">{{ clip.title }}</div>
             <div class="clip-meta">
-                <span class="game-name">{{ clip.game || 'Unknown Game' }}</span>
+                <span class="game-name">{{ clip.game || t('clipPicker.unknownGame') }}</span>
                 <span class="meta-separator">·</span>
                 <span class="duration">{{ formatDuration(getDisplayDuration(clip)) }}</span>
             </div>
@@ -56,12 +56,12 @@
 
     <div class="modal-footer">
       <div class="selection-status">
-        <span *ngIf="selectedClipId === null">Select a clip to continue</span>
-        <span *ngIf="selectedClipId !== null" style="color: var(--accent-purple);">1 clip selected</span>
+        <span *ngIf="selectedClipId === null">{{ t('clipPicker.selectToContinue') }}</span>
+        <span *ngIf="selectedClipId !== null" style="color: var(--accent-purple);">{{ t('clipPicker.oneSelected') }}</span>
       </div>
       <div class="action-buttons">
-        <button class="btn-cancel" (click)="onCancel()">Cancel</button>
-        <button class="btn-confirm" [disabled]="selectedClipId === null" (click)="onConfirm()" [style.opacity]="selectedClipId === null ? 0.5 : 1">Continue</button>
+        <button class="btn-cancel" (click)="onCancel()">{{ t('common.cancel') }}</button>
+        <button class="btn-confirm" [disabled]="selectedClipId === null" (click)="onConfirm()" [style.opacity]="selectedClipId === null ? 0.5 : 1">{{ t('clipPicker.continue') }}</button>
       </div>
     </div>
   </div>

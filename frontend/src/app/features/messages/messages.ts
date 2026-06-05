@@ -12,11 +12,12 @@ import { Message, Conversation } from '../../core/models/message.model';
 import { ExplorePost } from '../../core/models/explore-post';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink, ConfirmDialog],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, ConfirmDialog, TranslocoModule],
   templateUrl: './messages.html',
   styleUrls: ['./messages.css']
 })
@@ -52,7 +53,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private userService: UserService,
     private profileService: ProfileService,
-    private realtime: MessageRealtimeService
+    private realtime: MessageRealtimeService,
+    private transloco: TranslocoService
   ) {
     this.currentUserId = this.authService.getCurrentUserId();
   }
@@ -347,7 +349,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   sharedCommunityLabel(post: ExplorePost | null | undefined): string {
-    return post?.communityName || post?.game || 'Community';
+    return post?.communityName || post?.game || this.transloco.translate('communities.community');
   }
 
   isMessagePostUnavailable(message: Message): boolean {

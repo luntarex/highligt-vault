@@ -6,11 +6,12 @@ import { MessageService } from '../../core/services/message.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-share-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './share-panel.html',
   styleUrls: ['./share-panel.css']
 })

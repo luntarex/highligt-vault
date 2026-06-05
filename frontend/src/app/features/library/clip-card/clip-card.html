@@ -1,7 +1,8 @@
 <div class="card-container"
      [class.moderation-locked]="isModerationLocked()"
      [class.selectable]="selectable"
-     (click)="handleCardClick($event)">
+     (click)="handleCardClick($event)"
+     *transloco="let t">
   <div class="thumbnail-wrapper">
     <img [src]="clip.thumbnailUrl" class="thumbnail-img" alt="Clip Thumbnail" loading="lazy" decoding="async">
 
@@ -14,26 +15,26 @@
       class="select-btn action-btn"
       [class.selected]="selected"
       (click)="toggleSelection($event)"
-      title="Select Clip">
+      [title]="t('clipCard.selectClip')">
       <svg *ngIf="selected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
     </button>
 
-    <button *ngIf="showRemoveFromGroup" class="group-remove-btn action-btn" (click)="onRemoveFromGroup($event)" title="Remove from Group">
+    <button *ngIf="showRemoveFromGroup" class="group-remove-btn action-btn" (click)="onRemoveFromGroup($event)" [title]="t('clipCard.removeFromGroup')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <line x1="9" y1="13" x2="15" y2="13"></line>
       </svg>
     </button>
 
-    <button *ngIf="mode === 'library' && !selectable && !showRemoveFromGroup" class="delete-btn action-btn" (click)="onDelete($event)" title="Delete Clip">
+    <button *ngIf="mode === 'library' && !selectable && !showRemoveFromGroup" class="delete-btn action-btn" (click)="onDelete($event)" [title]="t('clipCard.deleteClip')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
       </svg>
     </button>
 
-    <button *ngIf="mode === 'favorites' && !selectable && !showRemoveFromGroup" class="unfav-btn action-btn" (click)="onDelete($event)" title="Remove from Favorites">
+    <button *ngIf="mode === 'favorites' && !selectable && !showRemoveFromGroup" class="unfav-btn action-btn" (click)="onDelete($event)" [title]="t('clipCard.removeFromFavorites')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         <line x1="9" y1="9" x2="15" y2="15" stroke-width="2.5"></line>
@@ -46,17 +47,17 @@
     <strong>{{ moderationLabel() }}</strong>
     <p>{{ moderationMessage() }}</p>
     <button *ngIf="canAppeal()" class="appeal-btn" (click)="$event.stopPropagation(); appealClip.emit(clip.id)">
-      Appeal
+      {{ t('clipCard.appeal') }}
     </button>
   </div>
 
   <div *ngIf="mode === 'trash' && canRecoverFromTrash()" class="recover-overlay">
-     <button class="recover-btn action-btn" title="Recover Clip" (click)="$event.stopPropagation(); recoverClip.emit(clip.id)">
+     <button class="recover-btn action-btn" [title]="t('clipCard.recoverClip')" (click)="$event.stopPropagation(); recoverClip.emit(clip.id)">
        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
          <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
        </svg>
      </button>
-     <button class="hard-delete-btn action-btn" title="Delete Permanently" (click)="onHardDelete($event)">
+     <button class="hard-delete-btn action-btn" [title]="t('clipCard.deletePermanently')" (click)="onHardDelete($event)">
        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
        </svg>
@@ -64,8 +65,8 @@
   </div>
 
   <div *ngIf="mode === 'trash' && isModerationRemoved()" class="moderation-removed-overlay">
-    <strong>Removed by moderation</strong>
-    <p>{{ clip.removedReason || 'This clip was removed by an admin and cannot be restored from trash.' }}</p>
+    <strong>{{ t('clipCard.label.removed') }}</strong>
+    <p>{{ clip.removedReason || t('clipCard.removedFromTrash') }}</p>
   </div>
 
   <div class="clip-info">

@@ -1,4 +1,4 @@
-<div class="messages-container">
+<div class="messages-container" *transloco="let t">
   <!-- Sidebar: Conversation List -->
   <aside class="conversation-sidebar">
     <div class="sidebar-header">
@@ -8,7 +8,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
-          Messages
+          {{ t('messages.title') }}
         </h2>
       </div>
       <div class="search-bar">
@@ -16,7 +16,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" placeholder="Search conversations..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        <input type="text" [placeholder]="t('messages.searchConversations')" [(ngModel)]="searchQuery" (input)="onSearch()">
       </div>
     </div>
     <div class="conversation-list">
@@ -32,7 +32,7 @@
         }
       </div>
 
-      <div *ngIf="!isLoadingConversations && filteredConversations.length > 0" class="section-title">Recent</div>
+      <div *ngIf="!isLoadingConversations && filteredConversations.length > 0" class="section-title">{{ t('messages.recent') }}</div>
       @for (conv of filteredConversations; track conv.other_user_id) {
       <div
            class="conversation-item"
@@ -48,17 +48,17 @@
             <span class="time">{{ conv.created_at | date:'HH:mm' }}</span>
           </div>
           <p class="last-message" [class.unread-text]="!conv.is_read && conv.sender_id !== currentUserId">
-            <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">You: </span>
-            <span *ngIf="isConversationPostUnavailable(conv)">Gönderiye ulaşılamıyor</span>
+            <span *ngIf="conv.sender_id === currentUserId" class="you-prefix">{{ t('messages.youPrefix') }} </span>
+            <span *ngIf="isConversationPostUnavailable(conv)">{{ t('messages.postUnavailable') }}</span>
             <span *ngIf="!isConversationPostUnavailable(conv) && (conv.shared_post_id || conv.sharedPost)">
-              {{ conv.content && conv.content !== 'Shared a post' ? conv.content : 'Shared a post' }}
+              {{ conv.content && conv.content !== 'Shared a post' ? conv.content : t('messages.sharedPost') }}
             </span>
             <span *ngIf="!isConversationPostUnavailable(conv) && !conv.shared_post_id && !conv.sharedPost">{{ conv.content }}</span>
           </p>
         </div>
         <span class="unread-badge" *ngIf="!conv.is_read && conv.sender_id !== currentUserId"></span>
 
-        <button class="delete-conv-btn" (click)="onDeleteConversation($event, conv.other_user_id)" title="Delete Conversation">
+        <button class="delete-conv-btn" (click)="onDeleteConversation($event, conv.other_user_id)" [title]="t('messages.deleteConversation')">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -67,7 +67,7 @@
       </div>
       }
 
-      <div *ngIf="!isLoadingConversations && filteredFollowing.length > 0" class="section-title">Following</div>
+      <div *ngIf="!isLoadingConversations && filteredFollowing.length > 0" class="section-title">{{ t('messages.following') }}</div>
       @for (fUser of filteredFollowing; track fUser.id) {
       <div
            class="conversation-item"
@@ -80,20 +80,20 @@
           <div class="conv-header">
             <span class="username">{{ fUser.username }}</span>
           </div>
-          <p class="last-message">Start a conversation</p>
+          <p class="last-message">{{ t('messages.startConversation') }}</p>
         </div>
       </div>
       }
 
       <div *ngIf="!isLoadingConversations && filteredConversations.length === 0 && filteredFollowing.length === 0 && (conversations.length > 0 || followingUsers.length > 0)" class="no-results">
-        <p>No matches found.</p>
+        <p>{{ t('messages.noMatches') }}</p>
       </div>
       <div *ngIf="!isLoadingConversations && conversations.length === 0 && followingUsers.length === 0" class="no-messages">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
-        <p>No conversations yet</p>
-        <a routerLink="/explore" class="find-users-link">Find people to chat with</a>
+        <p>{{ t('messages.noConversations') }}</p>
+        <a routerLink="/explore" class="find-users-link">{{ t('messages.findPeople') }}</a>
       </div>
     </div>
   </aside>
@@ -106,27 +106,27 @@
           <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar" decoding="async">
           <div class="header-user-info">
             <h3>{{ selectedUsername }}</h3>
-            <span>View profile</span>
+            <span>{{ t('messages.viewProfile') }}</span>
           </div>
         </a>
 
         <!-- Selection Controls (Header Right) -->
         <div class="header-selection-controls" *ngIf="selectedMessageIds.size > 0">
-          <span class="selection-count">{{ selectedMessageIds.size }} selected</span>
+          <span class="selection-count">{{ t('messages.selectedCount', { count: selectedMessageIds.size }) }}</span>
           <button
             class="delete-for-me-btn-header"
             (click)="confirmMessageDeletion('me')"
-            title="Delete for me">
-            Delete for me
+            [title]="t('messages.deleteForMe')">
+            {{ t('messages.deleteForMe') }}
           </button>
           <button
             *ngIf="canDeleteSelectedForEveryone()"
             class="delete-for-everyone-btn-header"
             (click)="confirmMessageDeletion('everyone')"
-            title="Delete for everyone">
-            Delete for everyone
+            [title]="t('messages.deleteForEveryone')">
+            {{ t('messages.deleteForEveryone') }}
           </button>
-          <button class="cancel-selection-btn-header" (click)="clearSelection()" title="Cancel">
+          <button class="cancel-selection-btn-header" (click)="clearSelection()" [title]="t('common.cancel')">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -148,7 +148,7 @@
             <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="" decoding="async">
           </a>
           <p>
-            This is the beginning of your conversation with
+            {{ t('messages.conversationStart') }}
             <a [routerLink]="['/profile', selectedUserId]">{{ selectedUsername }}</a>
           </p>
         </div>
@@ -183,8 +183,8 @@
                 </ng-template>
               </div>
               <div class="shared-post-info">
-                <span class="shared-eyebrow">Shared post</span>
-                <strong>{{ msg.sharedPost.title || 'Community post' }}</strong>
+                <span class="shared-eyebrow">{{ t('messages.sharedPostLabel') }}</span>
+                <strong>{{ msg.sharedPost.title || t('messages.communityPost') }}</strong>
                 <span>{{ msg.sharedPost.author.username }} · {{ sharedCommunityLabel(msg.sharedPost) }}</span>
               </div>
             </a>
@@ -200,9 +200,9 @@
                 </svg>
               </div>
               <div class="shared-post-info">
-                <span class="shared-eyebrow">Shared post</span>
-                <strong>Gönderiye ulaşılamıyor</strong>
-                <span>Bu gönderi silinmiş veya artık erişilemiyor.</span>
+                <span class="shared-eyebrow">{{ t('messages.sharedPostLabel') }}</span>
+                <strong>{{ t('messages.postUnavailable') }}</strong>
+                <span>{{ t('messages.postUnavailableHint') }}</span>
               </div>
             </div>
             <span class="message-meta">
@@ -211,7 +211,7 @@
                 *ngIf="msg.senderId === currentUserId"
                 class="read-receipt"
                 [class.seen]="msg.isRead">
-                {{ msg.isRead ? 'Seen' : 'Sent' }}
+                {{ msg.isRead ? t('messages.seen') : t('messages.sent') }}
               </span>
             </span>
           </div>
@@ -226,7 +226,7 @@
             <input type="text"
                    name="message"
                    [(ngModel)]="newMessageContent"
-                   placeholder="Type a message..."
+                   [placeholder]="t('messages.typeMessage')"
                    autocomplete="off"
                    (keydown.enter)="$event.preventDefault(); sendMessage()">
           </div>
@@ -251,8 +251,8 @@
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
           </div>
-          <h3>Your Messages</h3>
-          <p>Select a conversation or start a new one</p>
+          <h3>{{ t('messages.yourMessages') }}</h3>
+          <p>{{ t('messages.selectConversation') }}</p>
           <a routerLink="/explore" class="start-chat-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -260,7 +260,7 @@
               <line x1="20" y1="8" x2="20" y2="14"></line>
               <line x1="23" y1="11" x2="17" y2="11"></line>
             </svg>
-            Find People
+            {{ t('messages.findPeopleBtn') }}
           </a>
         </div>
       </div>
@@ -269,10 +269,10 @@
 
   <app-confirm-dialog
     *ngIf="showDeleteModal"
-    [title]="'Delete Conversation'"
-    message="This will delete the conversation only for you. The other user will still keep their copy."
-    confirmText="Delete for me"
-    cancelText="Cancel"
+    [title]="t('messages.deleteConversation')"
+    [message]="t('messages.deleteConfirm')"
+    [confirmText]="t('messages.deleteForMe')"
+    [cancelText]="t('common.cancel')"
     type="danger"
     (confirmed)="confirmDelete()"
     (cancelled)="cancelDelete()">

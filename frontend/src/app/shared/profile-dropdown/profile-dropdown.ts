@@ -6,11 +6,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { User } from '../../core/models/user';
 import { ImportFoldersDialog } from '../import-folders-dialog/import-folders-dialog';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-profile-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterLink, ImportFoldersDialog],
+  imports: [CommonModule, RouterLink, ImportFoldersDialog, TranslocoModule],
   templateUrl: './profile-dropdown.html',
   styleUrls: ['./profile-dropdown.css']
 })

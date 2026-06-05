@@ -10,10 +10,11 @@ import { CommonModule } from '@angular/common';
 import { ToastService } from '../../core/services/toast.service';
 import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card';
 import { ExplorePost } from '../../core/models/explore-post';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-user-comments',
-  imports: [BackLink, CommonModule, ExplorePostCard],
+  imports: [BackLink, CommonModule, ExplorePostCard, TranslocoModule],
   templateUrl: './user-comments.html',
   styleUrl: './user-comments.css',
 })

@@ -9,11 +9,12 @@ import { UserService } from '../../../core/services/user.service';
 import { BackLink } from '../../../shared/back-link/back-link';
 import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { UploadService } from '../../../core/services/upload.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-profile-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, TranslocoModule],
   templateUrl: './profile-edit.html',
   styleUrl: './profile-edit.css'
 })

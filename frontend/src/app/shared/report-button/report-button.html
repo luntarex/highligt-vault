@@ -11,20 +11,21 @@
   <span class="sr-only">{{ label }}</span>
 </button>
 
+<ng-container *transloco="let t">
 <div class="report-overlay" *ngIf="isOpen" (click)="close($event)">
   <div class="report-modal" (click)="$event.stopPropagation()">
     <div class="report-header">
       <div>
-        <span>Report {{ targetLabel }}</span>
-        <h3>What is wrong here?</h3>
+        <span>{{ t('report.reportTarget', { target: targetLabel }) }}</span>
+        <h3>{{ t('report.whatIsWrong') }}</h3>
       </div>
       <button type="button" class="report-close" (click)="close($event)">x</button>
     </div>
 
     <div class="report-field">
-      <span>Reason</span>
+      <span>{{ t('report.reason') }}</span>
       <app-custom-dropdown
-        [label]="'Select a reason'"
+        [label]="t('report.selectReason')"
         [options]="reasonOptions"
         [selectedOption]="selectedReasonLabel()"
         (selectedOptionChange)="onReasonLabelChange($event)">
@@ -32,19 +33,20 @@
     </div>
 
     <label class="report-field">
-      <span>Details optional</span>
+      <span>{{ t('report.detailsOptional') }}</span>
       <textarea
         [(ngModel)]="details"
         maxlength="1000"
         rows="4"
-        placeholder="Add context for moderators..."></textarea>
+        [placeholder]="t('report.detailsPlaceholder')"></textarea>
     </label>
 
     <div class="report-footer">
-      <button type="button" class="cancel-report" (click)="close($event)">Cancel</button>
+      <button type="button" class="cancel-report" (click)="close($event)">{{ t('common.cancel') }}</button>
       <button type="button" class="submit-report" [disabled]="isSubmitting" (click)="submit($event)">
-        {{ isSubmitting ? 'Sending...' : 'Submit report' }}
+        {{ isSubmitting ? t('report.sending') : t('report.submit') }}
       </button>
     </div>
   </div>
 </div>
+</ng-container>

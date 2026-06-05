@@ -10,12 +10,13 @@ import { MessageService } from '../../../core/services/message.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ReportTargetType } from '../../../core/services/report.service';
 import { ReportButtonComponent } from '../../../shared/report-button/report-button';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-explore-post-card',
   templateUrl: './explore-post-card.html',
   styleUrls: ['./explore-post-card.css'],
-  imports: [RouterLink, NgClass, FormsModule, ReportButtonComponent]
+  imports: [RouterLink, NgClass, FormsModule, ReportButtonComponent, TranslocoModule]
 })
 export class ExplorePostCard {
   @Input() post!: ExplorePost;
@@ -42,7 +43,8 @@ export class ExplorePostCard {
     private profileService: ProfileService,
     private messageService: MessageService,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {}
 
   canEdit(): boolean {
@@ -240,7 +242,7 @@ export class ExplorePostCard {
   }
 
   reportTargetLabel(): string {
-    return this.post.clipId ? 'clip' : 'post';
+    return this.transloco.translate(this.post.clipId ? 'postCard.clipTarget' : 'postCard.postTarget');
   }
 
   toggleSharePanel(event: MouseEvent) {
