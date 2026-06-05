@@ -6,8 +6,10 @@ import { Clip } from '../models/clip';
 
 export interface VideoUploadResponse {
   secureUrl: string;
-  publicId: string;
-  thumbnailUrl: string;
+  publicId?: string;
+  thumbnailUrl?: string;
+  fileHash?: string;
+  reused?: boolean;
   duration?: number;
   bytes?: number;
   format?: string;

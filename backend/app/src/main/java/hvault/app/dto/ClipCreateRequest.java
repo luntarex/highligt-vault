@@ -19,6 +19,8 @@ public class ClipCreateRequest {
     @JsonAlias({"url", "videoUrl"})
     private String videoUrl;
 
+    private String cloudinaryPublicId;
+    private String fileHash;
     private String thumbnailUrl;
     private Double duration;
     private Double startTime;
