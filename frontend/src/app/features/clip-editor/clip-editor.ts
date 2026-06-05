@@ -205,6 +205,8 @@ export class ClipEditor implements OnInit {
         this.clipService.uploadVideo(this.fileToUpload).subscribe({
           next: (data) => {
             this.clip!.url = data.secureUrl;
+            this.clip!.cloudinaryPublicId = data.publicId;
+            this.clip!.fileHash = data.fileHash;
             this.clip!.thumbnailUrl = data.thumbnailUrl || this.clip!.thumbnailUrl;
             if (data.duration) {
               this.clip!.duration = data.duration;

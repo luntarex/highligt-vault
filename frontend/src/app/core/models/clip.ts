@@ -5,6 +5,8 @@ export  interface Clip{
   notes: string;
   tags : string[];
   url : string;
+  cloudinaryPublicId?: string;
+  fileHash?: string;
   thumbnailUrl : string;
 
   /*Editor Time Logic */

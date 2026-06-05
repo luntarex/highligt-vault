@@ -31,19 +31,22 @@ public class ClipService {
     private final PostService postService;
     private final ModerationActionRepository moderationActionRepository;
     private final ClipMetadataExampleService clipMetadataExampleService;
+    private final VideoUploadService videoUploadService;
 
     public ClipService(
         ClipRepository clipRepository,
         GameRepository gameRepository,
         PostService postService,
         ModerationActionRepository moderationActionRepository,
-        ClipMetadataExampleService clipMetadataExampleService
+        ClipMetadataExampleService clipMetadataExampleService,
+        VideoUploadService videoUploadService
     ) {
         this.clipRepository = clipRepository;
         this.gameRepository = gameRepository;
         this.postService = postService;
         this.moderationActionRepository = moderationActionRepository;
         this.clipMetadataExampleService = clipMetadataExampleService;
+        this.videoUploadService = videoUploadService;
     }
 
     public List<ClipResponse> getClipsCommentedByUser(Long userId) {
@@ -114,6 +117,8 @@ public class ClipService {
         Clip clip = new Clip();
         clip.setTitle(clipData.getTitle());
         clip.setVideoUrl(clipData.getVideoUrl());
+        clip.setCloudinaryPublicId(clipData.getCloudinaryPublicId());
+        clip.setFileHash(clipData.getFileHash());
         clip.setThumbnailUrl(clipData.getThumbnailUrl() != null
             ? clipData.getThumbnailUrl()
             : "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop");
@@ -206,14 +211,23 @@ public class ClipService {
 
     public void hardDeleteClip(Long id, Long currentUserId, boolean admin) {
         requireClipOwnerOrAdmin(id, currentUserId, admin);
-        if (!admin) {
-            Clip clip = clipRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Clip not found."));
-            if (isModerationRemoved(clip)) {
-                throw new AccessDeniedException("This clip was removed by moderation and cannot be permanently deleted by the uploader.");
-            }
+        Clip clip = clipRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        if (!admin && isModerationRemoved(clip)) {
+            throw new AccessDeniedException("This clip was removed by moderation and cannot be permanently deleted by the uploader.");
         }
+
+        // Capture before the row is gone. Uploads are deduplicated by file hash, so the same
+        // Cloudinary asset can back several clips; only delete it when no other clip references it.
+        String publicId = clip.getCloudinaryPublicId();
+        boolean assetShared = publicId != null && !publicId.isBlank()
+            && clipRepository.countByCloudinaryPublicIdAndIdNot(publicId, id) > 0;
+
         clipRepository.hardDeleteClip(id);
+
+        if (publicId != null && !publicId.isBlank() && !assetShared) {
+            videoUploadService.deleteVideoAsset(publicId);
+        }
     }
 
     public List<ClipResponse> getDeletedClipsByUserId(Long uploaderId) {

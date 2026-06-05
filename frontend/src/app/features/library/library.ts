@@ -612,6 +612,8 @@ export class Library implements OnInit {
         notes: metadata.notes || `Imported automatically from ${relativePath || file.name}.`,
         tags: metadata.tags || [],
         url: upload.secureUrl,
+        cloudinaryPublicId: upload.publicId,
+        fileHash: upload.fileHash,
         thumbnailUrl: upload.thumbnailUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
         duration,
         currentTime: 0,

@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS clips (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     video_url VARCHAR(255) NOT NULL,
+    cloudinary_public_id VARCHAR(255),
+    file_hash VARCHAR(64),
     thumbnail_url VARCHAR(255),
     duration FLOAT,
     start_time FLOAT DEFAULT 0,
@@ -279,6 +281,8 @@ ALTER TABLE clips ADD COLUMN reviewed_at TIMESTAMP NULL;
 ALTER TABLE clips ADD COLUMN removed_reason TEXT;
 ALTER TABLE clips ADD COLUMN removed_at TIMESTAMP NULL;
 ALTER TABLE clips ADD COLUMN visibility_status VARCHAR(30) DEFAULT 'PRIVATE';
+ALTER TABLE clips ADD COLUMN cloudinary_public_id VARCHAR(255);
+ALTER TABLE clips ADD COLUMN file_hash VARCHAR(64);
 ALTER TABLE communities ADD COLUMN rules TEXT;
 UPDATE clips
 SET visibility_status = CASE
@@ -298,6 +302,7 @@ CREATE INDEX idx_posts_community_created ON posts(community_id, created_at);
 CREATE INDEX idx_clips_public_feed ON clips(visibility_status, moderation_status, is_deleted, created_at);
 CREATE INDEX idx_clips_uploader_active ON clips(uploader_id, is_deleted, created_at);
 CREATE INDEX idx_clips_moderation_queue ON clips(moderation_status, is_deleted, created_at);
+CREATE INDEX idx_clips_file_hash ON clips(file_hash);
 
 CREATE INDEX idx_comments_post_created ON comments(post_id, created_at);
 CREATE INDEX idx_comments_user_created ON comments(user_id, created_at);
