@@ -2,10 +2,11 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Clip } from '../../../core/models/clip';
 import { Router } from "@angular/router";
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-clip-card',
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoModule],
   templateUrl: './clip-card.html',
   styleUrl: './clip-card.css',
 })
@@ -23,7 +24,7 @@ export class ClipCard {
   @Output() selectionChange = new EventEmitter<{ id: number; selected: boolean }>();
   @Output() removeFromGroup = new EventEmitter<number>();
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private transloco: TranslocoService) {}
 
   onDelete(event: Event) {
     event.stopPropagation();
@@ -99,27 +100,27 @@ export class ClipCard {
   }
 
   moderationLabel(): string {
-    if (this.clip.moderationStatus === 'APPEALED') return 'Appeal pending';
-    if (this.clip.moderationStatus === 'NEEDS_MANUAL_REVIEW') return 'Needs review';
-    if (this.clip.moderationStatus === 'REJECTED') return 'Rejected';
-    if (this.clip.moderationStatus === 'REMOVED') return 'Removed by moderation';
-    if (this.clip.visibilityStatus === 'HIDDEN') return 'Hidden';
+    if (this.clip.moderationStatus === 'APPEALED') return this.transloco.translate('clipCard.label.appealPending');
+    if (this.clip.moderationStatus === 'NEEDS_MANUAL_REVIEW') return this.transloco.translate('clipCard.label.needsReview');
+    if (this.clip.moderationStatus === 'REJECTED') return this.transloco.translate('clipCard.label.rejected');
+    if (this.clip.moderationStatus === 'REMOVED') return this.transloco.translate('clipCard.label.removed');
+    if (this.clip.visibilityStatus === 'HIDDEN') return this.transloco.translate('clipCard.label.hidden');
     return '';
   }
 
   moderationMessage(): string {
     if (this.clip.moderationStatus === 'APPEALED') {
-      return 'Your appeal is waiting for moderator review.';
+      return this.transloco.translate('clipCard.message.appealed');
     }
     if (this.clip.moderationStatus === 'NEEDS_MANUAL_REVIEW') {
-      return 'Waiting for moderator review before this clip can be shared.';
+      return this.transloco.translate('clipCard.message.needsReview');
     }
     if (this.clip.moderationStatus === 'REJECTED') {
-      return this.clip.moderationReason || 'This clip was rejected by moderation.';
+      return this.clip.moderationReason || this.transloco.translate('clipCard.message.rejected');
     }
     if (this.clip.visibilityStatus === 'HIDDEN') {
-      return this.clip.moderationReason || 'This clip is hidden until moderation is complete.';
+      return this.clip.moderationReason || this.transloco.translate('clipCard.message.hidden');
     }
-    return 'This clip is not available publicly.';
+    return this.transloco.translate('clipCard.message.unavailable');
   }
 }

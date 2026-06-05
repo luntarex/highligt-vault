@@ -1,24 +1,24 @@
-<div class="moderation-page">
+<div class="moderation-page" *transloco="let t">
   <div class="header">
-    <h1>Moderation Queue</h1>
-    <p>Review clips flagged by automatic checks before they appear publicly.</p>
+    <h1>{{ t('moderation.title') }}</h1>
+    <p>{{ t('moderation.subtitle') }}</p>
   </div>
 
   <!-- Tabs -->
   <div class="tabs-nav">
     <button type="button" [class.active]="activeSection === 'uploads'" (click)="setSection('uploads')">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-      Upload moderation
+      {{ t('moderation.uploadsTab') }}
       <span class="badge">{{ queue.length }}</span>
     </button>
     <button type="button" [class.active]="activeSection === 'reports'" (click)="setSection('reports')">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      Report moderation
+      {{ t('moderation.reportsTab') }}
       <span class="badge">{{ reports.length }}</span>
     </button>
     <button type="button" [class.active]="activeSection === 'communities'" (click)="setSection('communities')">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-      Community moderation
+      {{ t('moderation.communitiesTab') }}
       <span class="badge">{{ communityQueue.length }}</span>
     </button>
   </div>
@@ -26,23 +26,23 @@
   <div class="queue-shell" *ngIf="activeSection === 'uploads' && !isLoading; else uploadLoadingState">
     <aside class="queue-list">
       <div class="queue-header">
-        <span>Pending Clips</span>
-        <button class="icon-refresh-btn" [disabled]="isRefreshing" (click)="loadQueue()" [title]="isRefreshing ? 'Refreshing...' : 'Refresh'">
+        <span>{{ t('moderation.pendingClips') }}</span>
+        <button class="icon-refresh-btn" [disabled]="isRefreshing" (click)="loadQueue()" [title]="isRefreshing ? '...' : 'Refresh'">
           <svg [class.spin]="isRefreshing" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         </button>
       </div>
 
       <div class="queue-filters">
         <select [(ngModel)]="statusFilter" (change)="applyQueueFilters()">
-          <option *ngFor="let status of statusOptions" [value]="status">{{ status || 'All Statuses' }}</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ status || t('moderation.allStatuses') }}</option>
         </select>
-        <input type="number" min="0" max="100" placeholder="Min score" [(ngModel)]="minScoreFilter" (change)="applyQueueFilters()">
-        <input type="text" placeholder="Category" [(ngModel)]="categoryFilter" (keyup.enter)="applyQueueFilters()">
+        <input type="number" min="0" max="100" [placeholder]="t('moderation.minScore')" [(ngModel)]="minScoreFilter" (change)="applyQueueFilters()">
+        <input type="text" [placeholder]="t('moderation.category')" [(ngModel)]="categoryFilter" (keyup.enter)="applyQueueFilters()">
         <div class="date-row">
           <input type="date" [(ngModel)]="fromDateFilter" (change)="applyQueueFilters()">
           <input type="date" [(ngModel)]="toDateFilter" (change)="applyQueueFilters()">
         </div>
-        <button class="clear-filter-btn" (click)="clearQueueFilters()">Clear filters</button>
+        <button class="clear-filter-btn" (click)="clearQueueFilters()">{{ t('moderation.clearFilters') }}</button>
       </div>
 
       <div class="queue-items">
@@ -61,8 +61,8 @@
         </button>
 
         <div class="empty-card" *ngIf="queue.length === 0">
-          <h3>No clips waiting</h3>
-          <p>The moderation queue is clear.</p>
+          <h3>{{ t('moderation.noClipsWaiting') }}</h3>
+          <p>{{ t('moderation.queueClear') }}</p>
         </div>
       </div>
     </aside>
@@ -121,48 +121,46 @@
         <div class="details-header">
           <div>
             <h2>{{ selectedClip.title }}</h2>
-            <p>Uploaded by {{ selectedClip.uploaderUsername || ('User #' + selectedClip.uploaderId) }}</p>
+            <p>{{ t('moderation.uploadedBy', { name: selectedClip.uploaderUsername || ('User #' + selectedClip.uploaderId) }) }}</p>
           </div>
           <span class="status-pill">{{ selectedClip.visibilityStatus }}</span>
         </div>
 
         <div class="detail-grid">
           <div>
-            <span class="label">Status</span>
+            <span class="label">{{ t('moderation.status') }}</span>
             <strong>{{ selectedClip.moderationStatus }}</strong>
           </div>
           <div>
-            <span class="label">Score</span>
+            <span class="label">{{ t('moderation.score') }}</span>
             <strong>{{ selectedClip.moderationScore || 0 }}</strong>
           </div>
           <div>
-            <span class="label">Created</span>
+            <span class="label">{{ t('moderation.created') }}</span>
             <strong>{{ formatDate(selectedClip.createdAt) }}</strong>
           </div>
           <div>
-            <span class="label">Category</span>
+            <span class="label">{{ t('moderation.categoryLabel') }}</span>
             <strong>{{ selectedClip.moderationCategory || 'N/A' }}</strong>
           </div>
         </div>
 
         <div class="reason-box">
-          <span class="label">AI reason</span>
-          <p>{{ selectedClip.moderationReason || 'No reason was provided.' }}</p>
+          <span class="label">{{ t('moderation.aiReason') }}</span>
+          <p>{{ selectedClip.moderationReason || t('moderation.noReason') }}</p>
         </div>
 
         <textarea
           [(ngModel)]="decisionReason"
-          placeholder="Optional moderator note..."
+          [placeholder]="t('moderation.moderatorNote')"
           rows="2"></textarea>
 
-        <p class="decision-help">
-          Reject hides a denied upload. Remove marks already unsafe content as removed and records a removal reason.
-        </p>
+        <p class="decision-help">{{ t('moderation.decisionHelp') }}</p>
 
         <div class="actions">
-          <button class="approve-btn" [disabled]="isSubmitting" (click)="decide('APPROVE')">Approve</button>
-          <button class="reject-btn" [disabled]="isSubmitting" (click)="decide('REJECT')">Reject</button>
-          <button class="remove-btn" [disabled]="isSubmitting" (click)="decide('REMOVE')">Remove</button>
+          <button class="approve-btn" [disabled]="isSubmitting" (click)="decide('APPROVE')">{{ t('moderation.approve') }}</button>
+          <button class="reject-btn" [disabled]="isSubmitting" (click)="decide('REJECT')">{{ t('moderation.reject') }}</button>
+          <button class="remove-btn" [disabled]="isSubmitting" (click)="decide('REMOVE')">{{ t('moderation.remove') }}</button>
         </div>
       </div>
     </section>
@@ -173,10 +171,10 @@
     <aside class="reports-list">
       <div class="reports-header">
         <div>
-          <span>Open Reports</span>
-          <small>{{ reports.length }} pending</small>
+          <span>{{ t('moderation.openReports') }}</span>
+          <small>{{ t('moderation.pending', { count: reports.length }) }}</small>
         </div>
-        <button class="icon-refresh-btn" [disabled]="reportsLoading" (click)="loadReports()" [title]="reportsLoading ? 'Loading...' : 'Refresh'">
+        <button class="icon-refresh-btn" [disabled]="reportsLoading" (click)="loadReports()" [title]="reportsLoading ? '...' : 'Refresh'">
           <svg [class.spin]="reportsLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         </button>
       </div>
@@ -188,9 +186,9 @@
             <span class="report-reason">{{ formatReportText(report.reason) }}</span>
           </div>
           <p class="report-meta">
-            Reported by {{ report.reporterUsername || ('User #' + report.reporterId) }} - {{ formatDate(report.createdAt) }}
+            {{ t('moderation.reportedBy', { name: report.reporterUsername || ('User #' + report.reporterId), date: formatDate(report.createdAt) }) }}
           </p>
-          <p class="report-details">{{ report.details || 'No extra details were provided.' }}</p>
+          <p class="report-details">{{ report.details || t('moderation.noDetails') }}</p>
 
           <div class="report-clip-preview" *ngIf="report.targetClip as clip">
             <div class="report-video-wrap">
@@ -207,13 +205,13 @@
                 [routerLink]="['/post', report.targetPostId]"
                 class="report-video-open"
                 aria-label="Open reported post">
-                Open post
+                {{ t('moderation.openPost') }}
               </a>
             </div>
 
             <div class="report-clip-header">
               <div>
-                <span class="label">{{ report.targetType === 'COMMENT' ? 'Reported post' : 'Reported clip' }}</span>
+                <span class="label">{{ report.targetType === 'COMMENT' ? t('moderation.reportedPost') : t('moderation.reportedClip') }}</span>
                 <a
                   *ngIf="report.targetPostId; else plainClipTitle"
                   [routerLink]="['/post', report.targetPostId]"
@@ -229,7 +227,7 @@
             </div>
 
             <div class="report-comment-preview" *ngIf="report.targetType === 'COMMENT'">
-              <span class="label">Reported comment</span>
+              <span class="label">{{ t('moderation.reportedComment') }}</span>
               <div class="reported-comment-card" *ngIf="report.targetComment as comment; else commentLoading">
                 <img [src]="comment.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
                 <div>
@@ -241,7 +239,7 @@
                 </div>
               </div>
               <ng-template #commentLoading>
-                <p class="reported-comment-missing">The reported comment is loading or no longer available.</p>
+                <p class="reported-comment-missing">{{ t('moderation.commentLoading') }}</p>
               </ng-template>
 
               <div class="comment-report-actions">
@@ -250,94 +248,92 @@
                   class="delete-comment-btn"
                   [disabled]="isReportActionBusy(report)"
                   (click)="moderateReportedComment(report, false)">
-                  Delete comment
+                  {{ t('moderation.deleteComment') }}
                 </button>
                 <button
                   type="button"
                   class="violation-comment-btn"
                   [disabled]="isReportActionBusy(report)"
                   (click)="moderateReportedComment(report, true)">
-                  Remove as violation
+                  {{ t('moderation.removeAsViolation') }}
                 </button>
               </div>
             </div>
 
             <div class="report-detail-grid" *ngIf="report.targetType !== 'COMMENT'">
               <div>
-                <span class="label">Status</span>
+                <span class="label">{{ t('moderation.status') }}</span>
                 <strong>{{ clip.moderationStatus || 'N/A' }}</strong>
               </div>
               <div>
-                <span class="label">Score</span>
+                <span class="label">{{ t('moderation.score') }}</span>
                 <strong>{{ clip.moderationScore || 0 }}</strong>
               </div>
               <div>
-                <span class="label">Created</span>
+                <span class="label">{{ t('moderation.created') }}</span>
                 <strong>{{ formatDate(clip.createdAt) }}</strong>
               </div>
               <div>
-                <span class="label">Category</span>
+                <span class="label">{{ t('moderation.categoryLabel') }}</span>
                 <strong>{{ clip.moderationCategory || 'N/A' }}</strong>
               </div>
             </div>
 
             <div class="report-ai-reason" *ngIf="report.targetType !== 'COMMENT'">
-              <span class="label">AI reason</span>
-              <p>{{ clip.moderationReason || 'No AI reason was provided.' }}</p>
+              <span class="label">{{ t('moderation.aiReason') }}</span>
+              <p>{{ clip.moderationReason || t('moderation.noAiReason') }}</p>
             </div>
 
             <button type="button" class="review-target-btn" *ngIf="report.targetType !== 'COMMENT'" (click)="selectReportClip(report)">
-              Review in main panel
+              {{ t('moderation.reviewInMainPanel') }}
             </button>
 
             <a
               *ngIf="report.targetPostId"
               [routerLink]="['/post', report.targetPostId]"
               class="open-post-btn">
-              Open post and take action
+              {{ t('moderation.openPostAndTakeAction') }}
             </a>
           </div>
 
           <div class="report-target-missing" *ngIf="!report.targetClip && report.targetType !== 'USER'">
-            <strong>Target preview is loading or unavailable.</strong>
-            <span>
-              The report is still actionable, but this target is not in the AI queue right now.
-            </span>
+            <strong>{{ t('moderation.targetUnavailable') }}</strong>
+            <span>{{ t('moderation.targetUnavailableHint') }}</span>
           </div>
 
           <a *ngIf="reportTargetRoute(report) as route" [routerLink]="route" class="target-link">
-            Open target
+            {{ t('moderation.openTarget') }}
           </a>
 
           <textarea
             [(ngModel)]="reportResolutionById[report.id]"
             rows="2"
-            placeholder="Resolution note..."></textarea>
+            [placeholder]="t('moderation.resolutionNote')"></textarea>
 
           <div class="report-actions">
             <button
               class="resolve-report-btn"
               [disabled]="isReportActionBusy(report)"
               (click)="resolveReport(report, false)">
-              Resolve
+              {{ t('moderation.resolve') }}
             </button>
             <button
               class="dismiss-report-btn"
               [disabled]="isReportActionBusy(report)"
               (click)="resolveReport(report, true)">
-              Dismiss
+              {{ t('moderation.dismiss') }}
             </button>
           </div>
         </article>
 
         <div class="empty-card report-empty" *ngIf="reports.length === 0">
-          <h3>No open reports</h3>
-          <p>User reports will appear here.</p>
+          <h3>{{ t('moderation.noOpenReports') }}</h3>
+          <p>{{ t('moderation.noOpenReportsHint') }}</p>
         </div>
       </div>
 
       <ng-template #reportsLoadingState>
-        <div class="loading-card report-loading">Loading reports...</div>
+        <div class="loading-card report-loading">{{ t('moderation.loadingReports') }}</div>
       </ng-template>
     </aside>
   </section>
@@ -345,10 +341,10 @@
   <section class="communities-section" *ngIf="activeSection === 'communities'">
     <div class="reports-header">
       <div>
-        <span>Community Requests</span>
-        <small>{{ communityQueue.length }} pending</small>
+        <span>{{ t('moderation.communityRequests') }}</span>
+        <small>{{ t('moderation.pending', { count: communityQueue.length }) }}</small>
       </div>
-      <button class="icon-refresh-btn" [disabled]="communitiesLoading" (click)="loadCommunityQueue()" [title]="communitiesLoading ? 'Loading...' : 'Refresh'">
+      <button class="icon-refresh-btn" [disabled]="communitiesLoading" (click)="loadCommunityQueue()" [title]="communitiesLoading ? '...' : 'Refresh'">
         <svg [class.spin]="communitiesLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
       </button>
     </div>
@@ -360,53 +356,57 @@
           <div class="community-mod-top">
             <div>
               <h3>{{ community.name }}</h3>
-              <span>Founder: {{ community.founderUsername || ('User #' + community.founderId) }}</span>
+              <span>{{ t('moderation.founder', { name: community.founderUsername || ('User #' + community.founderId) }) }}</span>
             </div>
             <span class="status-pill">{{ community.moderationStatus }}</span>
           </div>
-          <p>{{ community.description || 'No description was provided.' }}</p>
+          <p>{{ community.description || t('moderation.noDescription') }}</p>
           <textarea
             [(ngModel)]="communityReasonById[community.id]"
             rows="2"
-            placeholder="Moderator note..."></textarea>
+            [placeholder]="t('moderation.moderatorNoteShort')"></textarea>
           <div class="actions">
             <button
               class="approve-btn"
               [disabled]="isDecidingCommunityId === community.id"
               (click)="decideCommunity(community, true)">
-              Approve
+              {{ t('moderation.approve') }}
             </button>
             <button
               class="reject-btn"
               [disabled]="isDecidingCommunityId === community.id"
               (click)="decideCommunity(community, false)">
-              Reject
+              {{ t('moderation.reject') }}
             </button>
           </div>
         </div>
       </article>
 
       <div class="empty-card" *ngIf="communityQueue.length === 0">
-        <h3>No community requests</h3>
-        <p>New community submissions will appear here.</p>
+        <h3>{{ t('moderation.noCommunityRequests') }}</h3>
+        <p>{{ t('moderation.noCommunityRequestsHint') }}</p>
       </div>
     </div>
 
     <ng-template #communitiesLoadingState>
-      <div class="loading-card">Loading community requests...</div>
+      <div class="loading-card">{{ t('moderation.loadingCommunityRequests') }}</div>
     </ng-template>
   </section>
 </div>
 
 <ng-template #uploadLoadingState>
-  <div class="loading-card" *ngIf="activeSection === 'uploads'">Loading moderation queue...</div>
+  <ng-container *transloco="let t">
+    <div class="loading-card" *ngIf="activeSection === 'uploads'">{{ t('moderation.loadingQueue') }}</div>
+  </ng-container>
 </ng-template>
 
 <ng-template #emptySelection>
-  <section class="review-panel empty-selection">
-    <div class="empty-card">
-      <h3>Select a clip</h3>
-      <p>Choose a queued clip to inspect its AI reason and apply a decision.</p>
-    </div>
-  </section>
+  <ng-container *transloco="let t">
+    <section class="review-panel empty-selection">
+      <div class="empty-card">
+        <h3>{{ t('moderation.selectClip') }}</h3>
+        <p>{{ t('moderation.selectClipHint') }}</p>
+      </div>
+    </section>
+  </ng-container>
 </ng-template>

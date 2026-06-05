@@ -10,11 +10,12 @@ import { ClipCard } from '../library/clip-card/clip-card';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { GroupDialog } from '../../shared/group-dialog/group-dialog';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-favorites',
   standalone: true,
-  imports: [CommonModule, ClipCard, RouterLink, BackLink, ConfirmDialog, GroupDialog],
+  imports: [CommonModule, ClipCard, RouterLink, BackLink, ConfirmDialog, GroupDialog, TranslocoModule],
   templateUrl: './favorites.html',
   styleUrls: ['./favorites.css']
 })

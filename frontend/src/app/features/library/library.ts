@@ -17,6 +17,8 @@ import { GroupDialog } from '../../shared/group-dialog/group-dialog';
 import { firstValueFrom } from 'rxjs';
 import { ImportFolderService, ImportFolderFile } from '../../core/services/import-folder.service';
 import { ImportFoldersDialog } from '../../shared/import-folders-dialog/import-folders-dialog';
+import { LanguageService } from '../../core/services/language.service';
+import { TranslocoModule } from '@jsverse/transloco';
 
 interface ImportResult {
   imported: boolean;
@@ -35,7 +37,7 @@ interface ImportMetadata {
 
 @Component({
   selector: 'app-library',
-  imports: [CommonModule, ClipCard, CustomDropdownComponent, FormsModule, ConfirmDialog, ProfileDropdown, GroupDialog, ImportFoldersDialog],
+  imports: [CommonModule, ClipCard, CustomDropdownComponent, FormsModule, ConfirmDialog, ProfileDropdown, GroupDialog, ImportFoldersDialog, TranslocoModule],
   templateUrl: './library.html',
   styleUrl: './library.css',
 })
@@ -99,7 +101,8 @@ export class Library implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private toast: ToastService,
-    private importFolderService: ImportFolderService
+    private importFolderService: ImportFolderService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -612,8 +615,6 @@ export class Library implements OnInit {
         notes: metadata.notes || `Imported automatically from ${relativePath || file.name}.`,
         tags: metadata.tags || [],
         url: upload.secureUrl,
-        cloudinaryPublicId: upload.publicId,
-        fileHash: upload.fileHash,
         thumbnailUrl: upload.thumbnailUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
         duration,
         currentTime: 0,
@@ -660,7 +661,8 @@ export class Library implements OnInit {
           relativePath,
           videoUrl: upload.secureUrl,
           thumbnailUrl: upload.thumbnailUrl,
-          duration: upload.duration
+          duration: upload.duration,
+          language: this.languageService.metadataLanguage()
         }));
         return { ...metadata, usedFallback: false };
       } catch (err) {

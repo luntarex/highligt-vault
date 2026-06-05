@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, ChangeDetectorRef } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../core/models/explore-post';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-repost-overlay',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './repost-overlay.html',
   styleUrls: ['./repost-overlay.css']
 })

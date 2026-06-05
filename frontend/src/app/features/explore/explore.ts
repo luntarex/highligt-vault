@@ -11,12 +11,13 @@ import { CommonModule } from '@angular/common';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { BackLink } from '../../shared/back-link/back-link';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-explore',
   templateUrl: './explore.html',
   styleUrls: ['./explore.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ReportButtonComponent, BackLink]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ReportButtonComponent, BackLink, TranslocoModule]
 })
 export class Explore implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;

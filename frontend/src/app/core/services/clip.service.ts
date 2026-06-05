@@ -6,10 +6,8 @@ import { Clip } from '../models/clip';
 
 export interface VideoUploadResponse {
   secureUrl: string;
-  publicId?: string;
-  thumbnailUrl?: string;
-  fileHash?: string;
-  reused?: boolean;
+  publicId: string;
+  thumbnailUrl: string;
   duration?: number;
   bytes?: number;
   format?: string;
@@ -35,6 +33,7 @@ export interface ClipMetadataSuggestionRequest {
   videoUrl: string;
   thumbnailUrl?: string;
   duration?: number;
+  language?: string;
 }
 
 export interface ClipMetadataSuggestionResponse {

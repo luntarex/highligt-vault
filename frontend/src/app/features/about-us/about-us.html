@@ -1,11 +1,11 @@
-<div class="about-us-container">
+<div class="about-us-container" *transloco="let t">
   <div class="about-us-card">
     <div class="logo-section">
       <img src="assets/icons/SGC-Logo.png" alt="SGC Logo" class="company-logo">
     </div>
     
     <div class="team-section">
-      <h1 class="team-title">OUR TEAM</h1>
+      <h1 class="team-title">{{ t('aboutUs.ourTeam') }}</h1>
       <div class="member-list">
         @for (name of teamMembers; track name) {
           <div class="member-item">

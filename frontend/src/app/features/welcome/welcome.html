@@ -1,4 +1,4 @@
-<div class="welcome-container">
+<div class="welcome-container" *transloco="let t">
 
   <!-- Hero Section -->
   <section class="hero">
@@ -8,15 +8,15 @@
         <img src="assets/icons/sgclogonew.png" alt="SGC Logo" />
       </div>
       <h1>Vibe <span class="accent">Vault</span></h1>
-      <p class="tagline">Your gaming moments, stored forever. Clip, share, and explore the best highlights from your favorite games.</p>
+      <p class="tagline">{{ t('welcome.tagline') }}</p>
 
       <div class="cta-buttons">
         <a routerLink="/register" class="btn btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-          Create Account
+          {{ t('welcome.createAccount') }}
         </a>
         <a routerLink="/login" class="btn btn-secondary">
-          Sign In
+          {{ t('welcome.signIn') }}
         </a>
       </div>
     </div>
@@ -28,29 +28,29 @@
       <div class="feature-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </div>
-      <h3>Clip & Store</h3>
-      <p>Upload your best gaming moments and keep them organized in your personal vault.</p>
+      <h3>{{ t('welcome.feature1Title') }}</h3>
+      <p>{{ t('welcome.feature1Text') }}</p>
     </div>
 
     <div class="feature-card">
       <div class="feature-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </div>
-      <h3>Share & Explore</h3>
-      <p>Share your highlights with the community and discover amazing plays from others.</p>
+      <h3>{{ t('welcome.feature2Title') }}</h3>
+      <p>{{ t('welcome.feature2Text') }}</p>
     </div>
 
     <div class="feature-card">
       <div class="feature-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
-      <h3>Connect</h3>
-      <p>Follow other gamers, comment on their clips, and build your gaming network.</p>
+      <h3>{{ t('welcome.feature3Title') }}</h3>
+      <p>{{ t('welcome.feature3Text') }}</p>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="welcome-footer">
-    <p>Vibe Vault &copy; 2026 &mdash; Built for gamers, by gamers.</p>
+    <p>{{ t('welcome.footer') }}</p>
   </footer>
 </div>

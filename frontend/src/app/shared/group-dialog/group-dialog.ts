@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClipGroup } from '../../core/models/clip-group';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-group-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoModule],
   templateUrl: './group-dialog.html',
   styleUrl: './group-dialog.css'
 })

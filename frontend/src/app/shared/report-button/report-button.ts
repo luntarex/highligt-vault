@@ -5,11 +5,12 @@ import { ReportReason, ReportService, ReportTargetType } from '../../core/servic
 import { ToastService } from '../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { CustomDropdownComponent } from '../custom-dropdown/custom-dropdown';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-report-button',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomDropdownComponent],
+  imports: [CommonModule, FormsModule, CustomDropdownComponent, TranslocoModule],
   templateUrl: './report-button.html',
   styleUrl: './report-button.css'
 })
@@ -25,28 +26,29 @@ export class ReportButtonComponent {
   reason: ReportReason = 'SPAM';
   details = '';
 
-  readonly reasons: Array<{ value: ReportReason; label: string }> = [
-    { value: 'SPAM', label: 'Spam or scam' },
-    { value: 'HARASSMENT', label: 'Harassment or bullying' },
-    { value: 'HATE', label: 'Hate speech' },
-    { value: 'VIOLENCE', label: 'Graphic violence' },
-    { value: 'SEXUAL_CONTENT', label: 'Sexual content' },
-    { value: 'PERSONAL_INFO', label: 'Personal information' },
-    { value: 'COPYRIGHT', label: 'Copyright issue' },
-    { value: 'OTHER', label: 'Other' }
+  readonly reasonValues: ReportReason[] = [
+    'SPAM', 'HARASSMENT', 'HATE', 'VIOLENCE', 'SEXUAL_CONTENT', 'PERSONAL_INFO', 'COPYRIGHT', 'OTHER'
   ];
-  readonly reasonOptions = this.reasons.map(reason => reason.label);
 
   constructor(
     private reportService: ReportService,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {}
+
+  get reasonOptions(): string[] {
+    return this.reasonValues.map(value => this.reasonLabel(value));
+  }
+
+  private reasonLabel(value: ReportReason): string {
+    return this.transloco.translate('report.reasons.' + value);
+  }
 
   open(event?: Event): void {
     event?.stopPropagation();
     if (!this.normalizedTargetId()) {
-      this.toast.error('Could not identify what to report.');
+      this.toast.error(this.transloco.translate('report.errorIdentify'));
       return;
     }
     this.isOpen = true;
@@ -73,27 +75,27 @@ export class ReportButtonComponent {
       details: this.details.trim() || undefined
     }).subscribe({
       next: () => {
-        this.toast.success('Report submitted. Thanks for helping keep Vibe Vault safe.');
+        this.toast.success(this.transloco.translate('report.success'));
         this.isSubmitting = false;
         this.close();
         this.cdr.detectChanges();
       },
       error: err => {
         this.isSubmitting = false;
-        this.toast.error(getSafeErrorMessage(err, 'Could not submit report.'));
+        this.toast.error(getSafeErrorMessage(err, this.transloco.translate('report.errorSubmit')));
         this.cdr.detectChanges();
       }
     });
   }
 
   selectedReasonLabel(): string {
-    return this.reasons.find(option => option.value === this.reason)?.label || 'Select a reason';
+    return this.reasonLabel(this.reason);
   }
 
   onReasonLabelChange(label: string): void {
-    const selectedReason = this.reasons.find(option => option.label === label);
+    const selectedReason = this.reasonValues.find(value => this.reasonLabel(value) === label);
     if (selectedReason) {
-      this.reason = selectedReason.value;
+      this.reason = selectedReason;
     }
   }
 

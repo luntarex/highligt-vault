@@ -1,3 +1,3 @@
-<div class="back-link-container">
-  <a (click)="goBack()" class="back-link"><span aria-hidden="true">&larr;</span> Back</a>
+<div class="back-link-container" *transloco="let t">
+  <a (click)="goBack()" class="back-link"><span aria-hidden="true">&larr;</span> {{ t('common.back') }}</a>
 </div>

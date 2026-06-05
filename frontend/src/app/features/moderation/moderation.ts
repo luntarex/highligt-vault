@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { Clip } from '../../core/models/clip';
 import { Comment } from '../../core/models/comment';
@@ -18,7 +19,7 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
 @Component({
   selector: 'app-moderation',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslocoModule],
   templateUrl: './moderation.html',
   styleUrl: './moderation.css'
 })

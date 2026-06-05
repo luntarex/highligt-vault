@@ -13,11 +13,12 @@ import { ExplorePost } from '../../core/models/explore-post';
 import { Comment } from '../../core/models/comment';
 import { ActivatedRoute, RouterModule, RouterLink, Router } from '@angular/router';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink, FormsModule, ReportButtonComponent],
+  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink, FormsModule, ReportButtonComponent, TranslocoModule],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
@@ -53,7 +54,8 @@ export class ProfilePage implements OnInit {
     private router: Router,
     public authService: AuthService,
     private exploreService: ExploreService,
-    private commentService: CommentService
+    private commentService: CommentService,
+    private transloco: TranslocoService
   ) { }
 
   ngOnInit(): void {
@@ -182,7 +184,7 @@ export class ProfilePage implements OnInit {
   // Follower/Following Modal Methods
   openFollowersModal(): void {
     if (!this.user || !this.user.id) return;
-    this.modalTitle = 'Followers';
+    this.modalTitle = this.transloco.translate('profile.followers');
     this.showUserListModal = true;
     this.modalLoading = true;
     this.userList = [];
@@ -199,7 +201,7 @@ export class ProfilePage implements OnInit {
 
   openFollowingModal(): void {
     if (!this.user || !this.user.id) return;
-    this.modalTitle = 'Following';
+    this.modalTitle = this.transloco.translate('profile.following');
     this.showUserListModal = true;
     this.modalLoading = true;
     this.userList = [];

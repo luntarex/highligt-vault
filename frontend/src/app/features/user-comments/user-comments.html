@@ -1,6 +1,6 @@
-<div class="comments-container">
+<div class="comments-container" *transloco="let t">
     <div class="comments-header">
-        <h2>Comments</h2>
+        <h2>{{ t('comments.title') }}</h2>
         <app-back-link></app-back-link>
     </div>
     <div class="comments-list">
@@ -28,7 +28,7 @@
                         </div>
                         <div class="admin-actions" *ngIf="isAdmin && !user?.isAdmin && !isTosViolation(comment.content)">
                             <button (click)="openModerateModal(comment)" class="moderate-btn">
-                                Moderate
+                                {{ t('comments.moderate') }}
                             </button>
                         </div>
                     </div>
@@ -43,13 +43,13 @@
     <!-- Moderation Modal -->
     <div class="modal-overlay" *ngIf="showModerateModal" (click)="closeModerateModal()">
       <div class="confirm-modal" (click)="$event.stopPropagation()">
-        <h2>Moderate Comment</h2>
-        <p>Choose an action for this comment by <strong>{{user?.username}}</strong>.</p>
-        
+        <h2>{{ t('comments.moderateComment') }}</h2>
+        <p>{{ t('comments.moderatePrompt') }} <strong>{{user?.username}}</strong>.</p>
+
         <div class="modal-actions">
-          <button class="modal-tos-btn" (click)="moderateTosViolation()">Mark as TOS Violation</button>
-          <button class="modal-delete-btn" (click)="moderateDelete()">Delete Completely</button>
-          <button class="modal-cancel-btn" (click)="closeModerateModal()">Cancel</button>
+          <button class="modal-tos-btn" (click)="moderateTosViolation()">{{ t('comments.markTos') }}</button>
+          <button class="modal-delete-btn" (click)="moderateDelete()">{{ t('comments.deleteCompletely') }}</button>
+          <button class="modal-cancel-btn" (click)="closeModerateModal()">{{ t('common.cancel') }}</button>
         </div>
       </div>
     </div>

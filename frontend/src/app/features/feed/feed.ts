@@ -14,12 +14,13 @@ import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown'
 import { ClipPickerModal } from '../../shared/clip-picker-modal/clip-picker-modal';
 import { Clip } from '../../core/models/clip';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent, TranslocoModule]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;

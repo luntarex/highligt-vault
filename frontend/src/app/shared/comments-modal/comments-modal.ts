@@ -7,11 +7,12 @@ import { CommentService } from '../../core/services/comment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ReportButtonComponent } from '../report-button/report-button';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-comments-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ReportButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ReportButtonComponent, TranslocoModule],
   templateUrl: './comments-modal.html',
   styleUrls: ['./comments-modal.css']
 })

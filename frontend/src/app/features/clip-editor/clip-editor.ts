@@ -10,10 +10,11 @@ import { BackLink } from '../../shared/back-link/back-link';
 import { CustomDropdownComponent } from '../../shared/custom-dropdown/custom-dropdown';
 import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { ToastService } from '../../core/services/toast.service';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-clip-editor',
-  imports: [CommonModule, FormsModule, RouterModule, BackLink, CustomDropdownComponent],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, CustomDropdownComponent, TranslocoModule],
   templateUrl: './clip-editor.html',
   styleUrl: './clip-editor.css',
 })
@@ -39,7 +40,8 @@ export class ClipEditor implements OnInit {
     private authService: AuthService,
     private gameService: GameService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private transloco: TranslocoService
   ) {}
 
   ngOnInit(): void {
@@ -199,26 +201,24 @@ export class ClipEditor implements OnInit {
         }
 
         this.isUploading = true;
-        this.uploadStatus = 'Uploading video...';
+        this.uploadStatus = this.transloco.translate('clipEditor.statusUploading');
         this.cdr.detectChanges();
 
         this.clipService.uploadVideo(this.fileToUpload).subscribe({
           next: (data) => {
             this.clip!.url = data.secureUrl;
-            this.clip!.cloudinaryPublicId = data.publicId;
-            this.clip!.fileHash = data.fileHash;
             this.clip!.thumbnailUrl = data.thumbnailUrl || this.clip!.thumbnailUrl;
             if (data.duration) {
               this.clip!.duration = data.duration;
             }
 
-            this.uploadStatus = 'Saving highlight to vault...';
+            this.uploadStatus = this.transloco.translate('clipEditor.statusSaving');
             this.cdr.detectChanges();
 
             this.clipService.addClip(this.clip!).subscribe({
               next: (createResponse) => {
                 const clipId = createResponse.clipId;
-                this.uploadStatus = 'Checking clip safety...';
+                this.uploadStatus = this.transloco.translate('clipEditor.statusChecking');
                 this.cdr.detectChanges();
 
                 this.clipService.scanClipAfterUpload(clipId).subscribe({
