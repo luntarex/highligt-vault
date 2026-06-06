@@ -2,6 +2,7 @@ package hvault.app.service;
 
 import static hvault.app.service.FfmpegSamplingUtils.calculateStartSeconds;
 import static hvault.app.service.FfmpegSamplingUtils.cleanup;
+import static hvault.app.service.FfmpegSamplingUtils.cloudinarySourceUrl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,6 +37,7 @@ public class FfmpegFrameExtractionService {
             return List.of();
         }
 
+        String sourceUrl = cloudinarySourceUrl(videoUrl);
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("hvault-moderation-frames-");
@@ -48,7 +50,7 @@ public class FfmpegFrameExtractionService {
                 "error",
                 "-y",
                 "-i",
-                videoUrl,
+                sourceUrl,
                 "-vf",
                 "fps=1/10,scale=512:-1",
                 "-frames:v",
@@ -93,6 +95,7 @@ public class FfmpegFrameExtractionService {
             return List.of();
         }
 
+        String sourceUrl = cloudinarySourceUrl(videoUrl);
         int safeFragmentCount = Math.max(1, requestedFragmentCount);
         int safeFramesPerFragment = Math.max(1, requestedFramesPerFragment);
         int safeFragmentSeconds = Math.max(1, requestedFragmentSeconds);
@@ -102,7 +105,7 @@ public class FfmpegFrameExtractionService {
         for (int i = 0; i < startSeconds.size(); i++) {
             int startSecond = startSeconds.get(i);
             frames.addAll(extractFramesFromFragment(
-                videoUrl,
+                sourceUrl,
                 startSecond,
                 safeFragmentSeconds,
                 safeFramesPerFragment,

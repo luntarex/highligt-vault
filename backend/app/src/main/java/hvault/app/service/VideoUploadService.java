@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -115,6 +116,27 @@ public class VideoUploadService {
         }
 
         String publicId = "videos/" + fileHash;
+
+        // Preferred path: hand the original to Cloudinary and let its servers transcode via an
+        // eager transformation. Requires the signed API (api-key/api-secret); when those are not
+        // configured we fall back to optimizing locally with ffmpeg.
+        if (hasText(cloudinaryApiKey) && hasText(cloudinaryApiSecret)) {
+            String eager = cloudinaryEagerTransformation();
+            Map<String, Object> result = uploadVideoEager(file, publicId, eager);
+
+            String uploadedPublicId = result.get("public_id") != null ? result.get("public_id").toString() : publicId;
+            return new VideoUploadResponse(
+                eagerVideoUrl(uploadedPublicId, eager),
+                uploadedPublicId,
+                thumbnailUrl(uploadedPublicId),
+                fileHash,
+                false,
+                asDouble(result.get("duration")),
+                asLong(result.get("bytes")),
+                "mp4"
+            );
+        }
+
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("hvault-video-upload-");
@@ -278,6 +300,73 @@ public class VideoUploadService {
 
     private Map<String, Object> upload(MultipartFile file, String resourceType) throws IOException {
         return upload(new MultipartInputStreamFileResource(file), resourceType, null);
+    }
+
+    /**
+     * Signed upload of the original video with an eager transformation so Cloudinary's servers do
+     * the transcode instead of our host. eager_async=true returns as soon as the original is stored;
+     * the derived MP4 is generated in the background (and on-the-fly on first access if not ready).
+     */
+    private Map<String, Object> uploadVideoEager(MultipartFile file, String publicId, String eager) throws IOException {
+        long timestamp = System.currentTimeMillis() / 1000L;
+
+        Map<String, String> signedParams = new TreeMap<>();
+        signedParams.put("eager", eager);
+        signedParams.put("eager_async", "true");
+        signedParams.put("public_id", publicId);
+        signedParams.put("timestamp", String.valueOf(timestamp));
+        String signature = cloudinarySignature(signedParams);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new MultipartInputStreamFileResource(file));
+        body.add("api_key", cloudinaryApiKey);
+        body.add("timestamp", String.valueOf(timestamp));
+        body.add("public_id", publicId);
+        body.add("eager", eager);
+        body.add("eager_async", "true");
+        body.add("signature", signature);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = restTemplate.postForObject(
+            "https://api.cloudinary.com/v1_1/" + cloudName + "/video/upload",
+            new HttpEntity<>(body, headers),
+            Map.class
+        );
+
+        if (result == null || result.get("public_id") == null) {
+            throw new IllegalStateException("Cloudinary did not return an uploaded video asset.");
+        }
+
+        return result;
+    }
+
+    private String cloudinaryEagerTransformation() {
+        return "c_limit,w_" + videoOptimizationMaxWidth + ",h_" + videoOptimizationMaxHeight + ",q_auto,f_mp4";
+    }
+
+    private String eagerVideoUrl(String publicId, String transformation) {
+        return "https://res.cloudinary.com/" + cloudName + "/video/upload/" + transformation + "/" + publicId + ".mp4";
+    }
+
+    /**
+     * Builds a Cloudinary upload signature: parameters sorted by key, joined as key=value with &,
+     * with the api-secret appended, then SHA-1 hashed.
+     */
+    private String cloudinarySignature(Map<String, String> params) {
+        StringBuilder toSign = new StringBuilder();
+        for (Map.Entry<String, String> entry : new TreeMap<>(params).entrySet()) {
+            if (!hasText(entry.getValue())) {
+                continue;
+            }
+            if (toSign.length() > 0) {
+                toSign.append('&');
+            }
+            toSign.append(entry.getKey()).append('=').append(entry.getValue());
+        }
+        return sha1Hex(toSign + cloudinaryApiSecret);
     }
 
     private Map<String, Object> upload(Path filePath, String filename, String resourceType, String publicId) {
