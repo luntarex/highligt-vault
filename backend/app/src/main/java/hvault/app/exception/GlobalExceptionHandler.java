@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(new ErrorResponse("This file is too large. Please upload a smaller file."));
         }
-        logger.warn("External HTTP error: status={}", e.getStatusCode().value());
+        logger.warn("External HTTP error: status={} body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
             .body(new ErrorResponse("External service is temporarily unavailable. Please try again."));
     }

@@ -293,7 +293,8 @@ public class VideoUploadService {
         if (hasText(publicId)) {
             body.add("public_id", publicId);
             body.add("unique_filename", "false");
-            body.add("overwrite", "false");
+            // Note: 'overwrite' is rejected by Cloudinary on unsigned uploads (HTTP 400).
+            // Deduplication is already enforced via the file-hash lookup before uploading.
         }
 
         HttpHeaders headers = new HttpHeaders();
