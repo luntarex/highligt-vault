@@ -63,7 +63,7 @@ export class Library implements OnInit {
     'mts',
     'm2ts'
   ]);
-  private readonly aiImportConcurrency = 3;
+  private readonly aiImportConcurrency = 2;
   private readonly aiMetadataAttempts = 2;
   private readonly aiMetadataRetryDelayMs = 1200;
   tags = ['All Tags', ...this.defaultTags];

@@ -293,7 +293,6 @@ public class VideoUploadService {
         if (hasText(publicId)) {
             // Only public_id is permitted for unsigned uploads; unique_filename and overwrite
             // are rejected with HTTP 400. Deduplication is already enforced via the file-hash
-            // lookup before uploading, so those parameters are unnecessary here.
             body.add("public_id", publicId);
         }
 
