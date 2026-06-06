@@ -18,6 +18,35 @@ public final class FfmpegSamplingUtils {
     private FfmpegSamplingUtils() {}
 
     /**
+     * Returns the lightweight, immediately-available source delivery URL for a Cloudinary asset by
+     * stripping a leading transformation segment (e.g. the eager "c_limit,w_1280,...,f_mp4" applied
+     * for playback). FFmpeg sampling should read the stored original rather than the heavy transcode,
+     * which may still be generating in the background when an eager_async upload returns. URLs that
+     * are not Cloudinary delivery URLs, or that already point at the bare asset, are returned as-is.
+     */
+    public static String cloudinarySourceUrl(String videoUrl) {
+        if (videoUrl == null || videoUrl.isBlank()) {
+            return videoUrl;
+        }
+        int uploadIndex = videoUrl.indexOf("/upload/");
+        if (uploadIndex < 0) {
+            return videoUrl;
+        }
+        int segmentStart = uploadIndex + "/upload/".length();
+        int segmentEnd = videoUrl.indexOf('/', segmentStart);
+        if (segmentEnd < 0) {
+            return videoUrl;
+        }
+        // A transformation segment carries comma-separated params (c_limit,w_1280,...); the public
+        // id ("videos/<hash>") never does, so only strip when the leading segment looks like one.
+        String firstSegment = videoUrl.substring(segmentStart, segmentEnd);
+        if (!firstSegment.contains(",")) {
+            return videoUrl;
+        }
+        return videoUrl.substring(0, segmentStart) + videoUrl.substring(segmentEnd + 1);
+    }
+
+    /**
      * Calculates evenly distributed start-second positions across a video's duration,
      * respecting the segment length so no segment overshoots the end.
      */

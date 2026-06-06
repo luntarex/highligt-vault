@@ -2,6 +2,7 @@ package hvault.app.service;
 
 import static hvault.app.service.FfmpegSamplingUtils.calculateStartSeconds;
 import static hvault.app.service.FfmpegSamplingUtils.cleanup;
+import static hvault.app.service.FfmpegSamplingUtils.cloudinarySourceUrl;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +50,7 @@ public class FfmpegAudioExtractionService {
             return List.of();
         }
 
+        String sourceUrl = cloudinarySourceUrl(videoUrl);
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("hvault-moderation-audio-");
@@ -60,7 +62,7 @@ public class FfmpegAudioExtractionService {
             for (int i = 0; i < startSeconds.size(); i++) {
                 int startSecond = startSeconds.get(i);
                 Path outputPath = tempDir.resolve("audio-%03d.mp3".formatted(i + 1));
-                if (extractAudioSegment(videoUrl, outputPath, startSecond, safeSegmentSeconds)) {
+                if (extractAudioSegment(sourceUrl, outputPath, startSecond, safeSegmentSeconds)) {
                     byte[] bytes = Files.readAllBytes(outputPath);
                     if (bytes.length > 0) {
                         samples.add(new AudioModerationSample(
