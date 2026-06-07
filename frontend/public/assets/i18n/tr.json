@@ -87,7 +87,8 @@
     "confirmPassword": "Parolayı Onayla",
     "passwordsMismatch": "Parolalar eşleşmiyor.",
     "signIn": "Giriş Yap",
-    "createAccount": "Hesap Oluştur"
+    "createAccount": "Hesap Oluştur",
+    "alreadyHaveAccount": "Zaten hesabınız var mı?"
   },
   "completeProfile": {
     "heading": "Profilini tamamla, {{username}}",

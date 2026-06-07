@@ -1,4 +1,11 @@
 <div class="auth-container" *transloco="let t">
+<a routerLink="/welcome" class="auth-back-link">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+  {{ t('common.back') }}
+</a>
 <div class="auth-header">
   <img src="">
   <h2>Vibe Vault</h2>
@@ -46,6 +53,10 @@
         {{ t('auth.createAccount') }}
       </button>
   </form>
+  <p class="footer-link">
+    {{ t('auth.alreadyHaveAccount') }}
+    <a routerLink="/login">{{ t('auth.signIn') }}</a>
+  </p>
 </div>
 
 
