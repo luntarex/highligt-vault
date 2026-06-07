@@ -4,10 +4,10 @@
 }
 
 .back-link {
-  color: hsl(34, 6%, 52%);
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s;
   cursor: pointer;
 }
-.back-link:hover { color: white; }
+.back-link:hover { color: var(--text-strong); }

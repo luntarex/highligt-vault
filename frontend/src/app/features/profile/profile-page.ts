@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { User } from '../../core/models/user';
 import { Clip } from '../../core/models/clip';
 import { BackLink } from '../../shared/back-link/back-link';
@@ -32,6 +32,7 @@ export class ProfilePage implements OnInit {
   currentProfileId: string | null = null;
   isFollowing: boolean = false;
   isOwnProfile: boolean = false;
+  isCardMenuOpen: boolean = false;
 
   userList: any[] = [];
   modalTitle: string = '';
@@ -122,6 +123,19 @@ export class ProfilePage implements OnInit {
         },
         error: (err) => console.error('Failed to load follow status:', err)
       });
+    }
+  }
+
+  toggleCardMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isCardMenuOpen = !this.isCardMenuOpen;
+  }
+
+  @HostListener('document:click')
+  closeCardMenu(): void {
+    if (this.isCardMenuOpen) {
+      this.isCardMenuOpen = false;
+      this.cdr.detectChanges();
     }
   }
 

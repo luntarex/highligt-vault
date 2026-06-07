@@ -3,9 +3,9 @@
 }
 
 .report-trigger {
-  border: 1px solid rgba(248, 113, 113, 0.32);
-  background: rgba(248, 113, 113, 0.08);
-  color: #fecaca;
+  border: 1px solid rgba(var(--danger-rgb), 0.32);
+  background: rgba(var(--danger-rgb), 0.08);
+  color: var(--danger-soft);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -32,14 +32,14 @@
   border: none;
   border-radius: 4px;
   background: none;
-  color: var(--text-secondary, #aaa);
+  color: var(--text-secondary, var(--text-secondary));
   transform: none;
 }
 
 :host-context(.post-actions) .report-trigger:hover {
   border-color: transparent;
-  background-color: rgb(45, 45, 45);
-  color: var(--text-primary, #fff);
+  background-color: var(--surface-2);
+  color: var(--text-primary, var(--text-strong));
   transform: none;
 }
 
@@ -51,14 +51,14 @@
   border: none;
   border-radius: 4px;
   background: none;
-  color: #aaa;
+  color: var(--text-secondary);
   transform: none;
 }
 
 :host-context(.social-action-bar) .report-trigger:hover {
   border-color: transparent;
   background: none;
-  color: #fff;
+  color: var(--text-strong);
   transform: translateY(-1px);
 }
 
@@ -69,23 +69,65 @@
   border: none;
   border-radius: 4px;
   background: none;
-  color: #fff;
+  color: var(--text-strong);
   opacity: 0.6;
   transform: none;
 }
 
 :host-context(.comment-actions) .report-trigger.compact:hover {
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
   opacity: 1;
   transform: none;
 }
 
 .report-trigger:hover {
-  background: rgba(248, 113, 113, 0.16);
-  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(var(--danger-rgb), 0.16);
+  border-color: rgba(var(--danger-rgb), 0.55);
   transform: translateY(-1px);
+}
+
+/* Card kebab menu: render the report action as a full-width menu row. */
+:host-context(.card-menu-popup) {
+  display: block;
+  width: 100%;
+}
+
+:host-context(.card-menu-popup) .report-trigger {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transform: none;
+}
+
+:host-context(.card-menu-popup) .report-trigger:hover {
+  background: rgba(var(--danger-rgb), 0.12);
+  border-color: transparent;
+  transform: none;
+}
+
+:host-context(.card-menu-popup) .report-trigger svg {
+  width: 17px;
+  height: 17px;
+}
+
+:host-context(.card-menu-popup) .sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  clip: auto;
+  overflow: visible;
+  white-space: nowrap;
 }
 
 .report-trigger svg {
@@ -143,9 +185,9 @@
 .report-modal {
   width: min(440px, 100%);
   border-radius: 24px;
-  border: 1px solid rgba(248, 113, 113, 0.28);
-  background: linear-gradient(145deg, hsl(0, 0%, 12%), hsl(0, 0%, 8%));
-  color: white;
+  border: 1px solid rgba(var(--danger-rgb), 0.28);
+  background: linear-gradient(145deg, var(--surface-app), var(--surface-app));
+  color: var(--text-strong);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
   padding: 20px;
 }
@@ -159,7 +201,7 @@
 
 .report-header span {
   display: block;
-  color: #fca5a5;
+  color: var(--danger-soft);
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -176,8 +218,8 @@
   height: 34px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
   cursor: pointer;
 }
 
@@ -188,17 +230,17 @@
 }
 
 .report-field span {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-strong);
   font-size: 0.78rem;
   font-weight: 700;
 }
 
 .report-field textarea {
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
   font: inherit;
   padding: 11px 12px;
   outline: none;
@@ -216,19 +258,19 @@
 
 :host ::ng-deep .report-field .dropdown-header {
   min-height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
   padding: 11px 12px;
 }
 
 :host ::ng-deep .report-field .dropdown-header:hover,
 :host ::ng-deep .report-field .dropdown-header.active {
-  border-color: rgba(248, 113, 113, 0.62);
+  border-color: rgba(var(--danger-rgb), 0.62);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+  background: var(--overlay-hover-strong);
+  box-shadow: 0 0 0 3px rgba(var(--danger-rgb), 0.12);
   font-size: inherit;
 }
 
@@ -236,18 +278,18 @@
   max-height: 240px;
   overflow-y: auto;
   z-index: 10002;
-  border-color: rgba(248, 113, 113, 0.28);
-  background: hsl(0, 0%, 10%);
+  border-color: rgba(var(--danger-rgb), 0.28);
+  background: var(--surface-app);
 }
 
 :host ::ng-deep .report-field .dropdown-list li:hover {
-  background: rgba(248, 113, 113, 0.16);
-  color: white;
+  background: rgba(var(--danger-rgb), 0.16);
+  color: var(--danger-contrast);
 }
 
 :host ::ng-deep .report-field .dropdown-list li.selected {
-  background: rgba(248, 113, 113, 0.22);
-  color: #fecaca;
+  background: rgba(var(--danger-rgb), 0.22);
+  color: var(--danger-soft);
 }
 
 .report-field textarea {
@@ -255,8 +297,8 @@
 }
 
 .report-field textarea:focus {
-  border-color: rgba(248, 113, 113, 0.62);
-  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+  border-color: rgba(var(--danger-rgb), 0.62);
+  box-shadow: 0 0 0 3px rgba(var(--danger-rgb), 0.12);
 }
 
 .report-footer {
@@ -276,13 +318,13 @@
 }
 
 .cancel-report {
-  color: rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-strong);
+  background: var(--overlay-hover-strong);
 }
 
 .submit-report {
-  color: #190707;
-  background: #fca5a5;
+  color: var(--surface-app);
+  background: var(--danger-soft);
 }
 
 .submit-report:disabled {

@@ -1,8 +1,8 @@
 .sidebar-container {
     width: 260px;
     height: 100vh;
-    background-color: #1e1e1e;
-    border-right: 1px solid hsl(0, 0%, 18%);
+    background-color: var(--surface-app);
+    border-right: 1px solid var(--border-strong);
     padding: 24px 12px;
     display: flex;
     flex-direction: column;
@@ -32,7 +32,7 @@
     text-decoration: none;
     display: flex;
     align-items: center;
-    border: 2px solid hsl(0, 0%, 28%);
+    border: 2px solid var(--border-strong);
     border-radius: 8px;
     padding: 2px 0;
     margin-left: 4px;
@@ -41,13 +41,13 @@
 }
 
 .sidebar-logo-link:hover {
-    border-color: hsl(265, 40%, 68%);
-    background-color: hsla(265, 40%, 68%, 0.08);
-    box-shadow: 0 0 15px hsla(265, 40%, 68%, 0.1);
+    border-color: var(--brand);
+    background-color: rgba(var(--brand-rgb), 0.08);
+    box-shadow: 0 0 15px rgba(var(--brand-rgb), 0.1);
 }
 
 .sidebar-title {
-    color: hsl(0, 0%, 95%);
+    color: var(--text-strong);
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
@@ -59,7 +59,7 @@
 .toggle-btn {
     background: none;
     border: none;
-    color: hsl(0, 0%, 60%);
+    color: var(--text-secondary);
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -70,8 +70,8 @@
 }
 
 .toggle-btn:hover {
-    background-color: hsl(0, 0%, 16%);
-    color: white;
+    background-color: var(--surface-2);
+    color: var(--text-strong);
 }
 
 .sidebar-container.collapsed .toggle-btn {
@@ -103,7 +103,7 @@
     display: flex;
     align-items: center;
     padding: 10px 12px;
-    color: hsl(0, 0%, 75%);
+    color: var(--text-secondary);
     text-decoration: none;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
@@ -112,15 +112,15 @@
 }
 
 .nav-links a:hover {
-    background-color: hsl(0, 0%, 16%);
-    color: white;
+    background-color: var(--surface-2);
+    color: var(--text-strong);
 }
 
 .nav-links a.active {
-    background-color: hsl(0, 0%, 16%);
-    color: white;
+    background-color: var(--surface-2);
+    color: var(--text-strong);
     font-weight: 900;
-    box-shadow: inset 3px 0 0 #a855f7;
+    box-shadow: inset 3px 0 0 var(--brand);
 }
 
 .sidebar-container.collapsed .nav-links a {
@@ -156,7 +156,7 @@
 
 .separator {
     height: 1px;
-    background-color: hsl(0, 0%, 18%);
+    background-color: var(--border-strong);
     margin: 20px 0;
     width: 100%;
 }
@@ -164,14 +164,14 @@
 .sidebar-footer {
     margin-top: auto;
     padding-top: 20px;
-    border-top: 1px solid hsl(0, 0%, 18%);
+    border-top: 1px solid var(--border-strong);
 }
 
 .about-link {
     display: flex;
     align-items: center;
     padding: 10px 12px;
-    color: hsl(0, 0%, 60%) !important;
+    color: var(--text-secondary) !important;
     text-decoration: none;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
@@ -179,8 +179,8 @@
 }
 
 .about-link:hover {
-    background-color: hsl(0, 0%, 16%);
-    color: white !important;
+    background-color: var(--surface-2);
+    color: var(--text-strong) !important;
 }
 
 .about-link .nav-icon {
@@ -208,8 +208,8 @@
 
 .lang-btn {
     background: transparent;
-    border: 1px solid hsl(0, 0%, 25%);
-    color: hsl(0, 0%, 65%);
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
     border-radius: 0.4rem;
     padding: 0.25rem 0.5rem;
     font-size: 0.7rem;
@@ -219,12 +219,56 @@
 }
 
 .lang-btn:hover {
-    color: white;
-    border-color: hsl(0, 0%, 40%);
+    color: var(--text-strong);
+    border-color: var(--text-muted);
 }
 
 .lang-btn.active {
-    background-color: hsl(0, 0%, 16%);
-    color: white;
-    border-color: hsl(0, 0%, 45%);
+    background-color: var(--surface-2);
+    color: var(--text-strong);
+    border-color: var(--text-muted);
+}
+
+.theme-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    border-radius: 0.4rem;
+    padding: 0.25rem;
+    width: 1.85rem;
+    height: 1.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.theme-btn:hover {
+    color: var(--brand);
+    border-color: var(--brand);
+}
+
+/* Light mode: source SVG icons are black, so reduce the invert to keep
+   them dark instead of light. */
+:host-context([data-theme="light"]) .nav-icon {
+    filter: invert(0);
+}
+
+:host-context([data-theme="light"]) .nav-links a:hover .nav-icon,
+:host-context([data-theme="light"]) .nav-links a.active .nav-icon {
+    filter: invert(0);
+}
+
+:host-context([data-theme="light"]) .toggle-icon {
+    filter: invert(0);
+}
+
+:host-context([data-theme="light"]) .toggle-btn:hover .toggle-icon {
+    filter: invert(0);
 }
