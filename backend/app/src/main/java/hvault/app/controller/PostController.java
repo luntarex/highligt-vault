@@ -31,6 +31,11 @@ public class PostController {
         return ResponseEntity.ok(postService.getFollowingFeed(SecurityUtil.requireCurrentUserId(authentication)));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getUserPosts(@PathVariable Long userId, Authentication authentication) {
+        return ResponseEntity.ok(postService.getUserPosts(userId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable Long id, Authentication authentication) {
         PostFeedResponse post = postService.getPostById(id, SecurityUtil.currentUserId(authentication));

@@ -3,6 +3,8 @@ package hvault.app.service;
 import hvault.app.dto.CreatePostResponse;
 import hvault.app.dto.PostAuthorResponse;
 import hvault.app.dto.PostFeedResponse;
+import hvault.app.dto.ProfilePostResponse;
+import hvault.app.repository.projection.UserPostView;
 import hvault.app.entity.Clip;
 import hvault.app.entity.Community;
 import hvault.app.entity.Post;
@@ -75,6 +77,28 @@ public class PostService {
         return postRepository.findAllPostsWithDetails().stream()
             .map(row -> toPostFeedResponse(row, currentUserId))
             .toList();
+    }
+
+    public List<ProfilePostResponse> getUserPosts(Long authorId) {
+        return postRepository.findUserPostsWithDetails(authorId).stream()
+            .map(this::toProfilePostResponse)
+            .toList();
+    }
+
+    private ProfilePostResponse toProfilePostResponse(UserPostView row) {
+        ProfilePostResponse response = new ProfilePostResponse();
+        Long clipId = row.getClipId();
+        response.setId(clipId == null ? null : clipId.toString());
+        response.setPostId(row.getPostId() == null ? null : row.getPostId().toString());
+
+        String caption = row.getCaption();
+        response.setTitle(caption != null && !caption.isBlank() ? caption : row.getClipTitle());
+        response.setGame(row.getGameName());
+        response.setThumbnailUrl(row.getThumbnailUrl());
+        response.setDuration(row.getDuration());
+        response.setDateCreated(row.getCreatedAt() != null ? row.getCreatedAt().toString() : null);
+        response.setTags(clipId == null ? List.of() : clipRepository.getTagsForClip(clipId));
+        return response;
     }
 
     public List<PostFeedResponse> getFollowingFeed(Long userId) {
