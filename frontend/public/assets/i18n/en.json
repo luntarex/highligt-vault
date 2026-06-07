@@ -87,7 +87,8 @@
     "confirmPassword": "Confirm Password",
     "passwordsMismatch": "Passwords do not match.",
     "signIn": "Sign In",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?"
   },
   "completeProfile": {
     "heading": "Complete your profile, {{username}}",

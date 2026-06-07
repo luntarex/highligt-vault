@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoginRequest } from '../../../core/models/user';
 import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, TranslocoModule],
+  imports: [FormsModule, RouterModule, TranslocoModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

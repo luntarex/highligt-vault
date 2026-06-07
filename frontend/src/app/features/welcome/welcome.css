@@ -214,12 +214,36 @@
 @media (max-width: 768px) {
   /* Let the welcome page scroll instead of squeezing everything into 100vh */
   .welcome-container {
-    height: auto;
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
     gap: 8px;
     padding: 24px 12px;
+  }
+
+  .hero,
+  .features,
+  .welcome-footer {
+    flex: 0 0 auto;
+  }
+
+  .hero {
+    width: 100%;
+    overflow: visible;
+    padding: 12px 12px 20px;
+  }
+
+  .hero-content {
+    width: 100%;
+  }
+
+  .hero-glow {
+    width: 320px;
+    height: 320px;
   }
 
   .logo-icon,
