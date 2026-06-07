@@ -512,3 +512,29 @@
   padding: 12px;
   cursor: pointer;
 }
+
+/* === RESPONSIVE: mobile === */
+@media (max-width: 768px) {
+  .explore-page {
+    padding: 20px 12px;
+    /* Clear the fixed mobile bottom nav. */
+    padding-bottom: 80px;
+  }
+
+  .nav-header {
+    margin-bottom: 20px;
+  }
+
+  .comments-modal {
+    margin-left: 0;
+    max-width: 100%;
+    height: 80vh;
+    align-self: flex-end;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .comments-backdrop {
+    align-items: flex-end;
+  }
+}

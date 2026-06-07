@@ -1,0 +1,50 @@
+<nav class="mobile-nav" *transloco="let t">
+  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-link">
+    <img src="assets/icons/home.svg" [alt]="t('sidebar.feed')" class="mobile-nav-icon">
+    <span class="mobile-nav-label">{{ t('sidebar.feed') }}</span>
+  </a>
+  <a routerLink="/explore" routerLinkActive="active" class="mobile-nav-link">
+    <img src="assets/icons/compass.svg" [alt]="t('sidebar.explore')" class="mobile-nav-icon">
+    <span class="mobile-nav-label">{{ t('sidebar.explore') }}</span>
+  </a>
+  <a routerLink="/communities" routerLinkActive="active" class="mobile-nav-link">
+    <img src="assets/icons/community-4squares.svg" [alt]="t('sidebar.communities')" class="mobile-nav-icon">
+    <span class="mobile-nav-label">{{ t('sidebar.communities') }}</span>
+  </a>
+  <a routerLink="/library" routerLinkActive="active" class="mobile-nav-link">
+    <img src="assets/icons/notebook.svg" [alt]="t('sidebar.library')" class="mobile-nav-icon">
+    <span class="mobile-nav-label">{{ t('sidebar.library') }}</span>
+  </a>
+  <a routerLink="/messages" routerLinkActive="active" class="mobile-nav-link">
+    <img src="assets/icons/message-square.svg" [alt]="t('sidebar.messages')" class="mobile-nav-icon">
+    <span class="mobile-nav-label">{{ t('sidebar.messages') }}</span>
+  </a>
+
+  @if (authService.isAdmin()) {
+    <div class="mobile-nav-link mobile-nav-admin" [class.active]="isAdminMenuOpen">
+      <button type="button" class="mobile-nav-admin-btn" (click)="toggleAdminMenu($event)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-nav-admin-icon">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span class="mobile-nav-label">{{ t('sidebar.management') }}</span>
+      </button>
+
+      @if (isAdminMenuOpen) {
+        <div class="mobile-admin-popup">
+          <a routerLink="/admin" routerLinkActive="active" class="mobile-admin-item" (click)="closeAdminMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            {{ t('sidebar.adminPanel') }}
+          </a>
+          <a routerLink="/moderation" routerLinkActive="active" class="mobile-admin-item" (click)="closeAdminMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            {{ t('sidebar.moderation') }}
+          </a>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="mobile-nav-link mobile-nav-profile">
+    <app-profile-dropdown />
+  </div>
+</nav>

@@ -292,6 +292,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  /* Reserve at least one row so a card with no tags keeps the same baseline
+     height; cards with more tags wrap onto additional lines and grow. */
+  min-height: 20px;
 }
 
 .tag {
@@ -301,6 +304,7 @@
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.15);
   color: hsl(0, 0%, 90%);
+  white-space: nowrap;
 }
 
 .tag[data-tag="win"]    { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; }

@@ -765,6 +765,13 @@ dd {
   }
 }
 
+@media (max-width: 768px) {
+  /* Leave room for the fixed bottom navigation bar */
+  .community-detail-page {
+    padding-bottom: 80px;
+  }
+}
+
 
 
 

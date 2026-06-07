@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Sidebar } from "./shared/sidebar/sidebar";
+import { MobileNav } from "./shared/mobile-nav/mobile-nav";
 import { Toast } from "./shared/toast/toast";
 import { MessageAlertComponent } from './shared/message-alert/message-alert';
 import { MessageNotificationService } from './core/services/message-notification.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, Sidebar, Toast, MessageAlertComponent],
+  imports: [CommonModule, RouterOutlet, Sidebar, MobileNav, Toast, MessageAlertComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

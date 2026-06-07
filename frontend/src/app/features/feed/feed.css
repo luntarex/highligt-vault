@@ -766,3 +766,124 @@
   width: 28px;
   height: 28px;
 }
+
+/* === RESPONSIVE: tablet & mobile === */
+@media (max-width: 1024px) {
+  .feed-layout {
+    grid-template-columns: minmax(0, 600px);
+    gap: 0;
+    justify-content: center;
+  }
+
+  .feed-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .feed-page {
+    padding: 20px 12px;
+    /* Clear the fixed mobile bottom nav (60px) + FAB breathing room. */
+    padding-bottom: 88px;
+    /* Prevent the suggestions strip from scrolling the whole page sideways;
+       only the list itself should scroll horizontally. */
+    overflow-x: hidden;
+  }
+
+  /* Stack into one column and float the suggestions above the posts. */
+  .feed-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .feed-main {
+    max-width: 100%;
+  }
+
+  .feed-title {
+    font-size: 20px;
+  }
+
+  /* Re-show the suggestions panel (hidden at the 1024px breakpoint) as a
+     horizontally scrolling strip at the top of the feed. */
+  .feed-main,
+  .feed-sidebar {
+    /* Allow the flex children to shrink so the inner list scrolls instead of
+       stretching the panel past the viewport. */
+    min-width: 0;
+  }
+
+  .feed-sidebar {
+    display: block;
+    order: -1;
+    margin-top: 0;
+    /* Hard-cap to the viewport so the panel (and its footer) can never spill
+       off-screen; the list inside is what scrolls horizontally. */
+    max-width: calc(100vw - 24px);
+  }
+
+  .feed-sidebar .sidebar-panel {
+    max-width: 100%;
+  }
+
+  .feed-sidebar .suggestion-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+    scrollbar-width: none;
+  }
+
+  .feed-sidebar .suggestion-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feed-sidebar .suggestion-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    width: 104px;
+    flex-shrink: 0;
+    padding: 12px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+  }
+
+  .feed-sidebar .suggestion-info {
+    align-items: center;
+  }
+
+  .feed-sidebar .follow-btn-sm {
+    width: 100%;
+  }
+
+  /* Profile dropdown sits top-right; keep it clear of screen edge. */
+  .add-post-fab {
+    bottom: 76px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .add-post-fab svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .comments-modal {
+    margin-left: 0;
+    max-width: 100%;
+    height: 80vh;
+    align-self: flex-end;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .comments-backdrop {
+    align-items: flex-end;
+  }
+}

@@ -9,6 +9,7 @@
     "messages": "Mesajlar",
     "adminPanel": "Yönetici Paneli",
     "moderation": "Moderasyon",
+    "management": "Yönetim",
     "aboutUs": "Hakkımızda"
   },
   "common": {
@@ -378,6 +379,9 @@
     "message": "Mesaj",
     "userTarget": "kullanıcıyı",
     "favoriteClips": "Favori Klipler",
+    "postsTab": "Gönderiler",
+    "favoritesTab": "Favoriler",
+    "noClips": "Henüz gönderi yok.",
     "noFavoriteClips": "Henüz favori klip yok.",
     "loadingClip": "Klip detayları yükleniyor...",
     "noUsers": "Kullanıcı bulunamadı."
@@ -418,12 +422,23 @@
     "deleteCommunityMessage": "Bu topluluğu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "justNow": "Az önce"
   },
+  "time": {
+    "secondsAgo": "{{count}} sn önce",
+    "minutesAgo": "{{count}} dk önce",
+    "hoursAgo": "{{count}} sa önce",
+    "daysAgo": "{{count}} g önce",
+    "monthsAgo": "{{count}} ay önce",
+    "yearsAgo": "{{count}} y önce"
+  },
   "moderation": {
     "title": "Moderasyon Kuyruğu",
     "subtitle": "Otomatik kontroller tarafından işaretlenen klipleri herkese açılmadan önce inceleyin.",
     "uploadsTab": "Yükleme moderasyonu",
     "reportsTab": "Bildirim moderasyonu",
     "communitiesTab": "Topluluk moderasyonu",
+    "uploadsShort": "Klipler",
+    "reportsShort": "Bildirimler",
+    "communitiesShort": "Topluluklar",
     "pendingClips": "Bekleyen Klipler",
     "allStatuses": "Tüm Durumlar",
     "minScore": "Min puan",
@@ -431,6 +446,7 @@
     "clearFilters": "Filtreleri Temizle",
     "noClipsWaiting": "Bekleyen klip yok",
     "queueClear": "Moderasyon kuyruğu boş.",
+    "backToQueue": "Kuyruğa dön",
     "uploadedBy": "{{name}} tarafından yüklendi",
     "status": "Durum",
     "score": "Puan",

@@ -70,3 +70,11 @@
 .arrow.rotated {
   transform: rotate(180deg);
 }
+
+/* On mobile the dropdown fills its container (e.g. the library filter grid)
+   instead of using the fixed desktop width. */
+@media (max-width: 768px) {
+  .dropdown-container {
+    width: 100%;
+  }
+}

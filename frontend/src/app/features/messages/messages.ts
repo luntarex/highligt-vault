@@ -166,6 +166,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.refreshSelectedConversation(false);
   }
 
+  // On mobile the list and chat are stacked; this returns to the list view.
+  closeChat(): void {
+    this.selectedUserId = null;
+    this.currentConversation = [];
+    this.selectedMessageIds.clear();
+    this.cdr.detectChanges();
+  }
+
   refreshSelectedConversation(silent: boolean = false): void {
     if (!this.selectedUserId) return;
     const previousLastId = this.lastMessageId();

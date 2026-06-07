@@ -12,7 +12,8 @@
           <div class="avatar-box">
             <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" decoding="async">
           </div>
-          
+
+          <div class="profile-header-info">
           <div class="user-meta">
             <h1 class="username-display">{{user.username}}</h1>
             <p class="bio-text">{{user.description || t('profile.noBio')}}</p>
@@ -56,19 +57,36 @@
               [compact]="true">
             </app-report-button>
           </div>
+          </div>
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT: Media / Favorite Clips -->
+      <!-- RIGHT CONTENT: Posts / Favorites tabs -->
       <main class="profile-main-content">
         <section class="clips-section">
-          <div class="clips-header">
-            <h2>{{ t('profile.favoriteClips') }}</h2>
-            <div class="header-line"></div>
+          <div class="profile-tabs" role="tablist">
+            <button
+              class="profile-tab"
+              role="tab"
+              [class.active]="activeTab === 'posts'"
+              [attr.aria-selected]="activeTab === 'posts'"
+              (click)="setTab('posts')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>{{ t('profile.postsTab') }}</span>
+            </button>
+            <button
+              class="profile-tab"
+              role="tab"
+              [class.active]="activeTab === 'favorites'"
+              [attr.aria-selected]="activeTab === 'favorites'"
+              (click)="setTab('favorites')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              <span>{{ t('profile.favoritesTab') }}</span>
+            </button>
           </div>
 
           <div class="clips-grid">
-            @for (clip of favoriteClips; track clip.id) {
+            @for (clip of displayedClips; track clip.id) {
             <div class="clip-premium-card" (click)="openClipDetailModal(clip.id)">
               <div class="clip-thumb-wrapper">
                 <img [src]="clip.thumbnailUrl" alt="{{clip.title}}" loading="lazy" decoding="async">
@@ -94,11 +112,15 @@
             }
           </div>
 
-          <div *ngIf="favoriteClips.length === 0" class="empty-favorites">
+          <div *ngIf="displayedClips.length === 0" class="empty-favorites">
             <div class="empty-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              @if (activeTab === 'favorites') {
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              }
             </div>
-            <p>{{ t('profile.noFavoriteClips') }}</p>
+            <p>{{ activeTab === 'favorites' ? t('profile.noFavoriteClips') : t('profile.noClips') }}</p>
           </div>
         </section>
       </main>

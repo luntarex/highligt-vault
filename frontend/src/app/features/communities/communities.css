@@ -517,9 +517,17 @@ dd {
   }
 }
 
+/* Clear the fixed mobile bottom nav (60px). */
+@media (max-width: 768px) {
+  .communities-page {
+    padding-bottom: 80px;
+  }
+}
+
 @media (max-width: 720px) {
   .communities-page {
     padding: 22px;
+    padding-bottom: 80px;
   }
 
   .toolbar {

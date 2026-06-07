@@ -8,55 +8,62 @@
 
 .profile-page-container {
   height: 100%;
-  display: flex;
-  flex-direction: column;
   background-color: hsl(0, 0%, 8%);
   color: #fff;
-  padding: 24px 40px;
+  padding: 24px 40px 60px;
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 
 .back-link {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ────────────────────────────────────────────────────────
-   TWO-COLUMN LAYOUT
+   PROFILE HEADER (social-media style: avatar + info row)
    ──────────────────────────────────────────────────────── */
 .profile-content-layout {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  gap: 48px;
-  max-width: 1400px;
+  display: block;
+  max-width: 1000px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* ────────────────────────────────────────────────────────
-   SIDEBAR (User Card)
-   ──────────────────────────────────────────────────────── */
 .profile-sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
+  width: 100%;
+  margin-bottom: 40px;
 }
 
 .profile-card {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  text-align: left;
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
-  padding: 32px;
+  padding: 36px 40px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  text-align: center;
+}
+
+.profile-header-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .avatar-box {
-  width: 140px;
-  height: 140px;
-  margin: 0 auto 24px;
+  width: 150px;
+  height: 150px;
+  flex-shrink: 0;
   border-radius: 50%;
   padding: 4px;
   background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
@@ -71,43 +78,49 @@
   border: 4px solid hsl(0, 0%, 10%);
 }
 
+.user-meta {
+  width: 100%;
+}
+
 .user-meta .username-display {
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   letter-spacing: -0.5px;
 }
 
 .bio-text {
-  color: #94a3b8;
+  color: #cbd5e1;
   font-size: 0.95rem;
   line-height: 1.6;
-  margin-bottom: 32px;
+  margin: 0;
+  max-width: 620px;
 }
 
-/* Profile Stats Grid */
+/* Stats row (horizontal, plain — like Instagram/Twitter) */
 .profile-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 36px;
+  margin: 0;
 }
 
 .stat-box {
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 1);
-  border: 1px solid var(--glass-border);
-  padding: 16px;
-  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
   display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  transition: color 0.2s ease;
 }
 
 .stat-box .val {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
 }
 
 /* --- CLIP DETAIL MODAL (NEW) --- */
@@ -572,33 +585,33 @@
 }
 
 .stat-box .lbl {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #64748b;
-  margin-top: 4px;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #94a3b8;
+  margin: 0;
 }
 
 .stat-box.interactive {
   cursor: pointer;
 }
 
-.stat-box.interactive:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-  border-color: var(--accent-purple);
+.stat-box.interactive:hover .val,
+.stat-box.interactive:hover .lbl {
+  color: var(--accent-purple);
 }
 
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .follow-action-btn, .message-action-btn {
-  width: 100%;
-  padding: 12px;
+  width: auto;
+  padding: 10px 22px;
   border-radius: 12px;
   font-weight: 600;
   font-size: 0.95rem;
@@ -642,10 +655,9 @@
    MAIN CONTENT (Clips Grid)
    ──────────────────────────────────────────────────────── */
 .profile-main-content {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 20px;
-  padding-bottom: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Scrollbar for clips grid area */
@@ -663,21 +675,45 @@
   background: #444;
 }
 
-.clips-header {
-  margin-bottom: 32px;
+/* Tab bar (Instagram-style: posts grid / favorites) */
+.profile-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  border-top: 1px solid var(--glass-border);
+  margin-bottom: 24px;
 }
 
-.clips-header h2 {
-  font-size: 1.5rem;
+.profile-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
+  padding: 16px 8px;
+  color: #64748b;
+  font-size: 0.8rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.header-line {
-  width: 60px;
-  height: 4px;
-  background: var(--accent-purple);
-  border-radius: 2px;
+.profile-tab svg {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-tab:hover {
+  color: #cbd5e1;
+}
+
+.profile-tab.active {
+  color: #fff;
+  border-top-color: #fff;
 }
 
 .clips-grid {
@@ -951,5 +987,100 @@
 .empty-icon-box {
   margin-bottom: 16px;
   opacity: 0.3;
+}
+
+/* ────────────────────────────────────────────────────────
+   RESPONSIVE: mobile — stack the two columns
+   ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .profile-page-container {
+    padding: 16px 12px 80px;
+  }
+
+  .back-link {
+    margin-bottom: 16px;
+  }
+
+  .profile-sidebar {
+    margin-bottom: 28px;
+  }
+
+  .profile-card {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 18px;
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .avatar-box {
+    width: 84px;
+    height: 84px;
+  }
+
+  /* Dissolve the info wrapper so the avatar + username share the top row and
+     the stats / buttons wrap to their own full-width rows below (IG-style). */
+  .profile-header-info {
+    display: contents;
+  }
+
+  .user-meta {
+    order: 1;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .username-display {
+    font-size: 1.3rem;
+  }
+
+  /* Stats become an evenly-spaced full-width row of four so the numbers and
+     labels line up instead of wrapping unevenly next to the avatar. */
+  .profile-stats-grid {
+    order: 2;
+    flex-basis: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .stat-box {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .stat-box .val {
+    font-size: 1.05rem;
+  }
+
+  .stat-box .lbl {
+    font-size: 0.7rem;
+    line-height: 1.2;
+    color: #94a3b8;
+  }
+
+  .action-buttons {
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .action-buttons .follow-action-btn,
+  .action-buttons .message-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .clips-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .clips-header {
+    margin-bottom: 18px;
+  }
 }
 

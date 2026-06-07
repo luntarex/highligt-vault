@@ -54,7 +54,6 @@
 }
 
 .queue-list,
-.reports-list,
 .details-card,
 .video-card,
 .loading-card,
@@ -72,14 +71,6 @@
   flex-direction: column;
 }
 
-.reports-list {
-  padding: 16px;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
 .queue-header {
   display: flex;
   justify-content: space-between;
@@ -88,28 +79,6 @@
   color: white;
   font-weight: 800;
   flex: 0 0 auto;
-}
-
-.reports-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  color: white;
-  font-weight: 800;
-  flex: 0 0 auto;
-}
-
-.reports-header div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.reports-header small {
-  color: hsl(0, 0%, 58%);
-  font-size: 11px;
 }
 
 .refresh-btn {
@@ -176,214 +145,303 @@
   gap: 8px;
 }
 
-.report-items {
+/* ============================================================
+   Reports & Communities moderation — fresh, responsive design.
+   New, self-contained class names (mr-* / mc-*); no overlap with
+   the uploads queue styles above.
+   ============================================================ */
+
+/* Section shells: centered column, toolbar fixed + content scrolls. */
+.reports-section,
+.communities-section {
+  width: 100%;
+  max-width: 920px;
+  height: calc(100vh - 120px);
+  min-height: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mr-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mr-toolbar-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mr-toolbar-title h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.mr-count {
+  color: hsl(0, 0%, 58%);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Scroll containers */
+.mr-list,
+.mc-grid {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.mr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mr-list::-webkit-scrollbar,
+.mc-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mr-list::-webkit-scrollbar-track,
+.mc-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mr-list::-webkit-scrollbar-thumb,
+.mc-grid::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.35);
+  border-radius: 10px;
+}
+
+/* ---------- Report card ---------- */
+.mr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid hsl(0, 0%, 20%);
+  border-radius: 16px;
+  background: var(--bg-card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mr-card:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.mr-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mr-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.mr-type b {
+  color: #c084fc;
+  font-weight: 800;
+}
+
+.mr-reason {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mr-reporter {
+  margin: 0;
+  color: hsl(0, 0%, 60%);
+  font-size: 12px;
+}
+
+.mr-details {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: hsl(0, 0%, 11%);
+  color: hsl(0, 0%, 78%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Reported target: media + info (responsive row -> column) */
+.mr-target {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.mr-media {
+  flex: 0 0 240px;
+  width: 240px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: hsl(0, 0%, 8%);
+}
+
+.mr-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mr-target-info {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.report-items::-webkit-scrollbar {
-  width: 6px;
-}
-
-.report-items::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.report-items::-webkit-scrollbar-thumb {
-  background: rgba(248, 113, 113, 0.35);
-  border-radius: 10px;
-}
-
-.report-card {
-  border: 1px solid rgba(248, 113, 113, 0.22);
-  background: linear-gradient(145deg, rgba(248, 113, 113, 0.08), rgba(255, 255, 255, 0.035));
-  border-radius: 14px;
-  padding: 12px;
-  color: white;
-}
-
-.report-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.report-type {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fecaca;
-}
-
-.report-reason {
-  border-radius: 999px;
-  background: rgba(248, 113, 113, 0.14);
-  color: #fca5a5;
-  padding: 4px 8px;
-  font-size: 10px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.report-meta,
-.report-details {
-  margin: 0;
-  color: hsl(0, 0%, 68%);
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.report-details {
-  margin-top: 8px;
-}
-
-.report-clip-preview {
-  margin-top: 12px;
-  display: grid;
-  gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.18);
-  padding: 10px;
-}
-
-.report-target-missing {
-  display: grid;
-  gap: 5px;
-  margin-top: 12px;
-  border: 1px dashed rgba(248, 113, 113, 0.32);
-  border-radius: 12px;
-  background: rgba(248, 113, 113, 0.07);
-  color: #fecaca;
-  padding: 11px 12px;
-}
-
-.report-target-missing strong {
-  font-size: 12px;
-}
-
-.report-target-missing span {
-  color: hsl(0, 0%, 68%);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.report-video-wrap {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: 12px;
-  background: hsl(0, 0%, 8%);
-  position: relative;
-}
-
-.report-video-wrap video {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.report-video-open {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.58);
-  color: white;
-  font-size: 11px;
-  font-weight: 900;
-  padding: 7px 10px;
-  text-decoration: none;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
-}
-
-.report-video-open:hover {
-  border-color: rgba(168, 85, 247, 0.72);
-  background: rgba(168, 85, 247, 0.5);
-}
-
-.report-clip-header {
+.mr-target-head {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   align-items: flex-start;
 }
 
-.report-clip-header div {
+.mr-target-titles {
   min-width: 0;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 3px;
 }
 
-.report-clip-header strong {
-  overflow: hidden;
-  color: white;
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.mr-eyebrow {
+  color: hsl(0, 0%, 50%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.report-clip-title {
+.mr-title-link,
+.mr-title {
   overflow: hidden;
-  color: white;
-  font-size: 14px;
-  font-weight: 900;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.report-clip-title:hover {
+.mr-title-link:hover {
   color: #d8b4fe;
   text-decoration: underline;
 }
 
-.report-clip-header small {
-  color: hsl(0, 0%, 62%);
+.mr-uploader {
+  color: hsl(0, 0%, 60%);
+  font-size: 12px;
+}
+
+.mr-pill {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.14);
+  color: #c084fc;
   font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.report-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.mr-chips {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.report-detail-grid div,
-.report-ai-reason,
-.report-comment-preview {
-  min-width: 0;
-  border: 1px solid hsl(0, 0%, 20%);
-  border-radius: 11px;
-  background: hsl(0, 0%, 12%);
-  padding: 9px 10px;
+.mr-chip {
+  flex: 1 1 90px;
+  min-width: 90px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: hsl(0, 0%, 11%);
+  border: 1px solid hsl(0, 0%, 18%);
 }
 
-.report-comment-preview {
-  display: grid;
-  gap: 8px;
-  border-color: rgba(168, 85, 247, 0.28);
-  background: rgba(168, 85, 247, 0.08);
+.mr-chip span {
+  display: block;
+  margin-bottom: 4px;
+  color: hsl(0, 0%, 50%);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.reported-comment-card {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+.mr-chip strong {
+  color: #fff;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.mr-ai {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: hsl(0, 0%, 11%);
+  border: 1px solid hsl(0, 0%, 18%);
+}
+
+.mr-ai p {
+  margin: 6px 0 0;
+  max-height: 90px;
+  overflow-y: auto;
+  color: hsl(0, 0%, 74%);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Reported comment */
+.mr-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: rgba(168, 85, 247, 0.07);
+}
+
+.mr-comment-body {
+  display: flex;
   gap: 10px;
   align-items: flex-start;
 }
 
-.reported-comment-card img {
+.mr-comment-body img {
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -391,190 +449,310 @@
   background: hsl(0, 0%, 16%);
 }
 
-.reported-comment-meta {
+.mr-comment-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mr-comment-meta {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   align-items: center;
-  min-width: 0;
 }
 
-.reported-comment-meta strong {
+.mr-comment-meta strong {
   overflow: hidden;
-  color: white;
+  color: #fff;
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.reported-comment-meta small {
+.mr-comment-meta small {
   flex: 0 0 auto;
-  color: hsl(0, 0%, 56%);
+  color: hsl(0, 0%, 55%);
   font-size: 10px;
 }
 
-.reported-comment-card p,
-.reported-comment-missing {
+.mr-comment-text p {
   margin: 4px 0 0;
-  color: hsl(0, 0%, 78%);
-  font-size: 12px;
+  color: hsl(0, 0%, 80%);
+  font-size: 13px;
   line-height: 1.45;
   word-break: break-word;
 }
 
-.reported-comment-missing {
-  margin-top: 0;
-  color: hsl(0, 0%, 62%);
-}
-
-.comment-report-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.comment-report-actions button {
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 9px 10px;
-  transition: all 0.2s ease;
-}
-
-.comment-report-actions button:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
-
-.delete-comment-btn {
-  border: 1px solid rgba(245, 158, 11, 0.62);
-  background: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
-}
-
-.violation-comment-btn {
-  border: 1px solid rgba(239, 68, 68, 0.65);
-  background: rgba(239, 68, 68, 0.1);
-  color: #fca5a5;
-}
-
-.delete-comment-btn:hover:not(:disabled) {
-  background: rgba(245, 158, 11, 0.18);
-  color: white;
-}
-
-.violation-comment-btn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.18);
-  color: white;
-}
-
-.report-detail-grid strong {
-  display: block;
-  overflow: hidden;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.report-ai-reason p {
-  max-height: 76px;
+.mr-comment-missing {
   margin: 0;
-  overflow-y: auto;
-  padding-right: 4px;
-  color: hsl(0, 0%, 72%);
+  color: hsl(0, 0%, 60%);
   font-size: 12px;
-  line-height: 1.4;
 }
 
-.review-target-btn {
-  border: 1px solid rgba(168, 85, 247, 0.45);
-  border-radius: 10px;
-  background: rgba(168, 85, 247, 0.14);
-  color: #d8b4fe;
-  cursor: pointer;
-  font-weight: 900;
-  padding: 9px 10px;
-  transition: all 0.2s ease;
-}
-
-.open-post-btn {
-  display: flex;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 9px 10px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.review-target-btn:hover {
-  background: rgba(168, 85, 247, 0.24);
-  color: white;
-}
-
-.open-post-btn:hover {
-  border-color: rgba(168, 85, 247, 0.6);
-  background: rgba(168, 85, 247, 0.18);
-  color: #d8b4fe;
-}
-
-.target-link {
-  display: inline-flex;
-  margin-top: 10px;
-  color: #c084fc;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.target-link:hover {
-  text-decoration: underline;
-}
-
-.report-card textarea {
-  margin-top: 10px;
-}
-
-.report-actions {
+.mr-comment-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-top: 10px;
 }
 
-.report-actions button {
-  border-radius: 10px;
-  padding: 9px 10px;
-  font-weight: 900;
+/* Target unavailable */
+.mr-missing {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px dashed rgba(248, 113, 113, 0.32);
+  border-radius: 12px;
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.mr-missing strong {
+  color: #fecaca;
+  font-size: 12px;
+}
+
+.mr-missing span {
+  color: hsl(0, 0%, 66%);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* Quick links */
+.mr-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mr-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.12);
+  color: #d8b4fe;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.report-actions button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+.mr-link:hover {
+  background: rgba(168, 85, 247, 0.22);
+  color: #fff;
 }
 
-.resolve-report-btn {
-  border: 0;
-  color: white;
-  background: #a855f7;
-}
-
-.dismiss-report-btn {
-  border: 1px solid hsl(0, 0%, 30%);
-  color: hsl(0, 0%, 75%);
+.mr-link-ghost {
+  border-color: hsl(0, 0%, 28%);
   background: transparent;
+  color: hsl(0, 0%, 72%);
 }
 
-.report-empty,
-.report-loading {
-  padding: 24px 16px;
+.mr-link-ghost:hover {
+  border-color: #a855f7;
+  background: transparent;
+  color: #c084fc;
+}
+
+/* Decision footer */
+.mr-decision {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid hsl(0, 0%, 16%);
+}
+
+.mr-decision textarea {
+  margin-top: 0;
+}
+
+.mr-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Shared buttons */
+.mr-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mr-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mr-btn-primary {
+  background: #a855f7;
+  color: #fff;
+}
+
+.mr-btn-primary:hover:not(:disabled) {
+  background: #9333ea;
+}
+
+.mr-btn-ghost {
+  background: transparent;
+  border-color: hsl(0, 0%, 30%);
+  color: hsl(0, 0%, 78%);
+}
+
+.mr-btn-ghost:hover:not(:disabled) {
+  border-color: #a855f7;
+  color: #fff;
+}
+
+.mr-btn-warn {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fbbf24;
+}
+
+.mr-btn-warn:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fff;
+}
+
+.mr-btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+}
+
+.mr-btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fff;
+}
+
+/* Empty / loading states */
+.mr-empty,
+.mc-empty,
+.mr-loading {
+  padding: 36px 20px;
+  text-align: center;
+  color: hsl(0, 0%, 68%);
+  border: 1px solid hsl(0, 0%, 18%);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.mr-empty h3,
+.mc-empty h3 {
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+/* ---------- Community grid ---------- */
+.mc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+
+.mc-empty {
+  grid-column: 1 / -1;
+}
+
+.mc-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid hsl(0, 0%, 20%);
+  border-radius: 16px;
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mc-card:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.mc-banner {
+  position: relative;
+}
+
+.mc-banner img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  background: hsl(0, 0%, 12%);
+}
+
+.mc-banner .mr-pill {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.mc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  flex: 1;
+}
+
+.mc-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mc-name {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mc-founder {
+  color: hsl(0, 0%, 62%);
+  font-size: 12px;
+}
+
+.mc-desc {
+  margin: 0;
+  flex: 1;
+  color: hsl(0, 0%, 74%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mc-body textarea {
+  margin-top: 0;
+  font-size: 13px;
+}
+
+/* Stack the report target media above the info on narrow viewports. */
+@media (max-width: 640px) {
+  .mr-target {
+    flex-direction: column;
+  }
+
+  .mr-media {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .mr-actions,
+  .mr-comment-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .queue-items::-webkit-scrollbar {
@@ -814,7 +992,7 @@
 .details-card {
   padding: 14px 16px;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
@@ -865,10 +1043,19 @@
   padding: 10px 14px;
 }
 
+/* Allow grid cells to shrink and long values to wrap instead of forcing the
+   grid wider than its container (which caused horizontal overflow on mobile). */
+.detail-grid div {
+  min-width: 0;
+}
+
+.detail-grid strong {
+  overflow-wrap: anywhere;
+}
+
 .reason-box {
-  min-height: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .label {
@@ -882,9 +1069,9 @@
 
 .reason-box p {
   margin: 0;
-  color: hsl(0, 0%, 75%);
-  line-height: 1.4;
-  max-height: 74px;
+  color: hsl(0, 0%, 82%);
+  line-height: 1.5;
+  max-height: 200px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -979,6 +1166,16 @@ textarea {
   justify-content: center;
 }
 
+/* The mobile uploads card list and short tab labels are hidden on desktop;
+   desktop keeps the master/detail queue and full tab labels. */
+.mod-mobile-uploads {
+  display: none;
+}
+
+.tab-label-short {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .queue-shell {
     grid-template-columns: 1fr;
@@ -986,10 +1183,315 @@ textarea {
   }
 
   .detail-grid,
-  .actions,
-  .comment-report-actions {
+  .actions {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 768px) {
+  /* The shell's .main-content clips overflow, so the page itself must be the
+     scroll container (height:100% + overflow-y:auto) — otherwise content below
+     the fold is unreachable. */
+  /* End the scroll container above the fixed 60px mobile-nav (+ safe area).
+     A flex-column scroll container clips trailing padding from its scrollable
+     height in Chrome, so reserving the space via height (not padding) is what
+     reliably keeps the last card's actions (Yoksay / Reddet) reachable. */
+  .moderation-page {
+    height: calc(100% - 60px - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 12px 16px;
+    align-items: stretch;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  /* Everything inside flows naturally; the page (above) does the scrolling. */
+  .queue-shell,
+  .reports-section,
+  .communities-section {
+    height: auto;
+    overflow: visible;
+  }
+
+  .queue-list,
+  .review-panel,
+  .details-card {
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Everything flows with the page (single natural scroll) instead of nested
+     inner scroll boxes. */
+  .queue-items,
+  .mr-list,
+  .mc-grid {
+    max-height: none;
+    overflow: visible;
+    flex: none;
+  }
+
+  /* Segmented control: equal pills, short labels, active = filled accent.
+     Scoped to .moderation-page so these win over the later base .tabs-nav. */
+  .moderation-page .tabs-nav {
+    gap: 6px;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+  }
+
+  .moderation-page .tabs-nav button {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    gap: 4px;
+    padding: 9px 3px;
+    font-size: 0.7rem;
+    border-radius: 10px;
+  }
+
+  .moderation-page .tabs-nav .badge {
+    min-width: 18px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
+
+  .moderation-page .tabs-nav button .tab-label {
+    display: none;
+  }
+
+  /* Short label may ellipsize if cramped, so the icon (kept at 18px below)
+     stays visible instead of being squeezed to nothing. */
+  .moderation-page .tabs-nav button .tab-label-short {
+    display: inline;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .moderation-page .tabs-nav button.active {
+    background: #a855f7;
+    color: #fff;
+    box-shadow: none;
+  }
+
+  .moderation-page .tabs-nav button.active .badge {
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+  }
+
+  /* Hide the desktop master/detail queue; show the mobile card list instead. */
+  .queue-shell {
+    display: none;
+  }
+
+  .mod-mobile-uploads {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mod-card {
+    border: 1px solid hsl(0, 0%, 20%);
+    border-radius: 16px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+
+  .mod-card-media video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 240px;
+    display: block;
+    background: #000;
+    object-fit: cover;
+  }
+
+  .mod-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .mod-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mod-card-title {
+    min-width: 0;
+  }
+
+  .mod-card-title h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .mod-card-sub {
+    color: hsl(0, 0%, 62%);
+    font-size: 12px;
+  }
+
+  .mod-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .mod-rows div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid hsl(0, 0%, 16%);
+  }
+
+  .mod-rows .label {
+    margin: 0;
+  }
+
+  .mod-rows strong {
+    color: #fff;
+    font-size: 0.9rem;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .mod-reason {
+    margin: 0;
+    color: hsl(0, 0%, 80%);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    max-height: 132px;
+    overflow-y: auto;
+  }
+
+  .mod-reason .label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* Inline coloured decision pills. */
+  .mod-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mod-actions button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 11px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mod-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Detail boxes become clean single-column "label — value" rows so long
+     values (NEEDS_MANUAL_REVIEW, EXTREMIST_OR_HATE) fit on one line instead of
+     breaking mid-word in a cramped 2-column grid. */
+  .detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .detail-grid div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 9px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid hsl(0, 0%, 16%);
+    border-radius: 0;
+  }
+
+  .detail-grid .label {
+    margin: 0;
+    flex: 0 0 auto;
+  }
+
+  .detail-grid strong {
+    overflow: visible;
+    text-align: right;
+    overflow-wrap: normal;
+    white-space: normal;
+    font-size: 0.9rem;
+  }
+
+  .mc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Single-pane review: once a clip is selected, hide the queue list and show
+     only the review panel (with a back button) so the media and the
+     approve/reject/remove decision are clearly visible on a small screen. */
+  .queue-shell.has-selection {
+    grid-template-columns: 1fr;
+  }
+
+  .queue-shell.has-selection .queue-list {
+    display: none;
+  }
+
+  .review-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    margin-bottom: 4px;
+    padding: 8px 14px;
+    border: 1px solid hsl(0, 0%, 28%);
+    border-radius: 10px;
+    background: hsl(0, 0%, 12%);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* Keep the video compact so the details + decision buttons are close by. */
+  .video-card {
+    padding: 8px;
+  }
+
+  .video-container {
+    height: min(30vh, 220px);
+  }
+
+  .details-card {
+    padding: 14px 14px 4px;
+  }
+
+  /* Big, easy-to-tap decision buttons. */
+  .actions button {
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Back button is desktop-hidden; only used to leave the review on mobile. */
+.review-back-btn {
+  display: none;
 }
 
 /* Tabs Nav Matching user-list-page */
@@ -1019,6 +1521,12 @@ textarea {
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 140px;
+}
+
+/* Keep the tab icon at its intended size; flexbox would otherwise shrink the
+   SVG to a sliver when the label + badge fill the button on narrow screens. */
+.tabs-nav button svg {
+  flex: 0 0 auto;
 }
 
 .tabs-nav button:hover {
@@ -1074,99 +1582,21 @@ textarea {
   to { transform: rotate(360deg); }
 }
 
-/* Card Smoothing */
+/* Card Smoothing (uploads queue cards) */
 .queue-list,
-.reports-list,
 .details-card,
 .video-card,
 .loading-card,
-.empty-card,
-.report-card,
-.community-mod-card {
+.empty-card {
   transition: all 0.3s ease;
 }
 
 .queue-list:hover,
-.reports-list:hover,
 .details-card:hover,
 .video-card:hover,
 .loading-card:hover,
-.empty-card:hover,
-.report-card:hover,
-.community-mod-card:hover {
+.empty-card:hover {
   transform: translateY(-3px);
   border-color: #a855f7;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-}
-
-/* Community Mod Grid */
-.community-mod-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
-  padding-right: 4px;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.community-mod-card {
-  border: 1px solid hsl(0, 0%, 20%);
-  border-radius: 14px;
-  background: var(--bg-card);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.community-mod-card img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  background: hsl(0, 0%, 12%);
-}
-
-.community-mod-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 12px;
-}
-
-.community-mod-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.community-mod-top h3 {
-  margin: 0 0 4px 0;
-  color: white;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.community-mod-top span {
-  color: hsl(0, 0%, 65%);
-  font-size: 12px;
-}
-
-.community-mod-body p {
-  margin: 0;
-  color: hsl(0, 0%, 75%);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.community-mod-body textarea {
-  width: 100%;
-  border: 1px solid hsl(0, 0%, 25%);
-  background: hsl(0, 0%, 12%);
-  color: white;
-  border-radius: 10px;
-  padding: 8px 10px;
-  font: inherit;
-  font-size: 13px;
-  resize: vertical;
 }

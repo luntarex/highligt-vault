@@ -218,6 +218,14 @@ export class Moderation implements OnInit {
     this.resetReviewPlayer();
   }
 
+  /** Decide directly from a card's inline buttons (mobile card layout). */
+  decideItem(item: ModerationQueueItem, action: 'APPROVE' | 'REJECT' | 'REMOVE'): void {
+    if (this.isSubmitting) return;
+    this.selectedClip = item;
+    this.decisionReason = '';
+    this.decide(action);
+  }
+
   applyQueueFilters(): void {
     this.loadQueue();
   }

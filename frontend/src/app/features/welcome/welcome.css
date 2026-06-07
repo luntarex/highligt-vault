@@ -210,3 +210,43 @@
   color: #555;
   font-size: 0.8rem;
 }
+
+@media (max-width: 768px) {
+  /* Let the welcome page scroll instead of squeezing everything into 100vh */
+  .welcome-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 24px 12px;
+  }
+
+  .logo-icon,
+  .logo-icon img {
+    width: 96px;
+    height: 96px;
+  }
+
+  .hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .tagline {
+    font-size: 0.98rem;
+  }
+
+  .cta-buttons {
+    width: 100%;
+  }
+
+  .cta-buttons .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

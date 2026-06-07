@@ -48,3 +48,11 @@ html, body {
 * {
     box-sizing: border-box;
 }
+
+/* Utility: hide an element on mobile (e.g. the desktop top-right profile
+   button, which moves into the bottom nav on mobile). */
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+}

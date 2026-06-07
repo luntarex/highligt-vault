@@ -476,7 +476,11 @@
 
 .upload-card {
   width: 100%;
-  height: 220px;
+  /* Stretch to match the clip cards in the same grid row instead of a fixed
+     height, so the "add" card is never shorter/taller than its neighbours. */
+  min-height: 220px;
+  height: auto;
+  align-self: stretch;
   background-color: hsla(var(--muted), 0.2);
   border: 2px dashed hsl(var(--border));
   border-radius: var(--radius);
@@ -550,5 +554,93 @@
   border-radius: 50%;
   background-color: hsl(265, 40%, 68%);
   opacity: 0.6;
+}
+
+/* === RESPONSIVE: mobile === */
+@media (max-width: 768px) {
+  .library-container {
+    padding: 16px 12px 80px;
+  }
+
+  .library-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Row 1: search takes the space, secondary actions become icon-only. */
+  .library-primary-actions {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-box {
+    order: -1;
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  /* Icon-only action buttons (label hidden, tooltip kept via [title]). */
+  .group-clips-btn,
+  .ai-import-btn,
+  .last-deleted-btn {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .group-clips-btn .btn-text,
+  .ai-import-btn .btn-text,
+  .last-deleted-btn .btn-text {
+    display: none;
+  }
+
+  .group-clips-btn .btn-icon,
+  .ai-import-btn .btn-icon {
+    margin: 0;
+  }
+
+  /* Row 2: filters scroll horizontally, trash icon pinned at the end. */
+  .filters {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters app-custom-dropdown {
+    flex: 0 0 auto;
+    width: 150px;
+  }
+
+  .clips-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px;
+  }
+
+  /* Show the "add clip" card first instead of after all clips. */
+  .upload-card {
+    order: -1;
+  }
+
+  .group-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+
+  .groups-toolbar,
+  .selection-toolbar {
+    flex-wrap: wrap;
+  }
 }
 
