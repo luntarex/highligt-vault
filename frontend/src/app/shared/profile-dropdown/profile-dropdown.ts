@@ -7,6 +7,8 @@ import { ProfileService } from '../../core/services/profile.service';
 import { User } from '../../core/models/user';
 import { ImportFoldersDialog } from '../import-folders-dialog/import-folders-dialog';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AppLanguage, LanguageService } from '../../core/services/language.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-profile-dropdown',
@@ -23,6 +25,8 @@ export class ProfileDropdown implements OnInit {
   constructor(
     private authService: AuthService,
     private profileService: ProfileService,
+    public languageService: LanguageService,
+    public themeService: ThemeService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -50,6 +54,14 @@ export class ProfileDropdown implements OnInit {
   toggleProfileMenu(event?: MouseEvent): void {
     if (event) event.stopPropagation();
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  setLanguage(lang: AppLanguage): void {
+    this.languageService.setUiLanguage(lang);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   signOut(): void {
