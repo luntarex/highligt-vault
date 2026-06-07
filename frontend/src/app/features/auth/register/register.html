@@ -31,6 +31,11 @@
           <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
         </button>
       </div>
+      <ul class="password-requirements" [attr.aria-label]="t('auth.passwordRequirements')" aria-live="polite">
+        <li [class.met]="hasPasswordMinLength">{{ t('auth.passwordMinLength') }}</li>
+        <li [class.met]="hasPasswordUppercase">{{ t('auth.passwordUppercase') }}</li>
+        <li [class.met]="hasPasswordSymbol">{{ t('auth.passwordSymbol') }}</li>
+      </ul>
     </div>
       <div class = "form-group">
         <label >{{ t('auth.confirmPassword') }}</label>
@@ -48,7 +53,7 @@
 
 
 
-  <button type="submit" class="submit-btn" [disabled]="!registerForm.valid">
+  <button type="submit" class="submit-btn" [disabled]="!registerForm.valid || !isPasswordValid || registerRequest.password !== registerRequest.confirmPassword">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
         {{ t('auth.createAccount') }}
       </button>

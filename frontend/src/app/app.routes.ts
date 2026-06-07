@@ -42,7 +42,8 @@ export const routes: Routes = [
   },
   {
     path: 'complete-profile',
-    loadComponent: () => import('./features/auth/complete-profile/complete-profile').then(m => m.CompleteProfile)
+    loadComponent: () => import('./features/auth/complete-profile/complete-profile').then(m => m.CompleteProfile),
+    canActivate: [AuthGuard]
   },
   {
     path: 'profile/edit',

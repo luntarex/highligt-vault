@@ -1,4 +1,3 @@
-import { User } from '../../../core/models/user';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +34,27 @@ export class Register {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
+  get hasPasswordMinLength(): boolean {
+    return this.registerRequest.password.length >= 8;
+  }
+
+  get hasPasswordUppercase(): boolean {
+    return /\p{Lu}/u.test(this.registerRequest.password);
+  }
+
+  get hasPasswordSymbol(): boolean {
+    return /[\p{P}\p{S}]/u.test(this.registerRequest.password);
+  }
+
+  get isPasswordValid(): boolean {
+    return this.hasPasswordMinLength && this.hasPasswordUppercase && this.hasPasswordSymbol;
+  }
+
   onSubmit() {
+    if (!this.isPasswordValid || this.registerRequest.password !== this.registerRequest.confirmPassword) {
+      return;
+    }
+
     this.authService.register(this.registerRequest).subscribe({
       next: (res) => {
         if(res) {
