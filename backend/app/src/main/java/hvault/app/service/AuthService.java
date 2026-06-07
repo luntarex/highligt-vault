@@ -83,12 +83,10 @@ public class AuthService {
         }
 
         String normalized = password.toLowerCase(Locale.ROOT);
-        if (password.length() < 10
-            || !password.matches(".*[a-z].*")
-            || !password.matches(".*[A-Z].*")
-            || !password.matches(".*\\d.*")
-            || !password.matches(".*[^A-Za-z0-9].*")) {
-            throw new AuthRegistrationException("Password must be at least 10 characters and include uppercase, lowercase, number, and symbol.");
+        if (password.length() < 8
+            || !password.matches(".*\\p{Lu}.*")
+            || !password.matches(".*[\\p{P}\\p{S}].*")) {
+            throw new AuthRegistrationException("Password must be at least 8 characters and include one uppercase letter and one symbol.");
         }
         if (COMMON_PASSWORDS.contains(normalized)) {
             throw new AuthRegistrationException("Please choose a less common password.");

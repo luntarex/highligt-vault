@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { API_BASE_URL } from '../config/api.config';
 import { RegisterRequest, LoginRequest } from '../models/user';
-import { Observable } from 'rxjs';
-import { tap, shareReplay } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs';
 export class AuthService {
 
   private apiUrl = `${API_BASE_URL}/auth`;
+  private usersUrl = `${API_BASE_URL}/users`;
   private userPhotoSubject = new BehaviorSubject<string>(localStorage.getItem('profile_photo_url') || '');
   public userPhoto$ = this.userPhotoSubject.asObservable();
 
@@ -73,6 +74,29 @@ export class AuthService {
 
   isAdmin(): boolean {
     return this.isLoggedIn() && (localStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === '1');
+  }
+
+  validateCurrentUserExists(): Observable<boolean> {
+    if (!this.isLoggedIn()) {
+      return of(false);
+    }
+
+    const userId = this.getCurrentUserId();
+    if (!userId) {
+      this.logout();
+      return of(false);
+    }
+
+    return this.http.get(`${this.usersUrl}/${userId}`).pipe(
+      map(() => true),
+      catchError((error: HttpErrorResponse) => {
+        if ([401, 403, 404].includes(error.status)) {
+          this.logout();
+          return of(false);
+        }
+        return of(true);
+      })
+    );
   }
 
   getCurrentUserId(): number {

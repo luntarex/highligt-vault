@@ -88,7 +88,11 @@
     "passwordsMismatch": "Parolalar eşleşmiyor.",
     "signIn": "Giriş Yap",
     "createAccount": "Hesap Oluştur",
-    "alreadyHaveAccount": "Zaten hesabınız var mı?"
+    "alreadyHaveAccount": "Zaten hesabınız var mı?",
+    "passwordRequirements": "Şifre gereklilikleri",
+    "passwordMinLength": "En az 8 karakter",
+    "passwordUppercase": "En az 1 büyük harf",
+    "passwordSymbol": "En az 1 sembol"
   },
   "completeProfile": {
     "heading": "Profilini tamamla, {{username}}",

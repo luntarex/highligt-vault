@@ -134,6 +134,43 @@
 .icon-btn:hover { color: var(--text-secondary); }
 .icon-btn svg { width: 20px; height: 20px; }
 
+.password-requirements {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+
+.password-requirements li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.password-requirements li.met {
+  color: var(--success);
+}
+
+.password-requirements li.met::before {
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(var(--success-rgb), 0.12);
+}
+
 /* Button */
 .submit-btn {
   width: 100%;

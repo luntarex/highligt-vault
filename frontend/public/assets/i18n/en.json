@@ -88,7 +88,11 @@
     "passwordsMismatch": "Passwords do not match.",
     "signIn": "Sign In",
     "createAccount": "Create Account",
-    "alreadyHaveAccount": "Already have an account?"
+    "alreadyHaveAccount": "Already have an account?",
+    "passwordRequirements": "Password requirements",
+    "passwordMinLength": "At least 8 characters",
+    "passwordUppercase": "At least 1 uppercase letter",
+    "passwordSymbol": "At least 1 symbol"
   },
   "completeProfile": {
     "heading": "Complete your profile, {{username}}",
