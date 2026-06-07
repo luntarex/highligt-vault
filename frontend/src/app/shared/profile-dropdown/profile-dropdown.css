@@ -103,6 +103,60 @@
   display: none;
 }
 
+.popup-mobile-preferences {
+  display: none;
+}
+
+.popup-preference-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+}
+
+.popup-choice-btn,
+.popup-theme-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.popup-choice-btn {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.popup-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+}
+
+.popup-theme-btn svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.popup-choice-btn:hover,
+.popup-choice-btn.active,
+.popup-theme-btn:hover {
+  background-color: var(--surface-1);
+  border-color: var(--text-muted);
+  color: var(--text-strong);
+}
+
 /* On mobile the dropdown lives in the fixed bottom nav: shrink the avatar and
    open the popup upward instead of downward. */
 @media (max-width: 768px) {
@@ -119,5 +173,14 @@
 
   .popup-item-mobile-only {
     display: flex;
+  }
+
+  .popup-mobile-preferences {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 4px;
+    padding: 8px 10px 2px;
+    border-top: 1px solid var(--border-strong);
   }
 }
