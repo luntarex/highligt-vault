@@ -96,3 +96,28 @@
   color: #ef4444;
   background-color: rgba(239, 68, 68, 0.1);
 }
+
+/* Favorites lives in the desktop sidebar, so this entry only appears on mobile
+   where the sidebar is hidden and the bottom nav has no room for it. */
+.popup-item-mobile-only {
+  display: none;
+}
+
+/* On mobile the dropdown lives in the fixed bottom nav: shrink the avatar and
+   open the popup upward instead of downward. */
+@media (max-width: 768px) {
+  .profile-nav {
+    width: 30px;
+    height: 30px;
+  }
+
+  .profile-popup {
+    top: auto;
+    bottom: calc(100% + 12px);
+    transform-origin: bottom right;
+  }
+
+  .popup-item-mobile-only {
+    display: flex;
+  }
+}

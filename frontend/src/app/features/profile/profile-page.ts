@@ -26,6 +26,8 @@ export class ProfilePage implements OnInit {
 
   user: User | null = null;
   favoriteClips: Clip[] = [];
+  userClips: Clip[] = [];
+  activeTab: 'posts' | 'favorites' = 'posts';
   showUploadModal: boolean = false;
   currentProfileId: string | null = null;
   isFollowing: boolean = false;
@@ -102,6 +104,15 @@ export class ProfilePage implements OnInit {
         console.error('Failed to load clips:', err);
       }
     });
+    this.profileService.getUserClips(id).subscribe({
+      next: (clipsData) => {
+        this.userClips = clipsData;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load user clips:', err);
+      }
+    });
 
     if (id) {
       this.profileService.isFollowing(id).subscribe({
@@ -143,6 +154,14 @@ export class ProfilePage implements OnInit {
   }
 
 
+  get displayedClips(): Clip[] {
+    return this.activeTab === 'posts' ? this.userClips : this.favoriteClips;
+  }
+
+  setTab(tab: 'posts' | 'favorites'): void {
+    this.activeTab = tab;
+  }
+
   addClips(): void {
     this.showUploadModal = true;
   }
@@ -163,22 +182,22 @@ export class ProfilePage implements OnInit {
     const now = new Date();
     const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
 
-    if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+    if (diffInSeconds < 60) return this.transloco.translate('time.secondsAgo', { count: diffInSeconds });
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 60) return this.transloco.translate('time.minutesAgo', { count: diffInMinutes });
 
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 24) return this.transloco.translate('time.hoursAgo', { count: diffInHours });
 
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) return `${diffInDays}d ago`;
+    if (diffInDays < 30) return this.transloco.translate('time.daysAgo', { count: diffInDays });
 
     const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+    if (diffInMonths < 12) return this.transloco.translate('time.monthsAgo', { count: diffInMonths });
 
     const diffInYears = Math.floor(diffInDays / 365);
-    return `${diffInYears}y ago`;
+    return this.transloco.translate('time.yearsAgo', { count: diffInYears });
   }
 
   // Follower/Following Modal Methods
@@ -243,8 +262,9 @@ export class ProfilePage implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load clip post details:', err);
-        // Fallback or show error
-        this.clipModalLoading = false;
+        // This clip has no associated public post (e.g. a private library clip);
+        // close the modal instead of leaving an empty shell open.
+        this.closeClipModal();
         this.cdr.detectChanges();
       }
     });

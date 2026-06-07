@@ -349,3 +349,33 @@ input:focus, textarea:focus {
   30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
   40%, 60% { transform: translate3d(4px, 0, 0); }
 }
+
+@media (max-width: 768px) {
+  .profile-edit-inner {
+    padding: 20px 12px 80px;
+  }
+
+  .edit-header {
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .edit-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .edit-content {
+    padding: 20px 16px;
+    gap: 28px;
+  }
+
+  /* Stack action buttons full-width so they don't crowd on a narrow row */
+  .edit-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .edit-actions button {
+    width: 100%;
+  }
+}

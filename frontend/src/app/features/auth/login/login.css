@@ -192,3 +192,9 @@
   margin-top: 10px;
   transition: opacity 0.2s, transform 0.1s;
 }
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 22px 18px;
+  }
+}

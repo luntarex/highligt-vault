@@ -1,4 +1,4 @@
-<div class="messages-container" *transloco="let t">
+<div class="messages-container" [class.chat-open]="selectedUserId" *transloco="let t">
   <!-- Sidebar: Conversation List -->
   <aside class="conversation-sidebar">
     <div class="sidebar-header">
@@ -102,6 +102,12 @@
   <main class="chat-area">
     <div *ngIf="selectedUserId; else noSelection" class="chat-content">
       <header class="chat-header">
+        <button class="chat-back-btn" (click)="closeChat()" [title]="t('common.cancel')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
         <a class="chat-header-left chat-profile-link" [routerLink]="['/profile', selectedUserId]">
           <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar" decoding="async">
           <div class="header-user-info">

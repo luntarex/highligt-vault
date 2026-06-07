@@ -937,3 +937,76 @@
   color: white;
   transform: scale(1.1);
 }
+
+/* Back button is desktop-hidden; only used to leave the chat on mobile. */
+.chat-back-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ════════════════════════════════════════
+   RESPONSIVE: mobile — single-pane switch
+   ════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Shrink the pane so neither the list nor the composer hides behind the
+     fixed 60px bottom nav. Use dvh so the composer is not pushed below the
+     visible viewport when the mobile browser chrome is showing. */
+  .messages-container {
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+  }
+
+  .conversation-sidebar {
+    width: 100%;
+  }
+
+  /* Chat area is hidden until a conversation is opened. */
+  .chat-area {
+    display: none;
+  }
+
+  .messages-container.chat-open .conversation-sidebar {
+    display: none;
+  }
+
+  .messages-container.chat-open .chat-area {
+    display: flex;
+  }
+
+  .chat-back-btn {
+    display: inline-flex;
+  }
+
+  .chat-header {
+    padding: 12px 14px;
+    /* Keep the back button and the avatar/name grouped on the left instead of
+       space-between pushing the profile to the far right corner. */
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  /* Selection controls (when active) stay pinned to the right edge. */
+  .header-selection-controls {
+    margin-left: auto;
+  }
+
+  .message-history {
+    padding: 16px;
+  }
+
+  .message-wrapper {
+    max-width: 82%;
+  }
+
+  /* Keep the composer above the bottom nav. */
+  .chat-input {
+    padding: 12px 14px;
+  }
+}

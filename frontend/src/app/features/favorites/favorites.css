@@ -51,6 +51,12 @@
   font-weight: 700;
 }
 
+.group-mode-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .group-mode-btn:hover,
 .group-mode-btn.active {
   background-color: rgba(168, 85, 247, 0.16);
@@ -554,4 +560,95 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .favorites-container {
+    padding: 16px 12px 80px;
+  }
+
+  .favorites-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .favorites-title {
+    font-size: 1.5rem;
+  }
+
+  .favorites-subtitle {
+    font-size: 0.85rem;
+  }
+
+  /* Dissolve the wrapper so the back link, title and button can each be
+     ordered individually inside the header column. */
+  .header-actions {
+    display: contents;
+  }
+
+  .header-actions app-back-link {
+    order: -1;
+    align-self: flex-start;
+  }
+
+  .header-content {
+    order: 0;
+  }
+
+  .group-mode-btn {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    padding: 13px 16px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+
+  .groups-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .group-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .clips-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px;
+  }
+
+  .selection-toolbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Fullscreen player tweaks for small screens */
+  .fullscreen-content {
+    padding: 0;
+  }
+
+  .fullscreen-video {
+    max-width: 100vw;
+    max-height: 70vh;
+    border-radius: 0;
+  }
+
+  .hud-top {
+    padding: 16px;
+  }
+
+  .hud-bottom {
+    padding: 16px;
+  }
+
+  .fs-title {
+    font-size: 16px;
+  }
+
+  .hud-controls {
+    gap: 16px;
+  }
 }

@@ -49,8 +49,26 @@
 }
 
 @media (max-width: 768px) {
+  .page-container {
+    height: auto;
+    min-height: 100vh;
+    padding: 16px 12px 80px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-size: 22px;
+  }
+
   .content {
     grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px 16px;
+    border-radius: 16px;
   }
 }
 

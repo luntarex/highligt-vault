@@ -339,3 +339,40 @@ input:focus, textarea:focus, select:focus { border-color: hsl(var(--primary)); }
   transform: translateX(22px);
   background-color: #000;
 }
+
+@media (max-width: 768px) {
+  /* Stack the editor and let the page scroll instead of clipping */
+  .editor-container {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+    padding: 16px 12px 80px;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    overflow: visible;
+    flex: none;
+  }
+
+  .video-section {
+    height: auto;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .video-player {
+    max-height: 56vh;
+  }
+
+  .metadata-sidebar {
+    height: auto;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .save-btn {
+    margin-bottom: 0;
+  }
+}

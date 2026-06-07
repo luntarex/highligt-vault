@@ -187,3 +187,9 @@
   cursor: not-allowed;
 }
 .submit-btn svg { width: 18px; height: 18px; }
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 22px 18px;
+  }
+}

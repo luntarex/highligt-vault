@@ -34,6 +34,11 @@ export class ProfileService {
     return this.http.get<Clip[]>(`${this.apiClipsUrl}/favorites/${userId}`);
   }
 
+  getUserClips(id?: string | null): Observable<Clip[]> {
+    const userId = id ? id : this.authService.getCurrentUserId().toString();
+    return this.http.get<Clip[]>(`${this.apiClipsUrl}?uploaderId=${userId}`);
+  }
+
   updateUserProfile(userId: number, data: { username: string; description: string; profilePhotoUrl: string }): Observable<any> {
     return this.http.put(`${this.apiUsersUrl}/${userId}`, data);
   }

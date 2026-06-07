@@ -220,3 +220,21 @@
 .comments-container::-webkit-scrollbar-thumb:hover {
     background: var(--accent-purple);
 }
+
+@media (max-width: 768px) {
+  .comments-container {
+    padding: 16px 12px 80px;
+  }
+
+  .comments-header h2 {
+    font-size: 20px;
+  }
+
+  .comment-group {
+    padding: 16px;
+  }
+
+  .comment-bubble {
+    padding: 14px;
+  }
+}

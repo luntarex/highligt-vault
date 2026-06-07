@@ -9,6 +9,7 @@
     "messages": "Messages",
     "adminPanel": "Admin Panel",
     "moderation": "Moderation",
+    "management": "Management",
     "aboutUs": "About Us"
   },
   "common": {
@@ -378,6 +379,9 @@
     "message": "Message",
     "userTarget": "user",
     "favoriteClips": "Favorite Clips",
+    "postsTab": "Posts",
+    "favoritesTab": "Favorites",
+    "noClips": "No posts yet.",
     "noFavoriteClips": "No favorite clips yet.",
     "loadingClip": "Loading clip details...",
     "noUsers": "No users found."
@@ -418,12 +422,23 @@
     "deleteCommunityMessage": "Are you sure you want to delete this community? This action cannot be undone.",
     "justNow": "Just now"
   },
+  "time": {
+    "secondsAgo": "{{count}}s ago",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "monthsAgo": "{{count}}mo ago",
+    "yearsAgo": "{{count}}y ago"
+  },
   "moderation": {
     "title": "Moderation Queue",
     "subtitle": "Review clips flagged by automatic checks before they appear publicly.",
     "uploadsTab": "Upload moderation",
     "reportsTab": "Report moderation",
     "communitiesTab": "Community moderation",
+    "uploadsShort": "Clips",
+    "reportsShort": "Reports",
+    "communitiesShort": "Communities",
     "pendingClips": "Pending Clips",
     "allStatuses": "All Statuses",
     "minScore": "Min score",
@@ -431,6 +446,7 @@
     "clearFilters": "Clear filters",
     "noClipsWaiting": "No clips waiting",
     "queueClear": "The moderation queue is clear.",
+    "backToQueue": "Back to queue",
     "uploadedBy": "Uploaded by {{name}}",
     "status": "Status",
     "score": "Score",
