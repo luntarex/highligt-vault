@@ -12,8 +12,8 @@
     right: 0;
     height: 60px;
     padding-bottom: env(safe-area-inset-bottom, 0);
-    background-color: #1e1e1e;
-    border-top: 1px solid hsl(0, 0%, 18%);
+    background-color: var(--surface-app);
+    border-top: 1px solid var(--border-strong);
     z-index: 200;
     justify-content: space-around;
     align-items: stretch;
@@ -27,13 +27,13 @@
     justify-content: center;
     gap: 3px;
     text-decoration: none;
-    color: hsl(0, 0%, 60%);
+    color: var(--text-secondary);
     transition: color 0.2s ease;
     min-width: 0;
   }
 
   .mobile-nav-link.active {
-    color: hsl(265, 40%, 68%);
+    color: var(--brand);
   }
 
   .mobile-nav-icon {
@@ -88,7 +88,7 @@
   }
 
   .mobile-nav-admin.active {
-    color: hsl(265, 40%, 68%);
+    color: var(--brand);
   }
 
   .mobile-admin-popup {
@@ -96,8 +96,8 @@
     bottom: calc(100% + 10px);
     right: 0;
     min-width: 200px;
-    background: #1e1e1e;
-    border: 1px solid hsl(0, 0%, 18%);
+    background: var(--surface-app);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 6px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
@@ -119,7 +119,7 @@
     gap: 12px;
     padding: 12px 14px;
     border-radius: 10px;
-    color: hsl(0, 0%, 82%);
+    color: var(--text-strong);
     text-decoration: none;
     font-size: 0.92rem;
     font-weight: 500;
@@ -127,12 +127,22 @@
 
   .mobile-admin-item svg {
     flex-shrink: 0;
-    color: hsl(265, 40%, 68%);
+    color: var(--brand);
   }
 
   .mobile-admin-item:hover,
   .mobile-admin-item.active {
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
+    background: var(--overlay-hover-strong);
+    color: var(--text-strong);
   }
+}
+
+/* Light mode: source SVG icons are black; reduce the invert so inactive
+   icons stay dark. The active filter already tints to brand purple. */
+:host-context([data-theme="light"]) .mobile-nav-icon {
+  filter: invert(0);
+}
+
+:host-context([data-theme="light"]) .mobile-nav-link.active .mobile-nav-icon {
+  filter: invert(0.6) sepia(1) saturate(4) hue-rotate(230deg);
 }

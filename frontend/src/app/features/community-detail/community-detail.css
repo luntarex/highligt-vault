@@ -1,13 +1,13 @@
 :host {
-  --bg: rgb(30, 30, 30);
-  --bg-main: rgb(30, 30, 30);
-  --panel: rgb(22, 23, 24);
-  --soft: rgb(31, 32, 34);
-  --border: rgb(48, 50, 54);
-  --text: rgb(246, 248, 250);
-  --muted: rgb(167, 176, 185);
-  --accent: rgb(180, 158, 225);
-  --accent-hover: rgba(180, 158, 225, 0.15);
+  --bg: var(--surface-app);
+  --bg-main: var(--surface-app);
+  --panel: var(--surface-app);
+  --soft: var(--surface-2);
+  --border: var(--border-strong);
+  --text: var(--text-strong);
+  --muted: var(--info);
+  --accent: var(--brand-soft);
+  --accent-hover: rgba(var(--brand-rgb), 0.15);
   display: block;
   height: 100vh;
   min-height: 0;
@@ -47,7 +47,7 @@
   margin-top: 12px;
   border-radius: 8px;
   overflow: hidden;
-  background: radial-gradient(circle at center, rgb(44, 46, 50), rgb(18, 19, 21));
+  background: radial-gradient(circle at center, var(--border-strong), var(--surface-app));
 }
 
 .banner img {
@@ -70,7 +70,7 @@
   border: 6px solid var(--bg);
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at center, rgb(44, 46, 50), rgb(18, 19, 21));
+  background: radial-gradient(circle at center, var(--border-strong), var(--surface-app));
   flex-shrink: 0;
 }
 
@@ -189,7 +189,7 @@
 .loading-posts {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgb(37, 37, 38);
+  background: var(--surface-1);
 }
 
 .pinned-row article {
@@ -243,7 +243,7 @@
 }
 
 .composer-main textarea::placeholder {
-  color: rgb(121, 127, 135);
+  color: var(--text-muted);
 }
 
 .composer-footer {
@@ -269,15 +269,15 @@
   height: 36px;
   border-radius: 50%;
   background: transparent;
-  color: #e5e5e5;
+  color: var(--text-strong);
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .options-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
 }
 
 .community-options-menu {
@@ -285,8 +285,8 @@
   top: calc(100% + 8px);
   right: 0;
   width: 200px;
-  background: #1e1e1e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-app);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 12px;
   padding: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -309,7 +309,7 @@
   padding: 10px 12px;
   border: none;
   background: transparent;
-  color: #e5e5e5;
+  color: var(--text-strong);
   font-size: 0.9rem;
   font-weight: 500;
   border-radius: 8px;
@@ -320,17 +320,17 @@
 }
 
 .community-options-menu .menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--overlay-hover-strong);
+  color: var(--text-strong);
 }
 
 .community-options-menu .menu-item.danger {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .community-options-menu .menu-item.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
+  background: rgba(var(--danger-rgb), 0.1);
+  color: var(--danger-soft);
 }
 
 .composer-tools {
@@ -358,7 +358,7 @@
   border: 0;
   border-radius: 999px;
   background: var(--text);
-  color: rgb(19, 20, 22);
+  color: var(--surface-app);
   padding: 10px 18px;
   font-weight: 600;
   cursor: pointer;
@@ -408,7 +408,7 @@
 .text-post-card {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgb(37, 37, 38);
+  background: var(--surface-1);
   padding: 18px 20px;
   overflow: hidden;
 }
@@ -475,13 +475,13 @@
 }
 
 .text-post-admin-actions button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-hover-strong);
   color: var(--text);
 }
 
 .text-post-admin-actions button.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: rgb(248, 113, 113);
+  background: rgba(var(--danger-rgb), 0.12);
+  color: var(--danger);
 }
 
 .text-post-admin-actions svg {
@@ -520,12 +520,12 @@
 }
 
 .action-btn:hover {
-  background-color: rgb(45, 45, 45);
+  background-color: var(--surface-2);
   color: var(--text);
 }
 
 .action-btn.liked {
-  color: rgb(239, 68, 68);
+  color: var(--danger);
 }
 
 .action-btn .icon {
@@ -551,7 +551,7 @@
 }
 
 .c-icon:hover, .s-icon:hover {
-  color: white;
+  color: var(--text-strong);
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -667,7 +667,7 @@ dd {
   aspect-ratio: 16 / 7;
   border: 2px dashed var(--border);
   border-radius: 8px;
-  background: radial-gradient(circle at center, rgb(44, 46, 50), rgb(18, 19, 21));
+  background: radial-gradient(circle at center, var(--border-strong), var(--surface-app));
   color: var(--muted);
   overflow: hidden;
   cursor: pointer;
@@ -778,8 +778,8 @@ dd {
 
 /* Media Drag & Drop styles */
 .composer-card.drag-active {
-  border: 1px dashed rgba(168, 85, 247, 0.8);
-  background: rgba(168, 85, 247, 0.05);
+  border: 1px dashed rgba(var(--brand-rgb), 0.8);
+  background: rgba(var(--brand-rgb), 0.05);
 }
 
 .media-preview {
@@ -806,7 +806,7 @@ dd {
   top: 8px;
   right: 8px;
   background: rgba(0, 0, 0, 0.6);
-  color: white;
+  color: var(--text-strong);
   border: none;
   border-radius: 50%;
   width: 28px;
@@ -819,7 +819,7 @@ dd {
 }
 
 .remove-media-btn:hover {
-  background: rgba(255, 0, 0, 0.8);
+  background: rgba(var(--danger-rgb), 0.8);
 }
 
 
@@ -837,10 +837,10 @@ dd {
 .repost-quoted-card {
   display: block;
   margin: 4px 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 14px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay-hover);
   color: inherit;
   text-decoration: none;
   cursor: pointer;
@@ -848,7 +848,7 @@ dd {
 }
 
 .repost-quoted-card:hover {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(var(--brand-rgb), 0.3);
 }
 
 .repost-quoted-author {
@@ -867,20 +867,20 @@ dd {
 
 .repost-quoted-author strong {
   font-size: 0.82rem;
-  color: #e8e8e8;
+  color: var(--text-strong);
   font-weight: 700;
 }
 
 .repost-quoted-author span {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .repost-quoted-text {
   margin: 0 0 8px;
   font-size: 0.82rem;
-  color: #b0b0b0;
+  color: var(--text-secondary);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -909,26 +909,26 @@ dd {
 .repost-quoted-game {
   min-height: 22px;
   padding: 3px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--overlay-hover);
   border-radius: 6px;
-  background: #2d2d2d;
-  color: #f5f3ff;
+  background: var(--surface-2);
+  color: var(--text-strong);
 }
 
 .repost-quoted-community {
   min-height: 22px;
   padding: 3px 9px;
-  border: 1px solid rgba(192, 132, 252, 0.28);
+  border: 1px solid rgba(var(--brand-rgb), 0.28);
   border-radius: 999px;
-  background: rgba(168, 85, 247, 0.1);
-  color: #c084fc;
+  background: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-soft);
   text-decoration: none;
 }
 
 .repost-quoted-community:hover {
-  color: #fff;
-  border-color: rgba(192, 132, 252, 0.68);
-  background: rgba(168, 85, 247, 0.2);
+  color: var(--brand-contrast);
+  border-color: rgba(var(--brand-rgb), 0.68);
+  background: rgba(var(--brand-rgb), 0.2);
 }
 
 .repost-quoted-media {

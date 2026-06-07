@@ -1,15 +1,15 @@
 :host {
   display: block;
   min-height: 100vh;
-  background-color: var(--bg-main, rgb(30, 30, 30));
-  color: var(--text-primary, #ffffff);
+  background-color: var(--bg-main, var(--surface-app));
+  color: var(--text-primary, var(--text-strong));
   font-family: 'Inter', sans-serif;
-  --bg-main: rgb(30, 30, 30);
-  --bg-card: rgb(37, 37, 38);
-  --text-primary: rgb(255, 255, 255);
-  --text-secondary: rgb(170, 170, 170);
-  --border-color: rgb(51, 51, 51);
-  --accent-purple: rgb(180, 158, 225);
+  --bg-main: var(--surface-app);
+  --bg-card: var(--surface-1);
+  --text-primary: var(--text-strong);
+  --text-secondary: var(--text-secondary);
+  --border-color: var(--border-strong);
+  --accent-purple: var(--brand-soft);
 }
 
 .page-container {
@@ -31,7 +31,7 @@
 .header-title {
   font-size: 28px;
   font-weight: 700;
-  background: linear-gradient(135deg, #fff, #a0a0a0);
+  background: linear-gradient(135deg, var(--text-strong), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -96,9 +96,9 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--overlay-hover-strong);
   backdrop-filter: blur(4px);
-  color: white;
+  color: var(--text-strong);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -110,7 +110,7 @@
 }
 
 .video-container:hover .play-button {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--overlay-hover-strong);
   transform: scale(1.1);
 }
 
@@ -141,7 +141,7 @@
 .progress-container {
   width: 100%;
   height: 4px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--overlay-hover-strong);
   border-radius: 2px;
   cursor: pointer;
   overflow: hidden;
@@ -161,7 +161,7 @@
 .time-display {
   font-size: 12px;
   font-weight: 600;
-  color: white;
+  color: var(--text-strong);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
@@ -170,8 +170,8 @@
   right: 12px;
   bottom: 48px;
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  border: 1px solid var(--overlay-hover-strong);
+  color: var(--text-strong);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -220,7 +220,7 @@
 .game-badge {
   font-size: 11px;
   padding: 4px 8px;
-  background-color: rgb(45, 45, 45);
+  background-color: var(--surface-2);
   color: var(--text-secondary);
   border-radius: 4px;
   font-weight: 600;
@@ -247,8 +247,8 @@
 
 .custom-input {
   width: 100%;
-  background: #151515;
-  border: 1px solid #333;
+  background: var(--surface-app);
+  border: 1px solid var(--border-strong);
   border-radius: 12px;
   padding: 16px;
   color: var(--text-primary);
@@ -262,7 +262,7 @@
 .custom-input:focus {
   outline: none;
   border-color: var(--accent-purple);
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--brand-rgb), 0.2);
 }
 
 .tag-input-wrapper {
@@ -276,9 +276,9 @@
 }
 
 .post-tag {
-  background: rgba(168, 85, 247, 0.1);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-soft);
+  border: 1px solid rgba(var(--brand-rgb), 0.2);
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 13px;
@@ -310,8 +310,8 @@
 
 .submit-btn {
   width: 100%;
-  background: linear-gradient(135deg, var(--accent-purple), #8B5CF6);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-purple), var(--brand));
+  color: var(--brand-contrast);
   border: none;
   padding: 16px;
   border-radius: 12px;
@@ -326,12 +326,12 @@
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #444;
+  background: var(--border-strong);
 }
 
 .submit-btn:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 8px 20px rgba(var(--brand-rgb), 0.4);
 }
 
 .spinner-container {

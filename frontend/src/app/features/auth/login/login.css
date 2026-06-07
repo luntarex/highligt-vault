@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #1e1b26;
-  color: white;
+  background-color: var(--surface-app);
+  color: var(--text-strong);
   font-family: 'Inter', sans-serif;
   padding: 20px;
 }
@@ -22,14 +22,14 @@
 }
 
 .auth-header p {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0;
 }
 
 .auth-card {
-  background-color: #24222a;
-  border: 1px solid #333;
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-strong);
   border-radius: 16px;
   padding: 32px;
   width: 100%;
@@ -46,16 +46,16 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #eaeaea;
+  color: var(--text-strong);
 }
 
 .form-group input {
   width: 100%;
-  background-color: #1a181f;
-  border: 1px solid #333;
+  background-color: var(--surface-app);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 12px 14px;
-  color: white;
+  color: var(--text-strong);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s;
@@ -63,7 +63,7 @@
 }
 
 .form-group input:focus {
-  border-color: #b388eb;
+  border-color: var(--brand-soft);
 }
 
 .input-with-icon {
@@ -81,14 +81,14 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0;
   display: flex;
 }
 
 .icon-btn:hover {
-  color: #aaa;
+  color: var(--text-secondary);
 }
 
 .icon-btn svg {
@@ -98,8 +98,8 @@
 
 .submit-btn {
   width: 100%;
-  background-color: #b388eb;
-  color: black;
+  background-color: var(--brand-soft);
+  color: var(--surface-app);
   border: none;
   border-radius: 8px;
   padding: 12px;
@@ -137,7 +137,7 @@
   align-items: center;
   text-align: center;
   margin: 24px 0;
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
@@ -145,7 +145,7 @@
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-strong);
 }
 
 .divider span {
@@ -155,12 +155,12 @@
 .footer-link {
   text-align: center;
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .footer-link a {
-  color: #b388eb;
+  color: var(--brand-soft);
   text-decoration: none;
   font-weight: 600;
 }
@@ -170,15 +170,15 @@
 }
 
 .error-text {
-  color: #ff4d4d;
+  color: var(--danger);
   font-size: 0.8rem;
   margin-top: 6px;
   display: block;
 }
 .submit-btn{
   width: 100%;
-  background-color: #b388eb;
-  color: black;
+  background-color: var(--brand-soft);
+  color: var(--surface-app);
   border: none;
   border-radius: 8px;
   padding: 12px;

@@ -9,8 +9,8 @@
   width: 280px;
   max-height: 380px;
   overflow: hidden;
-  background: rgba(29, 29, 30, 0.98);
-  border: 1px solid rgba(168, 85, 247, 0.32);
+  background: var(--surface-app);
+  border: 1px solid rgba(var(--brand-rgb), 0.32);
   border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(18px);
@@ -28,18 +28,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 14px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--overlay-hover-strong);
 }
 
 .share-panel-header strong {
-  color: white;
+  color: var(--text-strong);
   font-size: 0.9rem;
 }
 
 .share-panel-header button {
   background: transparent;
   border: none;
-  color: hsl(0, 0%, 70%);
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 1.1rem;
 }
@@ -56,10 +56,10 @@
   display: flex;
   align-items: center;
   padding: 9px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
-  color: rgba(255, 255, 255, 0.78);
+  background: var(--overlay-hover);
+  color: var(--text-strong);
   font-size: 0.76rem;
 }
 
@@ -70,9 +70,9 @@
 }
 
 .share-copy-box > button {
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.16);
-  color: #e9d5ff;
+  border: 1px solid rgba(var(--brand-rgb), 0.4);
+  background: rgba(var(--brand-rgb), 0.16);
+  color: var(--brand-soft);
   border-radius: 12px;
   padding: 9px 12px;
   font-weight: 800;
@@ -80,7 +80,7 @@
 }
 
 .share-copy-box > button:hover {
-  background: rgba(168, 85, 247, 0.28);
+  background: rgba(var(--brand-rgb), 0.28);
 }
 
 .share-target-grid {
@@ -94,7 +94,7 @@
   min-width: 0;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-strong);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -111,7 +111,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text-strong);
   font-size: 0.78rem;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
 }
@@ -123,19 +123,19 @@
 }
 
 .share-target:hover {
-  color: #fff;
+  color: var(--text-strong);
   transform: translateY(-1px);
 }
 
-.share-target.whatsapp span { background: #22c55e; }
-.share-target.x span { background: #111; border: 1px solid rgba(255, 255, 255, 0.14); }
-.share-target.facebook span { background: #2563eb; }
-.share-target.email span { background: #7c3aed; }
+.share-target.whatsapp span { background: var(--success); }
+.share-target.x span { background: var(--surface-app); border: 1px solid var(--overlay-hover-strong); }
+.share-target.facebook span { background: var(--info); }
+.share-target.email span { background: var(--brand); }
 
 /* Share Panel DM Styles */
 .share-section-label {
   padding: 0 14px 8px;
-  color: hsl(0, 0%, 62%);
+  color: var(--text-secondary);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -149,7 +149,7 @@
 .share-message-box label {
   display: block;
   margin-bottom: 6px;
-  color: hsl(0, 0%, 62%);
+  color: var(--text-secondary);
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -159,11 +159,11 @@
 .share-message-box textarea {
   width: 100%;
   resize: none;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 12px;
   outline: none;
-  background: rgba(255, 255, 255, 0.045);
-  color: #fff;
+  background: var(--overlay-hover);
+  color: var(--text-strong);
   padding: 9px 10px;
   font-family: inherit;
   font-size: 0.78rem;
@@ -171,12 +171,12 @@
 }
 
 .share-message-box textarea:focus {
-  border-color: rgba(168, 85, 247, 0.55);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+  border-color: rgba(var(--brand-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.12);
 }
 
 .share-message-box textarea::placeholder {
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--overlay-hover-strong);
 }
 
 .share-user-list {
@@ -193,7 +193,7 @@
   gap: 10px;
   border: none;
   background: transparent;
-  color: white;
+  color: var(--text-strong);
   padding: 8px;
   border-radius: 12px;
   cursor: pointer;
@@ -201,7 +201,7 @@
 }
 
 .share-user-row:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-hover-strong);
 }
 
 .share-user-row img {
@@ -220,13 +220,13 @@
 }
 
 .share-user-row small {
-  color: #c084fc;
+  color: var(--brand-soft);
   font-weight: 800;
 }
 
 .share-empty {
   margin: 0;
   padding: 8px 14px 18px;
-  color: hsl(0, 0%, 65%);
+  color: var(--text-secondary);
   font-size: 0.78rem;
 }

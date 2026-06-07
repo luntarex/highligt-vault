@@ -20,7 +20,7 @@
 
 .card-container.moderation-locked {
   cursor: default;
-  border-color: rgba(245, 158, 11, 0.35);
+  border-color: rgba(var(--warning-rgb), 0.35);
 }
 
 .thumbnail-wrapper {
@@ -28,7 +28,7 @@
   aspect-ratio: 1 / 1;
   width: 100%;
   height: 150px;
-  background-color: #1a1a1a;
+  background-color: var(--surface-app);
 }
 
 .thumbnail-img {
@@ -43,7 +43,7 @@
   border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-strong);
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
 }
@@ -54,8 +54,8 @@
 .moderation-badge {
   top: 6px;
   right: 6px;
-  background: rgba(245, 158, 11, 0.9);
-  color: #111;
+  background: rgba(var(--warning-rgb), 0.9);
+  color: var(--surface-app);
   text-transform: uppercase;
 }
 
@@ -66,7 +66,7 @@
   right: 6px;
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-strong);
   padding: 5px;
   border-radius: 4px;
   cursor: pointer;
@@ -91,9 +91,9 @@
 }
 
 .select-btn.selected {
-  background: #a855f7;
-  border-color: #c084fc;
-  color: white;
+  background: var(--brand);
+  border-color: var(--brand-soft);
+  color: var(--brand-contrast);
 }
 
 .select-btn svg {
@@ -104,8 +104,8 @@
 .action-btn {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  border: 1px solid var(--overlay-hover-strong);
+  color: var(--text-strong);
   padding: 6px;
   border-radius: 6px;
   cursor: pointer;
@@ -116,8 +116,8 @@
 }
 
 .action-btn:hover {
-  background: rgba(168, 85, 247, 0.2);
-  border-color: #a855f7;
+  background: rgba(var(--brand-rgb), 0.2);
+  border-color: var(--brand);
 }
 
 .recover-overlay {
@@ -140,7 +140,7 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.94));
-  color: white;
+  color: var(--text-strong);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -150,13 +150,13 @@
 }
 
 .moderation-overlay strong {
-  color: #fbbf24;
+  color: var(--warning);
   font-size: 0.9rem;
 }
 
 .moderation-overlay p {
   margin: 0;
-  color: hsl(0, 0%, 78%);
+  color: var(--text-strong);
   font-size: 0.7rem;
   line-height: 1.35;
   max-height: 48px;
@@ -168,7 +168,7 @@
   inset: 0;
   z-index: 3;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.88));
-  color: white;
+  color: var(--text-strong);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -178,13 +178,13 @@
 }
 
 .moderation-removed-overlay strong {
-  color: #ff5a5f;
+  color: var(--danger);
   font-size: 0.84rem;
 }
 
 .moderation-removed-overlay p {
   margin: 0;
-  color: hsl(0, 0%, 78%);
+  color: var(--text-strong);
   font-size: 0.68rem;
   line-height: 1.35;
   max-height: 58px;
@@ -193,8 +193,8 @@
 
 .appeal-btn {
   align-self: flex-start;
-  background: #a855f7;
-  color: white;
+  background: var(--brand);
+  color: var(--brand-contrast);
   border: none;
   border-radius: 8px;
   padding: 7px 11px;
@@ -210,7 +210,7 @@
 .recover-btn svg {
   width: 24px;
   height: 24px;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .card-container:hover .delete-btn,
@@ -220,9 +220,9 @@
 
 .delete-btn:hover,
 .group-remove-btn:hover {
-  background: rgba(255, 77, 77, 0.2);
-  color: #ff4d4d;
-  border-color: #ff4d4d;
+  background: rgba(var(--danger-rgb), 0.2);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .delete-btn svg { width: 14px; height: 14px; }
@@ -235,7 +235,7 @@
   right: 6px;
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-strong);
   padding: 5px;
   border-radius: 4px;
   cursor: pointer;
@@ -254,9 +254,9 @@
 .unfav-btn svg { width: 16px; height: 16px; }
 
 .unfav-btn:hover {
-  background: rgba(255, 77, 77, 0.2);
-  color: #ff4d4d;
-  border-color: #ff4d4d;
+  background: rgba(var(--danger-rgb), 0.2);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .hard-delete-btn {
@@ -268,7 +268,7 @@
 .hard-delete-btn svg {
   width: 24px;
   height: 24px;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .clip-info {
@@ -282,7 +282,7 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: hsl(0, 0%, 85%);
+  color: var(--text-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -302,15 +302,15 @@
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.15);
-  color: hsl(0, 0%, 90%);
+  background-color: var(--overlay-hover-strong);
+  color: var(--text-strong);
   white-space: nowrap;
 }
 
-.tag[data-tag="win"]    { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
-.tag[data-tag="ace"]    { background-color: rgba(168, 85, 247, 0.15); color: #c084fc; }
-.tag[data-tag="clutch"] { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-.tag[data-tag="funny"]  { background-color: rgba(234, 179, 8, 0.15);  color: #facc15; }
+.tag[data-tag="win"]    { background-color: rgba(var(--success-rgb), 0.15); color: var(--success); }
+.tag[data-tag="ace"]    { background-color: rgba(var(--brand-rgb), 0.15); color: var(--brand-soft); }
+.tag[data-tag="clutch"] { background-color: rgba(var(--info-rgb), 0.15); color: var(--info); }
+.tag[data-tag="funny"]  { background-color: rgba(var(--warning-rgb), 0.15);  color: var(--warning); }
 
 .clip-date {
   font-size: 0.65rem;

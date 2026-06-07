@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { AppLanguage, LanguageService } from '../../core/services/language.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -18,12 +19,17 @@ export class Sidebar {
   constructor(
     public authService: AuthService,
     public languageService: LanguageService,
+    public themeService: ThemeService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   setLanguage(lang: AppLanguage): void {
     this.languageService.setUiLanguage(lang);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   toggleSidebar() {

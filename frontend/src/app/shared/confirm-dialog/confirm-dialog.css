@@ -36,7 +36,7 @@
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-strong);
   margin: 0;
 }
 
@@ -51,8 +51,8 @@
 }
 
 .close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: var(--overlay-hover-strong);
+  color: var(--text-strong);
 }
 
 .modal-body {
@@ -84,31 +84,31 @@
 
 .btn-cancel {
   background-color: transparent;
-  color: white;
+  color: var(--text-strong);
   border-color: hsl(var(--border));
 }
 
 .btn-cancel:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: white;
+  background-color: var(--overlay-hover);
+  border-color: var(--text-strong);
 }
 
 .btn-confirm {
-  background-color: #a855f7;
-  color: white;
+  background-color: var(--brand);
+  color: var(--brand-contrast);
 }
 
 .btn-confirm:hover {
-  background-color: #9333ea;
+  background-color: var(--brand-hover);
   transform: translateY(-1px);
 }
 
 .btn-confirm.danger {
-  background-color: #ef4444;
+  background-color: var(--danger);
 }
 
 .btn-confirm.danger:hover {
-  background-color: #dc2626;
+  background-color: var(--danger-hover);
 }
 
 @keyframes fadeIn {

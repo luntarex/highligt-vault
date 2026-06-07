@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #1e1b26;
-  color: white;
+  background-color: var(--surface-app);
+  color: var(--text-strong);
   font-family: 'Inter', sans-serif;
   padding: 20px;
 }
@@ -22,14 +22,14 @@
 }
 
 .auth-header p {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0;
 }
 
 .auth-card {
-  background-color: #24222a;
-  border: 1px solid #333;
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-strong);
   border-radius: 16px;
   padding: 32px;
   width: 100%;
@@ -49,9 +49,9 @@
   border-radius: 50%;
   overflow: hidden;
   margin: 0 auto 16px auto;
-  border: 3px solid #b388eb;
+  border: 3px solid var(--brand-soft);
   position: relative;
-  box-shadow: 0 0 20px rgba(179, 136, 235, 0.3);
+  box-shadow: 0 0 20px rgba(var(--info-rgb), 0.3);
   transition: box-shadow 0.3s;
 }
 
@@ -80,7 +80,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.4);
-  color: white;
+  color: var(--text-strong);
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -92,7 +92,7 @@
 .section-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #eaeaea;
+  color: var(--text-strong);
   margin-bottom: 24px;
 }
 
@@ -106,16 +106,16 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #eaeaea;
+  color: var(--text-strong);
 }
 
 .form-group textarea {
   width: 100%;
-  background-color: #1a181f;
-  border: 1px solid #333;
+  background-color: var(--surface-app);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 12px 14px;
-  color: white;
+  color: var(--text-strong);
   font-size: 0.95rem;
   font-family: 'Inter', sans-serif;
   outline: none;
@@ -126,24 +126,24 @@
 }
 
 .form-group textarea:focus {
-  border-color: #b388eb;
+  border-color: var(--brand-soft);
 }
 
 .char-count {
   display: block;
   text-align: right;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 6px;
 }
 
 .folder-settings-btn {
   width: 100%;
   min-height: 42px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
-  background: #1a181f;
-  color: #eaeaea;
+  background: var(--surface-app);
+  color: var(--text-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,7 +153,7 @@
 }
 
 .folder-settings-btn:hover {
-  border-color: #b388eb;
+  border-color: var(--brand-soft);
 }
 
 .folder-settings-btn svg {
@@ -164,8 +164,8 @@
 /* Save Button */
 .submit-btn {
   width: 100%;
-  background-color: #b388eb;
-  color: black;
+  background-color: var(--brand-soft);
+  color: var(--surface-app);
   border: none;
   border-radius: 8px;
   padding: 12px;

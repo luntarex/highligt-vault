@@ -1,10 +1,10 @@
 :host {
-    --bg-main: rgb(30, 30, 30);
-    --bg-card: rgb(37, 37, 38);
-    --text-primary: rgb(255, 255, 255);
-    --text-secondary: rgb(170, 170, 170);
-    --border-color: rgb(51, 51, 51);
-    --accent-purple: rgb(180, 158, 225);
+    --bg-main: var(--surface-app);
+    --bg-card: var(--surface-1);
+    --text-primary: var(--text-strong);
+    --text-secondary: var(--text-secondary);
+    --border-color: var(--border-strong);
+    --accent-purple: var(--brand-soft);
 }
 
 .comments-container {
@@ -58,11 +58,11 @@
 
 .comment-group:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    border-color: rgba(180, 158, 225, 0.3);
+    border-color: rgba(var(--brand-rgb), 0.3);
 }
 
 .comment-bubble {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: var(--overlay-hover);
     border-radius: 16px;
     padding: 20px;
     border-left: 3px solid var(--accent-purple);
@@ -108,17 +108,17 @@
     margin: 0;
     font-size: 15px;
     line-height: 1.6;
-    color: rgb(230, 230, 230);
+    color: var(--text-strong);
 }
 
 /* TOS Violation Styling */
 .comment-bubble.tos-violation {
-  border-left-color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+  border-left-color: var(--danger);
+  background: rgba(var(--danger-rgb), 0.05);
 }
 
 .comment-bubble.tos-violation .comment-content p {
-  color: #ef4444;
+  color: var(--danger);
   font-style: italic;
   font-weight: 500;
 }
@@ -129,9 +129,9 @@
 }
 
 .moderate-btn {
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid rgba(168, 85, 247, 0.5);
-  color: #a855f7;
+  background: rgba(var(--brand-rgb), 0.1);
+  border: 1px solid rgba(var(--brand-rgb), 0.5);
+  color: var(--brand);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -140,8 +140,8 @@
 }
 
 .moderate-btn:hover {
-  background: rgba(168, 85, 247, 0.2);
-  border-color: #a855f7;
+  background: rgba(var(--brand-rgb), 0.2);
+  border-color: var(--brand);
 }
 
 /* Modal Styling */
@@ -160,8 +160,8 @@
 }
 
 .confirm-modal {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-app);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 24px;
   padding: 32px;
   max-width: 400px;
@@ -177,8 +177,8 @@
 }
 
 .modal-tos-btn {
-  background: #a855f7;
-  color: white;
+  background: var(--brand);
+  color: var(--brand-contrast);
   border: none;
   padding: 12px;
   border-radius: 10px;
@@ -188,8 +188,8 @@
 
 .modal-delete-btn {
   background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--danger);
+  border: 1px solid var(--danger);
   padding: 12px;
   border-radius: 10px;
   font-weight: 600;
@@ -198,7 +198,7 @@
 
 .modal-cancel-btn {
   background: transparent;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   border: none;
   padding: 12px;
   cursor: pointer;
@@ -213,7 +213,7 @@
 }
 
 .comments-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--overlay-hover-strong);
     border-radius: 10px;
 }
 

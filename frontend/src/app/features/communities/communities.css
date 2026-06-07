@@ -1,11 +1,11 @@
 :host {
-  --bg-main: rgb(30, 30, 30);
-  --bg-panel: #1e1e1e;
-  --bg-soft: rgb(42, 42, 43);
-  --border: rgb(57, 57, 58);
-  --text: rgb(246, 246, 246);
-  --muted: rgb(170, 170, 170);
-  --accent: rgb(180, 158, 225);
+  --bg-main: var(--surface-app);
+  --bg-panel: var(--surface-app);
+  --bg-soft: var(--border-strong);
+  --border: var(--border-strong);
+  --text: var(--text-strong);
+  --muted: var(--text-secondary);
+  --accent: var(--brand-soft);
   display: block;
   height: 100vh;
   min-height: 0;
@@ -99,7 +99,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: var(--text-secondary);
 }
 
 .search-icon svg {
@@ -112,7 +112,7 @@ textarea {
   box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgb(28, 28, 29);
+  background: var(--surface-app);
   color: var(--text);
   padding: 11px 12px;
   outline: none;
@@ -163,8 +163,8 @@ textarea:focus {
 }
 
 .filter-tabs button:hover {
-  background-color: hsl(0, 0%, 10%);
-  border: 1px solid hsl(265, 40%, 68%);
+  background-color: var(--surface-app);
+  border: 1px solid var(--brand);
   border-radius: 25px;
   color: var(--text);
   transition: all 0.4s;
@@ -174,7 +174,7 @@ textarea:focus {
   color: var(--text);
   border-color: var(--accent);
   border-radius: 25px;
-  background: rgba(180, 158, 225, 0.15);
+  background: rgba(var(--brand-rgb), 0.15);
 }
 
 .content-shell {
@@ -198,8 +198,8 @@ textarea:focus {
   min-height: 254px;
   border: 2px dashed var(--border);
   border-radius: 8px;
-  background: rgba(42, 42, 43, 0.45);
-  color: var(--muted);
+  background: var(--surface-2);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,7 +210,7 @@ textarea:focus {
 .create-card:hover {
   color: var(--text);
   border-color: var(--accent);
-  background: rgba(180, 158, 225, 0.1);
+  background: rgba(var(--brand-rgb), 0.1);
   transform: translateY(-3px);
 }
 
@@ -238,7 +238,7 @@ textarea:focus {
 .thumb-wrap {
   position: relative;
   aspect-ratio: 16 / 9;
-  background: radial-gradient(circle at center, rgb(48, 48, 50), rgb(28, 28, 29));
+  background: radial-gradient(circle at center, var(--border-strong), var(--surface-app));
 }
 
 .thumb-wrap img {
@@ -259,8 +259,10 @@ textarea:focus {
   position: absolute;
   left: 10px;
   top: 10px;
-  background: rgba(0, 0, 0, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
   border-radius: 999px;
   padding: 4px 8px;
   font-size: 12px;
@@ -300,7 +302,7 @@ dt,
 .card-body p {
   min-height: 42px;
   margin: 8px 0 14px;
-  color: rgb(214, 214, 214);
+  color: var(--text-strong);
   line-height: 1.4;
 }
 
@@ -318,8 +320,8 @@ dt,
 
 .join-btn.joined {
   color: var(--accent);
-  background: rgba(180, 158, 225, 0.1);
-  border-color: rgba(180, 158, 225, 0.5);
+  background: rgba(var(--brand-rgb), 0.1);
+  border-color: rgba(var(--brand-rgb), 0.5);
 }
 
 .join-btn:disabled,
@@ -337,7 +339,7 @@ dt,
 
 .detail-panel > img {
   aspect-ratio: 16 / 9;
-  background: rgb(38, 38, 39);
+  background: var(--surface-2);
 }
 
 .detail-panel > div,
@@ -352,7 +354,7 @@ dt,
 }
 
 .detail-panel p {
-  color: rgb(214, 214, 214);
+  color: var(--text-strong);
   line-height: 1.45;
 }
 
@@ -363,7 +365,7 @@ dl {
 }
 
 dl div {
-  background: rgb(28, 28, 29);
+  background: var(--surface-app);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
@@ -446,7 +448,7 @@ dd {
   margin-bottom: 16px;
   border: 2px dashed var(--border);
   border-radius: 8px;
-  background: rgb(28, 28, 29);
+  background: var(--surface-app);
   color: var(--muted);
   display: flex;
   flex-direction: column;

@@ -9,6 +9,31 @@
       <!-- LEFT SIDEBAR: User Info & Stats -->
       <aside class="profile-sidebar">
         <div class="profile-card">
+          <div class="card-menu" *ngIf="!isOwnProfile && user.id">
+            <button
+              type="button"
+              class="card-menu-trigger"
+              (click)="toggleCardMenu($event)"
+              [attr.aria-label]="t('profile.moreOptions')"
+              [attr.title]="t('profile.moreOptions')">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+
+            <div class="card-menu-popup" *ngIf="isCardMenuOpen">
+              <app-report-button
+                [targetType]="'USER'"
+                [targetId]="user.id"
+                [targetLabel]="t('profile.userTarget')"
+                [label]="t('report.report')"
+                [compact]="false">
+              </app-report-button>
+            </div>
+          </div>
+
           <div class="avatar-box">
             <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="Avatar" decoding="async">
           </div>
@@ -48,14 +73,6 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               {{ t('profile.message') }}
             </button>
-            <app-report-button
-              *ngIf="user.id"
-              [targetType]="'USER'"
-              [targetId]="user.id"
-              [targetLabel]="t('profile.userTarget')"
-              [label]="t('report.report')"
-              [compact]="true">
-            </app-report-button>
           </div>
           </div>
         </div>

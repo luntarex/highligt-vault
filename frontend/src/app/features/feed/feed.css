@@ -1,11 +1,11 @@
 :host {
-  --bg-main: rgb(30, 30, 30);
-  --bg-card: rgb(37, 37, 38);
-  --text-primary: rgb(255, 255, 255);
-  --text-secondary: rgb(170, 170, 170);
-  --border-color: rgb(51, 51, 51);
-  --accent-purple: rgb(180, 158, 225);
-  --heart-red: rgb(239, 68, 68);
+  --bg-main: var(--surface-app);
+  --bg-card: var(--surface-1);
+  --text-primary: var(--text-strong);
+  --text-secondary: var(--text-secondary);
+  --border-color: var(--border-strong);
+  --accent-purple: var(--brand-soft);
+  --heart-red: var(--danger);
 }
 
 .feed-page {
@@ -100,7 +100,7 @@
 }
 
 .suggestion-row:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--overlay-hover);
 }
 
 .suggestion-avatar-link {
@@ -128,7 +128,7 @@
 .suggestion-avatar-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.25), rgba(180, 158, 225, 0.1));
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.25), rgba(var(--brand-rgb), 0.1));
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -168,8 +168,8 @@
 
 .follow-btn-sm {
   padding: 5px 14px;
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.2), rgba(180, 158, 225, 0.08));
-  border: 1px solid rgba(180, 158, 225, 0.35);
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.2), rgba(var(--brand-rgb), 0.08));
+  border: 1px solid rgba(var(--brand-rgb), 0.35);
   border-radius: 8px;
   color: var(--accent-purple);
   font-size: 12px;
@@ -180,9 +180,9 @@
 }
 
 .follow-btn-sm:hover {
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.35), rgba(180, 158, 225, 0.18));
-  border-color: rgba(180, 158, 225, 0.55);
-  box-shadow: 0 2px 8px rgba(180, 158, 225, 0.15);
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.35), rgba(var(--brand-rgb), 0.18));
+  border-color: rgba(var(--brand-rgb), 0.55);
+  box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.15);
 }
 
 /* Suggestion Empty */
@@ -241,7 +241,7 @@
 
 .panel-footer-link:hover {
   color: var(--accent-purple);
-  background: rgba(180, 158, 225, 0.04);
+  background: rgba(var(--brand-rgb), 0.04);
 }
 
 .arrow-icon {
@@ -265,7 +265,7 @@
 }
 
 .skeleton-pulse {
-  background: linear-gradient(90deg, rgb(45, 45, 45) 25%, rgb(60, 60, 60) 50%, rgb(45, 45, 45) 75%);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border-strong) 50%, var(--surface-2) 75%);
   background-size: 800px 100%;
   animation: shimmer 1.5s infinite ease-in-out;
   border-radius: 6px;
@@ -336,7 +336,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  background: linear-gradient(180deg, rgba(180, 158, 225, 0.04) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(var(--brand-rgb), 0.04) 0%, transparent 100%);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   animation: fadeIn 0.5s ease;
@@ -346,7 +346,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.15), rgba(180, 158, 225, 0.05));
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.15), rgba(var(--brand-rgb), 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -381,8 +381,8 @@
   gap: 8px;
   margin-top: 8px;
   padding: 10px 24px;
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.2), rgba(180, 158, 225, 0.08));
-  border: 1px solid rgba(180, 158, 225, 0.3);
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.2), rgba(var(--brand-rgb), 0.08));
+  border: 1px solid rgba(var(--brand-rgb), 0.3);
   border-radius: 12px;
   color: var(--accent-purple);
   font-size: 14px;
@@ -393,10 +393,10 @@
 }
 
 .explore-cta:hover {
-  background: linear-gradient(135deg, rgba(180, 158, 225, 0.3), rgba(180, 158, 225, 0.15));
-  border-color: rgba(180, 158, 225, 0.5);
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.3), rgba(var(--brand-rgb), 0.15));
+  border-color: rgba(var(--brand-rgb), 0.5);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(180, 158, 225, 0.15);
+  box-shadow: 0 4px 16px rgba(var(--brand-rgb), 0.15);
 }
 
 .cta-icon {
@@ -493,7 +493,7 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background-color: rgb(55, 55, 55);
+  background-color: var(--border-strong);
 }
 
 .avatar-img {
@@ -532,7 +532,7 @@
 
 .comment-time {
   font-size: 11px;
-  color: rgb(120, 120, 120);
+  color: var(--text-muted);
 }
 
 .comment-text {
@@ -593,7 +593,7 @@
 .cmnt-icon-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--text-strong);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -608,12 +608,12 @@
 
 .cmnt-icon-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--overlay-hover-strong);
 }
 
 .del-msg-btn:hover {
-  color: #ff4757;
-  background: rgba(255, 71, 87, 0.1);
+  color: var(--danger);
+  background: rgba(var(--danger-rgb), 0.1);
 }
 
 .cmnt-icon-btn svg {
@@ -663,14 +663,14 @@
 
 /* TOS Violation Styling */
 .comment-item.tos-violation {
-  border-left: 3px solid #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+  border-left: 3px solid var(--danger);
+  background: rgba(var(--danger-rgb), 0.05);
   padding-left: 8px;
   border-radius: 4px;
 }
 
 .comment-item.tos-violation .comment-text {
-  color: #ef4444;
+  color: var(--danger);
   font-style: italic;
   font-weight: 500;
 }
@@ -691,8 +691,8 @@
 }
 
 .confirm-modal {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-app);
+  border: 1px solid var(--overlay-hover-strong);
   border-radius: 20px;
   padding: 32px;
   max-width: 400px;
@@ -710,8 +710,8 @@
 }
 
 .modal-tos-btn {
-  background: #a855f7;
-  color: white;
+  background: var(--brand);
+  color: var(--brand-contrast);
   border: none;
   padding: 12px;
   border-radius: 10px;
@@ -721,8 +721,8 @@
 
 .modal-delete-btn {
   background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--danger);
+  border: 1px solid var(--danger);
   padding: 12px;
   border-radius: 10px;
   font-weight: 600;
@@ -731,7 +731,7 @@
 
 .modal-cancel-btn {
   background: transparent;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   border: none;
   padding: 12px;
   cursor: pointer;
@@ -745,10 +745,10 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-purple), #8B5CF6);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-purple), var(--brand));
+  color: var(--brand-contrast);
   border: none;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 20px rgba(var(--brand-rgb), 0.4);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -759,7 +759,7 @@
 
 .add-post-fab:hover {
   transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+  box-shadow: 0 8px 25px rgba(var(--brand-rgb), 0.6);
 }
 
 .add-post-fab svg {
@@ -849,7 +849,7 @@
     width: 104px;
     flex-shrink: 0;
     padding: 12px 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--overlay-hover);
     border-radius: 12px;
   }
 

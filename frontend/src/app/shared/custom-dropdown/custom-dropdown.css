@@ -18,8 +18,8 @@
 }
 
 .dropdown-header:hover, .dropdown-header.active {
-  background-color: hsl(0, 0%, 10%);
-  border: 1px solid hsl(265, 40%, 68%);
+  background-color: var(--surface-app);
+  border: 1px solid var(--brand);
   border-radius: 25px;
   outline: none;
   cursor: pointer;

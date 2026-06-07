@@ -8,6 +8,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 import { LanguageService } from './core/services/language.service';
+import { ThemeService } from './core/services/theme.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,6 +25,7 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
-    provideAppInitializer(() => inject(LanguageService).init())
+    provideAppInitializer(() => inject(LanguageService).init()),
+    provideAppInitializer(() => inject(ThemeService).init())
   ]
 };

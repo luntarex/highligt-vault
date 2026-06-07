@@ -10,7 +10,8 @@
     "adminPanel": "Admin Panel",
     "moderation": "Moderation",
     "management": "Management",
-    "aboutUs": "About Us"
+    "aboutUs": "About Us",
+    "toggleTheme": "Toggle theme"
   },
   "common": {
     "save": "Save",
@@ -378,6 +379,7 @@
     "follow": "Follow",
     "message": "Message",
     "userTarget": "user",
+    "moreOptions": "More options",
     "favoriteClips": "Favorite Clips",
     "postsTab": "Posts",
     "favoritesTab": "Favorites",

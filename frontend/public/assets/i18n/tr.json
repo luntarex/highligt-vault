@@ -10,7 +10,8 @@
     "adminPanel": "Yönetici Paneli",
     "moderation": "Moderasyon",
     "management": "Yönetim",
-    "aboutUs": "Hakkımızda"
+    "aboutUs": "Hakkımızda",
+    "toggleTheme": "Temayı değiştir"
   },
   "common": {
     "save": "Kaydet",
@@ -378,6 +379,7 @@
     "follow": "Takip Et",
     "message": "Mesaj",
     "userTarget": "kullanıcıyı",
+    "moreOptions": "Diğer seçenekler",
     "favoriteClips": "Favori Klipler",
     "postsTab": "Gönderiler",
     "favoritesTab": "Favoriler",
