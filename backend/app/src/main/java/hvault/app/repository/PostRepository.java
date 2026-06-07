@@ -2,6 +2,7 @@ package hvault.app.repository;
 
 import hvault.app.entity.Post;
 import hvault.app.repository.projection.PostDetailsView;
+import hvault.app.repository.projection.UserPostView;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -41,6 +42,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
     List<PostDetailsView> findAllPostsWithDetails();
+
+    @Query(value = """
+        SELECT p.id AS postId, p.clip_id AS clipId, p.caption AS caption,
+               c.title AS clipTitle, c.thumbnail_url AS thumbnailUrl,
+               c.duration AS duration, p.created_at AS createdAt,
+               g.name AS gameName
+        FROM posts p
+        JOIN clips c ON p.clip_id = c.id
+        LEFT JOIN games g ON c.game_id = g.id
+        WHERE p.user_id = :userId
+          AND p.community_id IS NULL
+          AND (c.is_deleted = false OR c.is_deleted IS NULL)
+          AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
+          AND c.visibility_status = 'PUBLIC'
+        ORDER BY p.created_at DESC
+        """, nativeQuery = true)
+    List<UserPostView> findUserPostsWithDetails(@Param("userId") Long userId);
 
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,

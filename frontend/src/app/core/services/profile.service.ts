@@ -14,6 +14,7 @@ export class ProfileService {
 
   private apiUsersUrl = `${API_BASE_URL}/users`;
   private apiClipsUrl = `${API_BASE_URL}/clips`;
+  private apiPostsUrl = `${API_BASE_URL}/posts`;
 
   private apiFollowsUrl = `${API_BASE_URL}/follows`;
 
@@ -37,6 +38,12 @@ export class ProfileService {
   getUserClips(id?: string | null): Observable<Clip[]> {
     const userId = id ? id : this.authService.getCurrentUserId().toString();
     return this.http.get<Clip[]>(`${this.apiClipsUrl}?uploaderId=${userId}`);
+  }
+
+  // Posts the user has shared to the feed (post caption/tags, not raw clips).
+  getUserPosts(id?: string | null): Observable<Clip[]> {
+    const userId = id ? id : this.authService.getCurrentUserId().toString();
+    return this.http.get<Clip[]>(`${this.apiPostsUrl}/user/${userId}`);
   }
 
   updateUserProfile(userId: number, data: { username: string; description: string; profilePhotoUrl: string }): Observable<any> {

@@ -105,13 +105,13 @@ export class ProfilePage implements OnInit {
         console.error('Failed to load clips:', err);
       }
     });
-    this.profileService.getUserClips(id).subscribe({
+    this.profileService.getUserPosts(id).subscribe({
       next: (clipsData) => {
         this.userClips = clipsData;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load user clips:', err);
+        console.error('Failed to load user posts:', err);
       }
     });
 
