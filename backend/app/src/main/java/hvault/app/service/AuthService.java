@@ -32,7 +32,8 @@ public class AuthService {
             .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
             .map(user -> {
                 boolean isAdmin = Boolean.TRUE.equals(user.getIsAdmin());
-                String token = jwtService.createToken(user.getId(), user.getUsername(), isAdmin);
+                int tokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+                String token = jwtService.createToken(user.getId(), user.getUsername(), isAdmin, tokenVersion);
                 return new LoginResponse(
                     user.getId(),
                     user.getUsername(),

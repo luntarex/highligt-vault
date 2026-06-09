@@ -55,6 +55,9 @@ public class User {
     @Column(name = "suspended_until")
     private LocalDateTime suspendedUntil;
 
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
     @OneToMany(mappedBy = "uploader")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

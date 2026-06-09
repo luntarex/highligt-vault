@@ -328,3 +328,7 @@ CREATE INDEX idx_content_reports_reporter_target ON content_reports(reporter_id,
 ALTER TABLE posts ADD COLUMN original_post_id BIGINT NULL;
 ALTER TABLE posts ADD COLUMN repost_type VARCHAR(30) NULL;
 ALTER TABLE posts ADD CONSTRAINT fk_posts_original_post FOREIGN KEY (original_post_id) REFERENCES posts(id) ON DELETE SET NULL;
+
+-- Token versioning: lets us invalidate all of a user's existing JWTs at once
+-- (e.g. on password change or to force-logout) by bumping this counter.
+ALTER TABLE users ADD COLUMN token_version INT NOT NULL DEFAULT 0;

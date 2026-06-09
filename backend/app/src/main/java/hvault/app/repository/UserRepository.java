@@ -1,6 +1,7 @@
 package hvault.app.repository;
 
 import hvault.app.entity.User;
+import hvault.app.repository.projection.AuthUserView;
 import hvault.app.repository.projection.SuggestedUserView;
 import hvault.app.repository.projection.UserCompactView;
 import hvault.app.repository.projection.UserListView;
@@ -44,6 +45,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
         WHERE u.email = :email AND (u.isDeleted = false OR u.isDeleted IS NULL)
         """)
     Optional<User> findActiveByEmail(@Param("email") String email);
+
+    @Query("""
+        SELECT u.id AS id, u.username AS username, u.tokenVersion AS tokenVersion
+        FROM User u
+        WHERE u.id = :id AND (u.isDeleted = false OR u.isDeleted IS NULL)
+        """)
+    Optional<AuthUserView> findAuthViewById(@Param("id") Long id);
 
     @Query(value = """
         SELECT
