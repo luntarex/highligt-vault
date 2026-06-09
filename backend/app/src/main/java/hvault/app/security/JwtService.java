@@ -24,7 +24,7 @@ public class JwtService {
     @Value("${app.jwt.expiration-seconds:86400}")
     private long expirationSeconds;
 
-    public String createToken(Long userId, String username, boolean isAdmin) {
+    public String createToken(Long userId, String username, boolean isAdmin, int tokenVersion) {
         try {
             long now = Instant.now().getEpochSecond();
             String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
@@ -32,6 +32,7 @@ public class JwtService {
                 + "\"sub\":\"" + escapeJson(userId.toString()) + "\","
                 + "\"username\":\"" + escapeJson(username) + "\","
                 + "\"role\":\"" + (isAdmin ? "ADMIN" : "USER") + "\","
+                + "\"ver\":" + tokenVersion + ","
                 + "\"iat\":" + now + ","
                 + "\"exp\":" + (now + expirationSeconds)
                 + "}";
@@ -67,7 +68,8 @@ public class JwtService {
             Long userId = Long.valueOf(extractString(payload, "sub"));
             String username = extractString(payload, "username");
             String role = extractString(payload, "role");
-            return new JwtClaims(userId, username, role);
+            int tokenVersion = Integer.parseInt(extractNumber(payload, "ver"));
+            return new JwtClaims(userId, username, role, tokenVersion);
         } catch (Exception e) {
             return null;
         }
@@ -118,5 +120,5 @@ public class JwtService {
         return result == 0;
     }
 
-    public record JwtClaims(Long userId, String username, String role) {}
+    public record JwtClaims(Long userId, String username, String role, int tokenVersion) {}
 }
