@@ -95,9 +95,7 @@ public class ClipService {
         if (!isPubliclyReadable(clip) || userId.equals(clip.getUploaderId())) {
             return clipRepository.getViewCount(clipId);
         }
-        if (clipRepository.insertViewIfAbsent(userId, clipId) > 0) {
-            clipRepository.incrementViewCount(clipId);
-        }
+        clipRepository.insertViewIfAbsent(userId, clipId);
         return clipRepository.getViewCount(clipId);
     }
 
