@@ -111,12 +111,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     @Query(value = "INSERT IGNORE INTO clip_views (user_id, clip_id, viewed_at) VALUES (:userId, :clipId, CURRENT_TIMESTAMP)", nativeQuery = true)
     int insertViewIfAbsent(@Param("userId") Long userId, @Param("clipId") Long clipId);
 
-    @Transactional
-    @Modifying
-    @Query(value = "UPDATE clips SET view_count = COALESCE(view_count, 0) + 1 WHERE id = :clipId", nativeQuery = true)
-    void incrementViewCount(@Param("clipId") Long clipId);
-
-    @Query(value = "SELECT COALESCE(view_count, 0) FROM clips WHERE id = :clipId", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM clip_views WHERE clip_id = :clipId", nativeQuery = true)
     long getViewCount(@Param("clipId") Long clipId);
 
     @Query(value = """
