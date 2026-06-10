@@ -29,4 +29,5 @@ public class ClipResponse {
     private String moderationReason;
     private VisibilityStatus visibilityStatus;
     private String removedReason;
+    private Long viewCount;
 }

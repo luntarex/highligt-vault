@@ -65,7 +65,7 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
                c.moderation_reason AS moderationReason, c.moderation_checked_at AS moderationCheckedAt,
                c.reviewed_by AS reviewedBy, c.reviewed_at AS reviewedAt,
                c.removed_reason AS removedReason, c.removed_at AS removedAt,
-               c.visibility_status AS visibilityStatus
+               c.visibility_status AS visibilityStatus, c.view_count AS viewCount
         FROM user_favorites uf
         JOIN clips c ON uf.clip_id = c.id
         LEFT JOIN games g ON c.game_id = g.id
@@ -105,6 +105,19 @@ public interface ClipRepository extends JpaRepository<Clip, Long> {
     default boolean isFavorited(Long userId, Long clipId) {
         return countFavorite(userId, clipId) > 0;
     }
+
+    @Transactional
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO clip_views (user_id, clip_id, viewed_at) VALUES (:userId, :clipId, CURRENT_TIMESTAMP)", nativeQuery = true)
+    int insertViewIfAbsent(@Param("userId") Long userId, @Param("clipId") Long clipId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE clips SET view_count = COALESCE(view_count, 0) + 1 WHERE id = :clipId", nativeQuery = true)
+    void incrementViewCount(@Param("clipId") Long clipId);
+
+    @Query(value = "SELECT COALESCE(view_count, 0) FROM clips WHERE id = :clipId", nativeQuery = true)
+    long getViewCount(@Param("clipId") Long clipId);
 
     @Query(value = """
         SELECT c.id, c.title, c.video_url AS url, c.thumbnail_url AS thumbnailUrl, c.duration,

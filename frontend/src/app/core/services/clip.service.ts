@@ -121,6 +121,10 @@ export class ClipService {
     return this.http.delete(`${this.apiUrl}/${clipId}/favorite?userId=${userId}`);
   }
 
+  recordView(clipId: number): Observable<{ viewCount: number }> {
+    return this.http.post<{ viewCount: number }>(`${this.apiUrl}/${clipId}/view`, {});
+  }
+
   formatDuration(seconds: number): string {
     if (!seconds) return '0:00';
     const m = Math.floor(seconds / 60);

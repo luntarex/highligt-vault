@@ -7,6 +7,7 @@ export interface ExplorePost {
   game: string;
   likes: number;
   comments: number;
+  views?: number;
   isLiked: boolean;
   timeAgo?: string;
   createdAt?: string;

@@ -20,6 +20,7 @@ public interface PostDetailsView {
     String getAuthorPhoto();
     Long getLikes();
     Long getComments();
+    Long getViews();
     Long getOriginalPostId();
     String getRepostType();
 }

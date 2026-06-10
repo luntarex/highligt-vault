@@ -7,6 +7,7 @@ import { ExplorePost } from '../../core/models/explore-post';
 import { AuthService } from '../../core/services/auth.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ExploreService } from '../../core/services/explore.service';
+import { ClipService } from '../../core/services/clip.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -30,6 +31,8 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   currentUserPhoto = '';
   isLoading = true;
   commentsLoading = false;
+  private viewRecorded = false;
+  private viewTimer: number | null = null;
 
   @ViewChild('videoPlayer') videoRef?: ElementRef<HTMLVideoElement>;
 
@@ -37,6 +40,7 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private exploreService: ExploreService,
+    private clipService: ClipService,
     private commentService: CommentService,
     public authService: AuthService,
     private toast: ToastService,
@@ -69,10 +73,13 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.videoRef?.nativeElement.pause();
+    this.onVideoPause();
   }
 
   loadPost(postId: string): void {
     this.isLoading = true;
+    this.viewRecorded = false;
+    this.onVideoPause();
     this.exploreService.getPostById(postId).subscribe({
       next: post => {
         this.post = {
@@ -257,6 +264,32 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
       video.play().catch(() => {});
     } else {
       video.pause();
+    }
+  }
+
+  onVideoPlay(): void {
+    if (this.viewRecorded || !this.post?.clipId || this.viewTimer !== null) return;
+    const clipId = Number(this.post.clipId);
+    // Count the view only after 2 seconds of continuous playback.
+    this.viewTimer = window.setTimeout(() => {
+      this.viewTimer = null;
+      this.viewRecorded = true;
+      this.clipService.recordView(clipId).subscribe({
+        next: res => {
+          if (this.post) {
+            this.post.views = res.viewCount;
+            this.cdr.detectChanges();
+          }
+        },
+        error: () => { this.viewRecorded = false; }
+      });
+    }, 2000);
+  }
+
+  onVideoPause(): void {
+    if (this.viewTimer !== null) {
+      clearTimeout(this.viewTimer);
+      this.viewTimer = null;
     }
   }
 

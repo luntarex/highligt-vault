@@ -24,6 +24,7 @@ export  interface Clip{
   moderationScore?: number;
   moderationReason?: string;
   removedReason?: string;
+  viewCount?: number;
 
   dateCreated : Date;
 
