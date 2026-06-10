@@ -90,6 +90,8 @@
              disablePictureInPicture
              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
              [attr.data-post-id]="post.id"
+             (play)="onVideoPlay()"
+             (pause)="onVideoPause()"
              (timeupdate)="onTimeUpdate(videoPlayer)"
              (loadedmetadata)="onMetadataLoaded(videoPlayer)">
       </video>
@@ -160,6 +162,16 @@
       </svg>
       <span class="count">{{post.comments}}</span>
     </button>
+
+    @if (post.clipId) {
+      <span class="action-btn views-stat">
+        <svg viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span class="count">{{ post.views || 0 }}</span>
+      </span>
+    }
 
     <button class="action-btn" [class.favorited]="post.isFavorited" (click)="onToggleFavorite()">
       @if (post.isFavorited) {
@@ -299,6 +311,8 @@
                preload="metadata"
                disablePictureInPicture
                controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+               (play)="onVideoPlay()"
+               (pause)="onVideoPause()"
                (timeupdate)="onTimeUpdate(fullscreenVideo)"
                (click)="onTogglePlay(fullscreenVideo)">
         </video>

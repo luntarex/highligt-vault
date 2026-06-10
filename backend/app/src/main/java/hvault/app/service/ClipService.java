@@ -85,6 +85,22 @@ public class ClipService {
         clipRepository.removeClipFromFavoriteGroups(userId, clipId);
     }
 
+    /**
+     * Records a unique view of a clip for the given user and returns the clip's current view count.
+     * A user is counted once per clip; the uploader's own views and views of non-public clips are ignored.
+     */
+    public long recordView(Long clipId, Long userId) {
+        Clip clip = clipRepository.findById(clipId)
+            .orElseThrow(() -> new NoSuchElementException("Clip not found."));
+        if (!isPubliclyReadable(clip) || userId.equals(clip.getUploaderId())) {
+            return clipRepository.getViewCount(clipId);
+        }
+        if (clipRepository.insertViewIfAbsent(userId, clipId) > 0) {
+            clipRepository.incrementViewCount(clipId);
+        }
+        return clipRepository.getViewCount(clipId);
+    }
+
     public List<ClipResponse> getAllClips() {
         return clipRepository.findAllActiveEntities().stream()
             .map(this::toClipResponse)
@@ -312,6 +328,7 @@ public class ClipService {
         response.setModerationReason(clip.getModerationReason());
         response.setVisibilityStatus(parseEnum(VisibilityStatus.class, clip.getVisibilityStatus()));
         response.setRemovedReason(clip.getRemovedReason());
+        response.setViewCount(clip.getViewCount());
         return response;
     }
 
@@ -328,6 +345,7 @@ public class ClipService {
         response.setDateCreated(clip.getDateCreated());
         response.setUploaderId(clip.getUploaderId());
         response.setTags(getTagsSafely(clip.getId()));
+        response.setViewCount(clip.getViewCount());
         return response;
     }
 
@@ -351,6 +369,7 @@ public class ClipService {
         response.setModerationReason(clip.getModerationReason());
         response.setVisibilityStatus(clip.getVisibilityStatus());
         response.setRemovedReason(clip.getRemovedReason());
+        response.setViewCount(clip.getViewCount());
         return response;
     }
 
@@ -367,6 +386,7 @@ public class ClipService {
         response.setDateCreated(clip.getCreatedAt());
         response.setUploaderId(clip.getUploaderId());
         response.setTags(getTagsSafely(clip.getId()));
+        response.setViewCount(clip.getViewCount());
         return response;
     }
 

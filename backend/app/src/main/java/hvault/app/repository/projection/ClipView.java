@@ -24,4 +24,5 @@ public interface ClipView {
     String getRemovedReason();
     LocalDateTime getRemovedAt();
     String getVisibilityStatus();
+    Long getViewCount();
 }

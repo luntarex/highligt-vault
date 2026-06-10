@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS clips (
     removed_reason TEXT,
     removed_at TIMESTAMP NULL,
     visibility_status VARCHAR(30) DEFAULT 'PRIVATE',
+    view_count BIGINT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     uploader_id BIGINT,
     game_id BIGINT,
@@ -55,6 +56,11 @@ CREATE TABLE IF NOT EXISTS clips (
     FOREIGN KEY (game_id) REFERENCES games(id),
     FOREIGN KEY (reviewed_by) REFERENCES users(id)
 );
+
+-- Backfills view_count on databases created before the column existed.
+-- Errors with "Duplicate column" on fresh databases (column already in CREATE above);
+-- this is harmless and swallowed by spring.sql.init.continue-on-error=true.
+ALTER TABLE clips ADD COLUMN view_count BIGINT DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS clip_tags (
     clip_id BIGINT,
@@ -188,6 +194,15 @@ CREATE TABLE IF NOT EXISTS user_favorites (
     FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS clip_views (
+    user_id BIGINT,
+    clip_id BIGINT,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, clip_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (clip_id) REFERENCES clips(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS communities (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -314,6 +329,7 @@ CREATE INDEX idx_messages_user_latest_receiver ON messages(receiver_id, created_
 
 CREATE INDEX idx_favorites_user_created ON user_favorites(user_id, created_at);
 CREATE INDEX idx_favorites_clip ON user_favorites(clip_id);
+CREATE INDEX idx_clip_views_clip ON clip_views(clip_id);
 CREATE INDEX idx_communities_status_created ON communities(moderation_status, created_at);
 CREATE INDEX idx_communities_game ON communities(game_id);
 CREATE INDEX idx_community_members_user ON community_members(user_id, community_id);

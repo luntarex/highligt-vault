@@ -17,6 +17,7 @@ import hvault.app.service.ModerationScanResult;
 import hvault.app.service.ModerationScannerService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -126,6 +127,16 @@ public class ClipController {
     ) {
         clipService.removeFavorite(SecurityUtil.requireCurrentUserId(authentication), id);
         return ResponseEntity.ok(new ApiMessageResponse("Clip unfavorited"));
+    }
+
+    /**
+     * POST /api/clips/{id}/view
+     * Record a unique view for the clip by the current user and return the updated view count.
+     */
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Map<String, Long>> recordView(@PathVariable Long id, Authentication authentication) {
+        long viewCount = clipService.recordView(id, SecurityUtil.requireCurrentUserId(authentication));
+        return ResponseEntity.ok(Map.of("viewCount", viewCount));
     }
 
     /**

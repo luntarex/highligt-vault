@@ -114,4 +114,7 @@ public class Clip {
     @Enumerated(EnumType.STRING)
     @Column(name = "visibility_status", length = 30)
     private VisibilityStatus visibilityStatus;
+
+    @Column(name = "view_count")
+    private Long viewCount;
 }

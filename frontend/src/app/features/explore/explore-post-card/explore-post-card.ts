@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../../core/models/explore-post';
 import { AuthService } from '../../../core/services/auth.service';
 import { ExploreService } from '../../../core/services/explore.service';
+import { ClipService } from '../../../core/services/clip.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { MessageService } from '../../../core/services/message.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -29,6 +30,8 @@ export class ExplorePostCard {
 
   isEditingTitle = false;
   editedTitle = '';
+  private viewRecorded = false;
+  private viewTimer: number | null = null;
   isFullscreen = false;
   isSharePanelOpen = false;
   shareUsers: any[] = [];
@@ -40,6 +43,7 @@ export class ExplorePostCard {
   constructor(
     public authService: AuthService,
     private exploreService: ExploreService,
+    private clipService: ClipService,
     private profileService: ProfileService,
     private messageService: MessageService,
     private toast: ToastService,
@@ -95,6 +99,7 @@ export class ExplorePostCard {
 
   ngOnDestroy(): void {
     this.stopFsProgressLoop();
+    this.onVideoPause();
   }
 
   private startFsProgressLoop(video: HTMLVideoElement) {
@@ -218,6 +223,29 @@ export class ExplorePostCard {
           this.stopFsProgressLoop();
         }
       }, 0);
+    }
+  }
+
+  onVideoPlay() {
+    if (this.viewRecorded || !this.post.clipId || this.viewTimer !== null) return;
+    // Count the view only after 2 seconds of continuous playback.
+    this.viewTimer = window.setTimeout(() => {
+      this.viewTimer = null;
+      this.viewRecorded = true;
+      this.clipService.recordView(Number(this.post.clipId)).subscribe({
+        next: res => {
+          this.post.views = res.viewCount;
+          this.cdr.detectChanges();
+        },
+        error: () => { this.viewRecorded = false; }
+      });
+    }, 2000);
+  }
+
+  onVideoPause() {
+    if (this.viewTimer !== null) {
+      clearTimeout(this.viewTimer);
+      this.viewTimer = null;
     }
   }
 

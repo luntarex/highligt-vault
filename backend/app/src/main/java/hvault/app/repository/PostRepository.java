@@ -22,7 +22,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                g.name AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -38,7 +38,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC'
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
     List<PostDetailsView> findAllPostsWithDetails();
@@ -63,7 +63,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                COALESCE(g.name, cg.name) AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -85,7 +85,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             )
           )
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, cg.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, cg.name, u.id, u.username, u.profile_photo_url
         """, nativeQuery = true)
     List<PostDetailsView> findRowsByPostIdWithDetails(@Param("postId") Long postId);
 
@@ -199,7 +199,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                g.name AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -216,7 +216,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
           AND c.visibility_status = 'PUBLIC'
           AND (p.user_id = :userId OR p.user_id IN (SELECT followed_id FROM follows WHERE follower_id = :userId))
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
     List<PostDetailsView> findFollowingFeedPosts(@Param("userId") Long userId);
@@ -224,7 +224,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                g.name AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -242,7 +242,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC')
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, cg.name, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
     List<PostDetailsView> findPostsByGameId(@Param("gameId") Long gameId);
@@ -250,7 +250,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                COALESCE(g.name, cg.name) AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -275,7 +275,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             )
           )
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, cg.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, cg.name, u.id, u.username, u.profile_photo_url
         ORDER BY p.created_at DESC
         """, nativeQuery = true)
     List<PostDetailsView> findCommunityPosts(@Param("communityId") Long communityId, @Param("gameId") Long gameId);
@@ -283,7 +283,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = """
         SELECT p.id, p.caption, p.created_at AS createdAt, p.clip_id AS clipId, p.community_id AS communityId, cg.name AS communityName, p.original_post_id AS originalPostId, p.repost_type AS repostType,
                c.title AS clipTitle, c.video_url AS videoUrl, c.duration,
-               c.start_time AS startTime, c.end_time AS endTime,
+               c.start_time AS startTime, c.end_time AS endTime, c.view_count AS views,
                g.name AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
@@ -300,7 +300,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
           AND c.moderation_status IN ('APPROVED', 'AUTO_APPROVED')
           AND c.visibility_status = 'PUBLIC'
         GROUP BY p.id, p.caption, p.created_at, p.clip_id, p.community_id, cg.name, p.original_post_id, p.repost_type, c.title, c.video_url, c.duration,
-                 c.start_time, c.end_time, g.name, u.id, u.username, u.profile_photo_url
+                 c.start_time, c.end_time, c.view_count, g.name, u.id, u.username, u.profile_photo_url
         """, nativeQuery = true)
     List<PostDetailsView> findRowsByClipIdWithDetails(@Param("clipId") Long clipId);
 
