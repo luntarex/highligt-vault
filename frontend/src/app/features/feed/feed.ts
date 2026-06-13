@@ -252,9 +252,16 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
       this.stopProgressLoop();
     } else {
       const start = data.post.startTime || 0;
+      let end = data.post.endTime;
+      if (end === undefined || end === null || end === 0) {
+        end = data.video.duration && !isNaN(data.video.duration) ? data.video.duration : Number.MAX_VALUE;
+      }
 
-      // Always reset to clip start when replaying
-      data.video.currentTime = start;
+      // Only seek to the clip start when out of range (first play, ended, or
+      // past the clip bounds); otherwise resume from where it was paused.
+      if (data.video.currentTime < start || ((end - start) > 0.1 && data.video.currentTime >= end) || data.video.ended) {
+        data.video.currentTime = start;
+      }
 
       data.video.play();
       this.playingPostId = data.post.id;
