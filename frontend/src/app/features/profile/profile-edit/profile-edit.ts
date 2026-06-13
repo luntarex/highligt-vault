@@ -9,12 +9,13 @@ import { UserService } from '../../../core/services/user.service';
 import { BackLink } from '../../../shared/back-link/back-link';
 import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { UploadService } from '../../../core/services/upload.service';
+import { AvatarCropper, CroppedAvatar } from '../../../shared/avatar-cropper/avatar-cropper';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-profile-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BackLink, TranslocoModule],
+  imports: [CommonModule, FormsModule, RouterModule, BackLink, AvatarCropper, TranslocoModule],
   templateUrl: './profile-edit.html',
   styleUrl: './profile-edit.css'
 })
@@ -27,6 +28,7 @@ export class ProfileEdit implements OnInit {
   errorMessage: string = '';
   saving: boolean = false;
   showDeleteModal: boolean = false;
+  cropFile: File | null = null;
 
   constructor(
     private profileService: ProfileService,
@@ -57,10 +59,22 @@ export class ProfileEdit implements OnInit {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      this.fileToUpload = file;
-      this.selectedPhotoUrl = URL.createObjectURL(file);
+      this.cropFile = file;
+      this.cdr.detectChanges();
     }
     event.target.value = '';
+  }
+
+  onAvatarCropped(result: CroppedAvatar): void {
+    this.fileToUpload = result.file;
+    this.selectedPhotoUrl = result.previewUrl;
+    this.cropFile = null;
+    this.cdr.detectChanges();
+  }
+
+  onCropCancelled(): void {
+    this.cropFile = null;
+    this.cdr.detectChanges();
   }
 
   onSave(): void {

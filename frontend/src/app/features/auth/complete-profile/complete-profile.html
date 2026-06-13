@@ -54,4 +54,11 @@
     *ngIf="showImportFoldersDialog"
     (closed)="closeImportFolders()">
   </app-import-folders-dialog>
+
+  <app-avatar-cropper
+    *ngIf="cropFile"
+    [file]="cropFile"
+    (cropped)="onAvatarCropped($event)"
+    (cancelled)="onCropCancelled()">
+  </app-avatar-cropper>
 </div>

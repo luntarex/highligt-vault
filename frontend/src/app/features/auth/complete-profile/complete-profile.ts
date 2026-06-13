@@ -8,11 +8,12 @@ import { getSafeErrorMessage } from '../../../core/utils/error-message';
 import { ToastService } from '../../../core/services/toast.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { ImportFoldersDialog } from '../../../shared/import-folders-dialog/import-folders-dialog';
+import { AvatarCropper, CroppedAvatar } from '../../../shared/avatar-cropper/avatar-cropper';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-complete-profile',
-  imports: [CommonModule, FormsModule, ImportFoldersDialog, TranslocoModule],
+  imports: [CommonModule, FormsModule, ImportFoldersDialog, AvatarCropper, TranslocoModule],
   templateUrl: './complete-profile.html',
   styleUrl: './complete-profile.css',
 })
@@ -25,6 +26,7 @@ export class CompleteProfile implements OnInit {
   username: string = '';
   saving: boolean = false;
   showImportFoldersDialog = false;
+  cropFile: File | null = null;
 
   constructor(
     private profileService: ProfileService,
@@ -52,10 +54,22 @@ export class CompleteProfile implements OnInit {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      this.fileToUpload = file;
-      this.customAvatarUrl = URL.createObjectURL(file);
+      this.cropFile = file;
+      this.cdr.detectChanges();
     }
     event.target.value = '';
+  }
+
+  onAvatarCropped(result: CroppedAvatar): void {
+    this.fileToUpload = result.file;
+    this.customAvatarUrl = result.previewUrl;
+    this.cropFile = null;
+    this.cdr.detectChanges();
+  }
+
+  onCropCancelled(): void {
+    this.cropFile = null;
+    this.cdr.detectChanges();
   }
 
   getSelectedAvatarUrl(): string {
