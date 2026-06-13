@@ -21,5 +21,6 @@ public class UserProfileResponse {
     private Long followers;
     private Long following;
     private Long totalClips;
+    private Long totalPosts;
     private Long totalFavorites;
 }

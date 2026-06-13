@@ -124,6 +124,7 @@ public class UserService {
             user.getFollowers(),
             user.getFollowing(),
             user.getTotalClips(),
+            user.getTotalPosts(),
             user.getTotalFavorites()
         );
     }
