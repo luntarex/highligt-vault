@@ -1,0 +1,51 @@
+<div class="cropper-backdrop" *transloco="let t">
+  <div class="cropper-dialog">
+    <div class="cropper-header">
+      <h2>{{ t('avatarCropper.title') }}</h2>
+      <p>{{ t('avatarCropper.hint') }}</p>
+    </div>
+
+    <div
+      class="cropper-viewport"
+      [style.width.px]="viewport"
+      [style.height.px]="viewport"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)">
+      <img
+        *ngIf="loaded"
+        class="cropper-image"
+        [src]="imageUrl"
+        [style.width.px]="dispW"
+        [style.height.px]="dispH"
+        [style.left.px]="posX"
+        [style.top.px]="posY"
+        draggable="false"
+        alt="Crop preview">
+      <div class="cropper-mask"></div>
+    </div>
+
+    <div class="cropper-controls">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+      <input
+        type="range"
+        min="1"
+        [max]="3"
+        step="0.01"
+        [ngModel]="zoom"
+        (ngModelChange)="onZoomChange($event)"
+        [disabled]="!loaded">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+    </div>
+
+    <div class="cropper-actions">
+      <button class="secondary-btn" type="button" (click)="cancel()" [disabled]="saving">
+        {{ t('avatarCropper.cancel') }}
+      </button>
+      <button class="primary-btn" type="button" (click)="apply()" [disabled]="!loaded || saving">
+        {{ t('avatarCropper.apply') }}
+      </button>
+    </div>
+  </div>
+</div>

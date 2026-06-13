@@ -61,5 +61,12 @@
       </div>
     </div>
   </div>
+
+  <app-avatar-cropper
+    *ngIf="cropFile"
+    [file]="cropFile"
+    (cropped)="onAvatarCropped($event)"
+    (cancelled)="onCropCancelled()">
+  </app-avatar-cropper>
  </div>
 </div>

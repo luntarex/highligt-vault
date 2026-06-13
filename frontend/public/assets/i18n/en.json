@@ -104,6 +104,12 @@
     "saving": "Saving...",
     "saveProfile": "Save Profile"
   },
+  "avatarCropper": {
+    "title": "Position your photo",
+    "hint": "Drag to move, use the slider to zoom",
+    "cancel": "Cancel",
+    "apply": "Apply"
+  },
   "aboutUs": {
     "ourTeam": "OUR TEAM"
   },
@@ -377,6 +383,7 @@
   "profile": {
     "noBio": "No bio available yet.",
     "clips": "Clips",
+    "posts": "Posts",
     "favorites": "Favorites",
     "followers": "Followers",
     "following": "Following",

@@ -7,6 +7,7 @@ export interface User {
     createdAt:Date;
     isAdmin:boolean;
     totalClips?: number;
+    totalPosts?: number;
     postCount?: number;
     totalFavorites?: number;
     followers?: number;

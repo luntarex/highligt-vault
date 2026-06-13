@@ -13,5 +13,6 @@ public interface UserProfileView {
     Long getFollowers();
     Long getFollowing();
     Long getTotalClips();
+    Long getTotalPosts();
     Long getTotalFavorites();
 }

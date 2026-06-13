@@ -1,0 +1,125 @@
+.cropper-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.cropper-dialog {
+  width: min(380px, 100%);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--surface-1);
+  color: var(--text-strong);
+  padding: 24px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48);
+}
+
+.cropper-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.cropper-header h2 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cropper-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.cropper-viewport {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--surface-app);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.cropper-viewport:active {
+  cursor: grabbing;
+}
+
+.cropper-image {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+.cropper-mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55) inset;
+  -webkit-mask: radial-gradient(circle closest-side at center, transparent 99.5%, #000 100%);
+  mask: radial-gradient(circle closest-side at center, transparent 99.5%, #000 100%);
+}
+
+.cropper-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 4px 4px;
+  color: var(--text-secondary);
+}
+
+.cropper-controls input[type='range'] {
+  flex: 1;
+  accent-color: var(--brand-soft);
+  cursor: pointer;
+}
+
+.cropper-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.secondary-btn,
+.primary-btn {
+  min-height: 38px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.secondary-btn {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-strong);
+}
+
+.secondary-btn:hover:not(:disabled) {
+  border-color: var(--brand-soft);
+}
+
+.primary-btn {
+  border: none;
+  background: var(--brand-soft);
+  color: var(--surface-app);
+}
+
+.primary-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.secondary-btn:disabled,
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

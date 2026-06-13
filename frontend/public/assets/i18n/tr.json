@@ -104,6 +104,12 @@
     "saving": "Kaydediliyor...",
     "saveProfile": "Profili Kaydet"
   },
+  "avatarCropper": {
+    "title": "Fotoğrafını konumlandır",
+    "hint": "Taşımak için sürükle, yakınlaştırmak için çubuğu kullan",
+    "cancel": "İptal",
+    "apply": "Uygula"
+  },
   "aboutUs": {
     "ourTeam": "EKİBİMİZ"
   },
@@ -377,6 +383,7 @@
   "profile": {
     "noBio": "Henüz biyografi yok.",
     "clips": "Klip",
+    "posts": "Gönderi",
     "favorites": "Favoriler",
     "followers": "Takipçiler",
     "following": "Takip Edilenler",
