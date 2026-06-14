@@ -12,6 +12,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ReportTargetType } from '../../../core/services/report.service';
 import { ReportButtonComponent } from '../../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { buildSlugId } from '../../../core/utils/slug.util';
 
 @Component({
   selector: 'app-explore-post-card',
@@ -20,6 +21,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
   imports: [RouterLink, NgClass, FormsModule, ReportButtonComponent, TranslocoModule]
 })
 export class ExplorePostCard {
+  protected readonly buildSlugId = buildSlugId;
   @Input() post!: ExplorePost;
   @Input() playingPostId: string | null = null;
   @Input() showActions = true;
@@ -38,6 +40,7 @@ export class ExplorePostCard {
   shareMessage = '';
   isLoadingShareUsers = false;
   sendingToUserId: number | null = null;
+  selectedShareUserId: number | null = null;
   private fsAnimationFrameId: number | null = null;
 
   constructor(
@@ -276,6 +279,8 @@ export class ExplorePostCard {
   toggleSharePanel(event: MouseEvent) {
     event.stopPropagation();
     this.isSharePanelOpen = !this.isSharePanelOpen;
+    this.selectedShareUserId = null;
+    this.shareMessage = '';
     if (this.isSharePanelOpen && this.shareUsers.length === 0) {
       this.loadShareUsers();
     }
@@ -325,32 +330,54 @@ export class ExplorePostCard {
     }
   }
 
-  sendPostToUser(event: MouseEvent, user: any) {
+  sendPostToUser(event: Event, user: any) {
     event.stopPropagation();
     this.sendingToUserId = Number(user.id);
-    const message = this.shareMessage.trim() || 'Shared a post';
-    this.messageService.sendPost(user.id, this.post.id, message).subscribe({
+    const note = this.shareMessage.trim();
+
+    // Send the post on its own, then the optional note as a separate message.
+    this.messageService.sendPost(user.id, this.post.id).subscribe({
       next: () => {
-        this.toast.success(`Sent to ${user.username}.`);
-        this.resetSharePanelAfterSend();
+        if (note) {
+          const senderId = this.authService.getCurrentUserId();
+          this.messageService.sendMessage(senderId, Number(user.id), note).subscribe({
+            next: () => this.finishSendToUser(user),
+            error: () => {
+              this.toast.error('Post sent, but the message could not be delivered.');
+              this.sendingToUserId = null;
+              this.cdr.detectChanges();
+            }
+          });
+        } else {
+          this.finishSendToUser(user);
+        }
       },
       error: (err) => {
         console.error('Send message error:', err);
         this.toast.error('Could not send post.');
         this.sendingToUserId = null;
         this.cdr.detectChanges();
-      },
-      complete: () => {
-        if (this.sendingToUserId === Number(user.id)) {
-          this.sendingToUserId = null;
-          this.cdr.detectChanges();
-        }
       }
     });
   }
 
+  private finishSendToUser(user: any): void {
+    this.toast.success(`Sent to ${user.username}.`);
+    this.resetSharePanelAfterSend();
+  }
+
   isSendingTo(user: any): boolean {
     return this.sendingToUserId !== null && this.sendingToUserId === Number(user.id);
+  }
+
+  selectShareUser(user: any) {
+    const id = Number(user.id);
+    this.selectedShareUserId = this.selectedShareUserId === id ? null : id;
+    this.shareMessage = '';
+  }
+
+  isShareUserSelected(user: any): boolean {
+    return this.selectedShareUserId === Number(user.id);
   }
 
   private loadShareUsers() {
@@ -371,7 +398,7 @@ export class ExplorePostCard {
   }
 
   private postShareUrl(): string {
-    return `${window.location.origin}/post/${this.post.id}`;
+    return `${window.location.origin}/post/${buildSlugId(this.post.title, this.post.id)}`;
   }
 
   get shareUrl(): string {
@@ -381,6 +408,7 @@ export class ExplorePostCard {
   private resetSharePanelAfterSend() {
     this.sendingToUserId = null;
     this.shareMessage = '';
+    this.selectedShareUserId = null;
     this.isSharePanelOpen = false;
     this.cdr.detectChanges();
   }

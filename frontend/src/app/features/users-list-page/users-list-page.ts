@@ -55,12 +55,12 @@ export class UsersListPage implements OnInit {
     this.cdr.detectChanges();
   }
 
-  viewProfile(id: number) {
-    this.router.navigate(['/profile', id]);
+  viewProfile(username: string) {
+    this.router.navigate(['/profile', username]);
   }
 
-  viewComments(id: number) {
-    this.router.navigate(['/user-comments', id]);
+  viewComments(username: string) {
+    this.router.navigate(['/user-comments', username]);
   }
 
   onRequestDelete(user: User) {

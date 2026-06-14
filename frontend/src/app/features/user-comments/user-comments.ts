@@ -5,7 +5,9 @@ import { CommentService } from '../../core/services/comment.service';
 import { ActivatedRoute } from '@angular/router';
 import { Comment } from '../../core/models/comment';
 import { UserService } from '../../core/services/user.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { isNumericId } from '../../core/utils/slug.util';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../core/services/toast.service';
 import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card';
@@ -34,14 +36,28 @@ export class UserComments implements OnInit {
     private commentService: CommentService,
     private route: ActivatedRoute,
     private userService: UserService,
+    private profileService: ProfileService,
     private authService: AuthService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('userId');
-    this.userId = idParam ? Number(idParam) : 0;
+    this.isAdmin = this.authService.isAdmin();
+
+    const param = this.route.snapshot.paramMap.get('userId');
+    // Username slug (/user-comments/murat) -> resolve to id; bare numeric ids work directly.
+    if (param && !isNumericId(param)) {
+      this.profileService.getUserByUsername(param).subscribe((user) => {
+        if (user) this.loadForUser(Number(user.id));
+      });
+      return;
+    }
+    this.loadForUser(param ? Number(param) : 0);
+  }
+
+  private loadForUser(userId: number): void {
+    this.userId = userId;
 
     this.commentService.getCommentsByUserId(this.userId).subscribe((comments) => {
       this.comments = comments.map(c => ({
@@ -56,8 +72,6 @@ export class UserComments implements OnInit {
       this.user = user;
       this.cdr.detectChanges();
     });
-
-    this.isAdmin = this.authService.isAdmin();
   }
 
   ngOnDestroy(): void {

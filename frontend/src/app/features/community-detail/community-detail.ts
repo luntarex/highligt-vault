@@ -18,6 +18,7 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ExplorePostCard } from '../explore/explore-post-card/explore-post-card';
 import { PostDetail } from '../post-detail/post-detail';
+import { extractId, buildSlugId } from '../../core/utils/slug.util';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
@@ -34,6 +35,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
   styleUrl: './community-detail.css'
 })
 export class CommunityDetail implements OnInit {
+  protected readonly buildSlugId = buildSlugId;
   community: Community | null = null;
   posts: ExplorePost[] = [];
   isLoading = true;
@@ -109,8 +111,8 @@ export class CommunityDetail implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      const communityId = Number(params.get('id'));
-      if (!Number.isFinite(communityId)) {
+      const communityId = extractId(params.get('id'));
+      if (communityId === null) {
         this.router.navigate(['/communities']);
         return;
       }

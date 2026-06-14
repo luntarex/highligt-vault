@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { buildSlugId } from '../../core/utils/slug.util';
 import { Clip } from '../../core/models/clip';
 import { Comment } from '../../core/models/comment';
 import { Community } from '../../core/models/community';
@@ -24,6 +25,7 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
   styleUrl: './moderation.css'
 })
 export class Moderation implements OnInit {
+  protected readonly buildSlugId = buildSlugId;
   activeSection: 'uploads' | 'reports' | 'communities' = 'uploads';
   queue: ModerationQueueItem[] = [];
   reports: ReportResponse[] = [];
@@ -281,8 +283,8 @@ export class Moderation implements OnInit {
   }
 
   reportTargetRoute(report: ReportResponse): Array<string | number> | null {
-    if (report.targetPostId) return ['/post', report.targetPostId];
-    if (report.targetType === 'POST') return ['/post', report.targetId];
+    if (report.targetPostId) return ['/post', buildSlugId(report.targetClip?.title, report.targetPostId)];
+    if (report.targetType === 'POST') return ['/post', buildSlugId(report.targetClip?.title, report.targetId)];
     if (report.targetType === 'USER') return ['/profile', report.targetId];
     return null;
   }

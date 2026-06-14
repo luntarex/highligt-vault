@@ -7,6 +7,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TranslocoModule } from '@jsverse/transloco';
+import { buildSlugId } from '../../core/utils/slug.util';
 
 @Component({
   selector: 'app-share-panel',
@@ -34,7 +35,7 @@ export class SharePanelComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.shareUrl = `${window.location.origin}/post/${this.post.id}`;
+    this.shareUrl = `${window.location.origin}/post/${buildSlugId(this.post.title, this.post.id)}`;
     this.loadShareUsers();
   }
 

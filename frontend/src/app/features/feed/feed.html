@@ -97,7 +97,7 @@
           <div class="suggestion-list">
             @for (user of suggestedUsers; track user.id) {
               <div class="suggestion-row">
-                <a [routerLink]="['/profile', user.id]" class="suggestion-avatar-link">
+                <a [routerLink]="['/profile', user.username]" class="suggestion-avatar-link">
                   @if (user.profilePhotoUrl) {
                     <img [src]="user.profilePhotoUrl" alt="" class="suggestion-avatar">
                   } @else {
@@ -107,7 +107,7 @@
                   }
                 </a>
                 <div class="suggestion-info">
-                  <a [routerLink]="['/profile', user.id]" class="suggestion-username">{{ user.username }}</a>
+                  <a [routerLink]="['/profile', user.username]" class="suggestion-username">{{ user.username }}</a>
                   @if (user.mutualCount > 0) {
                     <span class="suggestion-mutual">{{ t('feed.mutual', { count: user.mutualCount }) }}</span>
                   } @else {
@@ -214,7 +214,7 @@
                 } @else {
                   <p class="comment-text">
                     @if (comment.replyTargetUserId) {
-                      <a [routerLink]="['/profile', comment.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
+                      <a [routerLink]="['/profile', comment.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
                     }
                     {{ comment.cleanText }}
                   </p>
@@ -283,7 +283,7 @@
                       } @else {
                         <p class="comment-text">
                           @if (reply.replyTargetUserId) {
-                            <a [routerLink]="['/profile', reply.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
+                            <a [routerLink]="['/profile', reply.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
                           }
                           {{ reply.cleanText }}
                         </p>

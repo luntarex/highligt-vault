@@ -161,7 +161,7 @@
                   <a
                     *ngIf="post.originalPost.communityId"
                     class="repost-quoted-community"
-                    [routerLink]="['/communities', post.originalPost.communityId]"
+                    [routerLink]="['/communities', buildSlugId(post.originalPost.communityName, post.originalPost.communityId!)]"
                     (click)="$event.stopPropagation()">
                     {{ communityLabelForPost(post.originalPost) }}
                   </a>
