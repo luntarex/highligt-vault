@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -13,6 +13,7 @@ import { ExplorePost } from '../../core/models/explore-post';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { isNumericId, buildSlugId } from '../../core/utils/slug.util';
 
 @Component({
   selector: 'app-messages',
@@ -39,6 +40,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   showDeleteModal: boolean = false;
   selectedConversationToDelete: number | null = null;
+  openMessageMenuId: number | null = null;
+  selectionMode: boolean = false;
   selectedMessageIds: Set<number> = new Set<number>();
   private refreshTimerId: ReturnType<typeof setInterval> | null = null;
   private tempMessageId = -1;
@@ -67,12 +70,19 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
     this.loadConversations(true);
     this.route.params.subscribe(params => {
-      if (params['userId']) {
-        this.selectUser(Number(params['userId']));
+      const param = params['userId'];
+      if (!param) return;
+      // Username slug (/messages/murat) -> resolve to id; bare numeric ids work directly.
+      if (isNumericId(param)) {
+        this.selectUser(Number(param));
+      } else {
+        this.profileService.getUserByUsername(param).subscribe(user => {
+          if (user) this.selectUser(Number(user.id));
+        });
       }
     });
     this.refreshTimerId = setInterval(() => {
-      if (this.selectedUserId && this.selectedMessageIds.size === 0) {
+      if (this.selectedUserId && this.openMessageMenuId === null && !this.selectionMode) {
         this.refreshSelectedConversation(true);
       } else {
         this.loadConversations(false);
@@ -146,7 +156,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     this.selectedUserId = userId;
-    this.selectedMessageIds.clear();
+    this.openMessageMenuId = null;
+    this.selectionMode = false;
+    this.selectedMessageIds = new Set<number>();
     const conversation = this.conversations.find(c => c.other_user_id === userId);
 
     if (conversation) {
@@ -170,7 +182,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
   closeChat(): void {
     this.selectedUserId = null;
     this.currentConversation = [];
-    this.selectedMessageIds.clear();
+    this.openMessageMenuId = null;
+    this.selectionMode = false;
+    this.selectedMessageIds = new Set<number>();
     this.cdr.detectChanges();
   }
 
@@ -299,47 +313,99 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.selectedConversationToDelete = null;
   }
 
+  toggleMessageMenu(event: Event, messageId: number): void {
+    event.stopPropagation();
+    this.openMessageMenuId = this.openMessageMenuId === messageId ? null : messageId;
+    this.cdr.detectChanges();
+  }
+
+  @HostListener('document:click')
+  closeMessageMenu(): void {
+    if (this.openMessageMenuId !== null) {
+      this.openMessageMenuId = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  canDeleteForEveryone(message: Message): boolean {
+    return message.senderId === this.currentUserId && message.canDeleteForEveryone === true;
+  }
+
+  deleteMessage(message: Message, scope: 'me' | 'everyone'): void {
+    this.openMessageMenuId = null;
+    this.messageService.deleteMessage(message.id, scope).subscribe(() => {
+      this.currentConversation = this.currentConversation.filter(m => m.id !== message.id);
+      this.loadConversations(false);
+      this.cdr.detectChanges();
+    });
+  }
+
+  // ── Bulk selection (entered from the ⋯ menu) ──
+  enterSelectionMode(message: Message): void {
+    this.openMessageMenuId = null;
+    this.selectionMode = true;
+    this.selectedMessageIds = new Set<number>([message.id]);
+    this.cdr.detectChanges();
+  }
+
+  exitSelectionMode(): void {
+    this.selectionMode = false;
+    this.selectedMessageIds = new Set<number>();
+    this.cdr.detectChanges();
+  }
+
   toggleMessageSelection(messageId: number): void {
+    if (!this.selectionMode) return;
     if (this.selectedMessageIds.has(messageId)) {
       this.selectedMessageIds.delete(messageId);
     } else {
       this.selectedMessageIds.add(messageId);
     }
     this.selectedMessageIds = new Set(this.selectedMessageIds);
-    this.cdr.detectChanges();
-  }
-
-  confirmMessageDeletion(scope: 'me' | 'everyone' = 'me'): void {
-    if (this.selectedMessageIds.size > 0) {
-      const idsToDelete = Array.from(this.selectedMessageIds);
-      this.messageService.deleteMessages(idsToDelete, scope).subscribe(() => {
-        this.currentConversation = this.currentConversation.filter(m => !this.selectedMessageIds.has(m.id));
-        this.clearSelection();
-        this.loadConversations(false);
-        this.cdr.detectChanges();
-      });
+    if (this.selectedMessageIds.size === 0) {
+      this.selectionMode = false;
     }
+    this.cdr.detectChanges();
   }
 
-  clearSelection(): void {
-    this.selectedMessageIds = new Set<number>();
-    this.cdr.detectChanges();
+  isMessageSelected(messageId: number): boolean {
+    return this.selectedMessageIds.has(messageId);
   }
 
   canDeleteSelectedForEveryone(): boolean {
-    const selectedMessages = this.selectedMessages();
-    return selectedMessages.length > 0
-      && selectedMessages.every(message =>
-        message.senderId === this.currentUserId && message.canDeleteForEveryone === true
-      );
+    const selected = this.currentConversation.filter(m => this.selectedMessageIds.has(m.id));
+    return selected.length > 0 && selected.every(m => this.canDeleteForEveryone(m));
   }
 
-  private selectedMessages(): Message[] {
-    return this.currentConversation.filter(message => this.selectedMessageIds.has(message.id));
+  deleteSelected(scope: 'me' | 'everyone'): void {
+    if (this.selectedMessageIds.size === 0) return;
+    const ids = Array.from(this.selectedMessageIds);
+    this.messageService.deleteMessages(ids, scope).subscribe(() => {
+      this.currentConversation = this.currentConversation.filter(m => !this.selectedMessageIds.has(m.id));
+      this.exitSelectionMode();
+      this.loadConversations(false);
+      this.cdr.detectChanges();
+    });
   }
 
-  postLink(postId: string | number): any[] {
-    return ['/post', postId];
+  onBubbleClick(message: Message): void {
+    if (this.selectionMode) {
+      this.toggleMessageSelection(message.id);
+    }
+  }
+
+  onSharedPostClick(event: Event, message: Message): void {
+    if (this.selectionMode) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.toggleMessageSelection(message.id);
+    } else {
+      event.stopPropagation();
+    }
+  }
+
+  postLink(postId: string | number, title?: string | null): any[] {
+    return ['/post', buildSlugId(title, postId)];
   }
 
   isSharedTextPost(post: ExplorePost | null | undefined): boolean {

@@ -14,6 +14,7 @@ import { Comment } from '../../core/models/comment';
 import { ActivatedRoute, RouterModule, RouterLink, Router } from '@angular/router';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { isNumericId, buildSlugId } from '../../core/utils/slug.util';
 
 @Component({
   selector: 'app-profile-page',
@@ -64,14 +65,27 @@ export class ProfilePage implements OnInit {
   ngOnInit(): void {
     this.currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
     this.route.paramMap.subscribe((params) => {
-      this.currentProfileId = params.get('id');
+      const param = params.get('id');
 
-      if (this.currentProfileId) {
-        console.log('Loading profile for User ID:', this.currentProfileId);
-      } else {
-        console.log('No ID in URL. Loading the logged-in user profile.');
+      // Username slug (e.g. /profile/murat): resolve to the numeric id first,
+      // then run the existing id-based loading. Bare numeric ids (legacy URLs
+      // and id-only links such as moderation) take the fast path unchanged.
+      if (param && !isNumericId(param)) {
+        this.profileService.getUserByUsername(param).subscribe({
+          next: (user) => {
+            if (!user) {
+              this.loadProfileData(null);
+              return;
+            }
+            this.currentProfileId = String(user.id);
+            this.loadProfileData(this.currentProfileId);
+          },
+          error: () => this.loadProfileData(null)
+        });
+        return;
       }
 
+      this.currentProfileId = param;
       this.loadProfileData(this.currentProfileId);
     });
   }
@@ -254,8 +268,8 @@ export class ProfilePage implements OnInit {
     this.userList = [];
   }
 
-  sendMessage(userId: number): void {
-    this.router.navigate(['/messages', userId]);
+  sendMessage(username: string): void {
+    this.router.navigate(['/messages', username]);
   }
 
   // Clip Detail Modal Actions

@@ -78,7 +78,7 @@
 
         <aside class="social-side">
           <div class="social-header">
-            <a class="author-info" [routerLink]="['/profile', post.author.id]">
+            <a class="author-info" [routerLink]="['/profile', post.author.username]">
               <img [src]="post.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
               <div class="name-box">
                 <span class="author-name">{{ post.author.username }}</span>
@@ -94,11 +94,11 @@
                 <span class="post-detail-game-badge">{{ post.game }}</span>
               }
               @if (hasCommunityLink()) {
-                <a class="post-detail-community-pill" [routerLink]="['/communities', post.communityId]">{{ communityLabel() }}</a>
+                <a class="post-detail-community-pill" [routerLink]="['/communities', buildSlugId(post.communityName, post.communityId!)]">{{ communityLabel() }}</a>
               }
             </div>
             @if (post.originalPost) {
-              <article class="detail-quoted-card" (click)="openLinkedPostDetail(post.originalPost.id, $event)">
+              <article class="detail-quoted-card" (click)="openLinkedPostDetail(post.originalPost.id, $event, post.originalPost.title)">
                 <div class="detail-quoted-author">
                   <img [src]="post.originalPost.author.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
                   <strong>{{ post.originalPost.author.username }}</strong>
@@ -116,7 +116,7 @@
                   @if (post.originalPost.communityId) {
                     <a
                       class="detail-quoted-community"
-                      [routerLink]="['/communities', post.originalPost.communityId]"
+                      [routerLink]="['/communities', buildSlugId(post.originalPost.communityName, post.originalPost.communityId!)]"
                       (click)="$event.stopPropagation()">
                       {{ originalCommunityLabel(post.originalPost) }}
                     </a>

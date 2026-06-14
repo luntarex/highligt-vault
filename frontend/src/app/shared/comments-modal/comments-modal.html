@@ -68,7 +68,7 @@
                 } @else {
                   <p class="comment-text">
                     @if (comment.replyTargetUserId) {
-                      <a [routerLink]="['/profile', comment.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
+                      <a [routerLink]="['/profile', comment.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
                     }
                     {{ comment.cleanText }}
                   </p>
@@ -137,7 +137,7 @@
                       } @else {
                         <p class="comment-text">
                           @if (reply.replyTargetUserId) {
-                            <a [routerLink]="['/profile', reply.replyTargetUserId]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
+                            <a [routerLink]="['/profile', reply.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
                           }
                           {{ reply.cleanText }}
                         </p>

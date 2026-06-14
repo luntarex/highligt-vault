@@ -43,6 +43,14 @@ public class UserService {
         return response;
     }
 
+    public UserProfileResponse getUserByUsername(String username, Long currentUserId, boolean admin) {
+        User user = userRepository.findActiveByUsername(username).orElse(null);
+        if (user == null) {
+            return null;
+        }
+        return getUserById(user.getId(), currentUserId, admin);
+    }
+
     public boolean updateProfile(Long id, String username, String description, String profilePhotoUrl) {
         if (username != null) {
             User existingUser = userRepository.findActiveByUsername(username).orElse(null);

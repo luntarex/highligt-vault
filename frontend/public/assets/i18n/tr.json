@@ -141,6 +141,8 @@
   "share": {
     "sharePost": "Gönderiyi paylaş",
     "copy": "Kopyala",
+    "linkLabel": "Bağlantı",
+    "viaLabel": "Sosyal medya",
     "sendInMessages": "Mesajla gönder",
     "message": "Mesaj",
     "addMessage": "Bir mesaj ekle...",
@@ -373,6 +375,8 @@
     "selectedCount": "{{count}} seçildi",
     "deleteForMe": "Benim için sil",
     "deleteForEveryone": "Herkes için sil",
+    "select": "Seç",
+    "messageOptions": "Mesaj seçenekleri",
     "conversationStart": "Bu, şu kişiyle sohbetinin başlangıcı:",
     "seen": "Görüldü",
     "sent": "Gönderildi",

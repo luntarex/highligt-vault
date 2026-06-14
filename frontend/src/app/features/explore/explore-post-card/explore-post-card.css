@@ -503,14 +503,13 @@
   position: absolute;
   right: 0;
   bottom: calc(100% + 12px);
-  width: 280px;
-  max-height: 380px;
-  overflow: hidden;
-  background: var(--surface-app);
-  border: 1px solid rgba(var(--brand-rgb), 0.32);
-  border-radius: 18px;
+  width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface-1);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(18px);
   z-index: 50;
   animation: sharePanelIn 0.18s ease-out;
 }
@@ -519,86 +518,133 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--overlay-hover-strong);
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .share-panel-header strong {
   color: var(--text-strong);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
-.share-panel-header button {
+.share-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   background: transparent;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 1.1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.share-close:hover {
+  background: var(--overlay-hover);
+  color: var(--text-strong);
+}
+
+.share-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Sectioned layout */
+.share-section {
+  padding: 16px;
+}
+
+.share-section + .share-section {
+  border-top: 1px solid var(--border-color);
 }
 
 .share-section-label {
-  padding: 0 14px 8px;
-  color: var(--text-secondary);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.share-message-box {
-  padding: 0 14px 12px;
-}
-
-.share-message-box label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   color: var(--text-secondary);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.share-message-box textarea {
-  width: 100%;
-  resize: none;
-  border: 1px solid var(--overlay-hover-strong);
-  border-radius: 12px;
+/* Inline compose (opens under a selected person) */
+.share-compose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 4px 50px;
+}
+
+.share-compose-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
   outline: none;
-  background: var(--overlay-hover);
+  background: var(--surface-app);
   color: var(--text-strong);
-  padding: 9px 10px;
+  padding: 8px 14px;
   font-family: inherit;
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.8rem;
 }
 
-.share-message-box textarea:focus {
-  border-color: rgba(var(--brand-rgb), 0.55);
-  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.12);
+.share-compose-input:focus {
+  border-color: var(--brand-soft);
 }
 
-.share-message-box textarea::placeholder {
-  color: var(--overlay-hover-strong);
+.share-compose-input::placeholder {
+  color: var(--text-muted);
+}
+
+.share-send-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--surface-app);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.share-send-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.share-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-send-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .share-copy-box {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  padding: 12px 14px 8px;
 }
 
 .share-url-preview {
   min-width: 0;
   display: flex;
   align-items: center;
-  padding: 9px 10px;
-  border: 1px solid var(--overlay-hover-strong);
-  border-radius: 12px;
-  background: var(--overlay-hover);
-  color: var(--text-strong);
-  font-size: 0.76rem;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-app);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
 }
 
 .share-url-preview span {
@@ -608,24 +654,24 @@
 }
 
 .share-copy-box > button {
-  border: 1px solid rgba(var(--brand-rgb), 0.4);
-  background: rgba(var(--brand-rgb), 0.16);
-  color: var(--brand-soft);
-  border-radius: 12px;
-  padding: 9px 12px;
-  font-weight: 800;
+  border: none;
+  background: var(--brand-soft);
+  color: var(--surface-app);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 600;
   cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
 .share-copy-box > button:hover {
-  background: rgba(var(--brand-rgb), 0.28);
+  opacity: 0.9;
 }
 
 .share-target-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  padding: 4px 14px 14px;
+  gap: 10px;
 }
 
 .share-target {
@@ -673,7 +719,7 @@
 .share-user-list {
   max-height: 220px;
   overflow-y: auto;
-  padding: 0 8px 10px;
+  margin: 12px -8px 0;
 }
 
 .share-user-row {
@@ -686,13 +732,14 @@
   background: transparent;
   color: var(--text-strong);
   padding: 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   text-align: left;
 }
 
-.share-user-row:hover {
-  background: var(--overlay-hover-strong);
+.share-user-row:hover,
+.share-user.selected .share-user-row {
+  background: var(--overlay-hover);
 }
 
 .share-user-row img {
@@ -707,17 +754,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.share-user-row small {
+.share-row-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.share-user-row:hover .share-row-icon,
+.share-user.selected .share-row-icon {
   color: var(--brand-soft);
-  font-weight: 800;
 }
 
 .share-empty {
-  margin: 0;
-  padding: 8px 14px 18px;
+  margin: 12px 0 0;
+  padding: 0;
   color: var(--text-secondary);
   font-size: 0.78rem;
 }

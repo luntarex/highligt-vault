@@ -11,6 +11,7 @@ import { ClipService } from '../../core/services/clip.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { extractId, buildSlugId } from '../../core/utils/slug.util';
 
 @Component({
   selector: 'app-post-detail',
@@ -22,6 +23,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 export class PostDetail implements OnInit, OnChanges, OnDestroy {
   @Input() postId: string | number | null = null;
   @Input() embedded = false;
+  protected readonly buildSlugId = buildSlugId;
   @Output() closed = new EventEmitter<void>();
 
   post: ExplorePost | null = null;
@@ -56,12 +58,12 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     }
 
     this.route.paramMap.subscribe(params => {
-      const postId = params.get('id');
+      const postId = extractId(params.get('id'));
       if (!postId) {
         this.router.navigate(['/explore']);
         return;
       }
-      this.loadPost(postId);
+      this.loadPost(String(postId));
     });
   }
 
@@ -231,14 +233,14 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     return Boolean(this.post?.communityId);
   }
 
-  openLinkedPostDetail(postId: string | number, event?: Event): void {
+  openLinkedPostDetail(postId: string | number, event?: Event, title?: string | null): void {
     event?.stopPropagation();
     if (this.embedded) {
       this.loadPost(String(postId));
       return;
     }
 
-    this.router.navigate(['/post', postId]);
+    this.router.navigate(['/post', buildSlugId(title, postId)]);
   }
 
   isImageMedia(post: ExplorePost | null | undefined): boolean {

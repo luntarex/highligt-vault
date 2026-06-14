@@ -2,7 +2,7 @@
 
   @if(showHeader){
   <div class="post-header">
-    <div class="avatar-wrapper" [routerLink]="['/profile', post.author.id]">
+    <div class="avatar-wrapper" [routerLink]="['/profile', post.author.username]">
       @if(post.author.profilePhotoUrl){
         <img [src]="post.author.profilePhotoUrl" alt="" class="avatar-image">
       }
@@ -13,7 +13,7 @@
       }
     </div>
     <div class="user-info">
-      <span class="username" [routerLink]="['/profile', post.author.id]">{{ post.author.username }}</span>
+      <span class="username" [routerLink]="['/profile', post.author.username]">{{ post.author.username }}</span>
       <span class="time-ago">{{ post.timeAgo }}</span>
     </div>
 
@@ -59,7 +59,7 @@
           @if (post.communityId) {
             <a
               class="community-badge"
-              [routerLink]="['/communities', post.communityId]"
+              [routerLink]="['/communities', buildSlugId(post.communityName, post.communityId!)]"
               (click)="$event.stopPropagation()">
               {{ post.communityName || t('communities.community') }}
             </a>
@@ -214,17 +214,27 @@
       <div class="share-panel" (click)="$event.stopPropagation()">
         <div class="share-panel-header">
           <strong>{{ t('share.sharePost') }}</strong>
-          <button type="button" (click)="toggleSharePanel($event)">x</button>
+          <button type="button" class="share-close" (click)="toggleSharePanel($event)" [attr.aria-label]="t('common.cancel')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
-        <div class="share-copy-box">
-          <div class="share-url-preview">
-            <span>{{ shareUrl }}</span>
+        <div class="share-section">
+          <span class="share-section-label">{{ t('share.linkLabel') }}</span>
+          <div class="share-copy-box">
+            <div class="share-url-preview">
+              <span>{{ shareUrl }}</span>
+            </div>
+            <button type="button" (click)="copyPostLink($event)">{{ t('share.copy') }}</button>
           </div>
-          <button type="button" (click)="copyPostLink($event)">{{ t('share.copy') }}</button>
         </div>
 
-        <div class="share-target-grid">
+        <div class="share-section">
+          <span class="share-section-label">{{ t('share.viaLabel') }}</span>
+          <div class="share-target-grid">
           <button type="button" class="share-target whatsapp" (click)="openShareTarget($event, 'whatsapp')">
             <span>
               <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -257,33 +267,54 @@
             </span>
             Email
           </button>
+          </div>
         </div>
 
-        <div class="share-section-label">{{ t('share.sendInMessages') }}</div>
-        <div class="share-message-box">
-          <label for="share-message-{{ post.id }}">{{ t('share.message') }}</label>
-          <textarea
-            id="share-message-{{ post.id }}"
-            [(ngModel)]="shareMessage"
-            maxlength="180"
-            rows="2"
-            [placeholder]="t('share.addMessage')"></textarea>
+        <div class="share-section">
+          <span class="share-section-label">{{ t('share.sendInMessages') }}</span>
+          @if (isLoadingShareUsers) {
+            <p class="share-empty">{{ t('share.loadingPeople') }}</p>
+          } @else if (shareUsers.length > 0) {
+            <div class="share-user-list">
+              @for (user of shareUsers; track user.id) {
+                <div class="share-user" [class.selected]="isShareUserSelected(user)">
+                  <button type="button" class="share-user-row" (click)="selectShareUser(user)">
+                    <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+                    <span>{{ user.username }}</span>
+                    <svg class="share-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                  @if (isShareUserSelected(user)) {
+                    <div class="share-compose">
+                      <input
+                        type="text"
+                        class="share-compose-input"
+                        [(ngModel)]="shareMessage"
+                        maxlength="180"
+                        [placeholder]="t('share.addMessage')"
+                        (keyup.enter)="sendPostToUser($event, user)">
+                      <button
+                        type="button"
+                        class="share-send-btn"
+                        (click)="sendPostToUser($event, user)"
+                        [disabled]="isSendingTo(user)"
+                        [title]="t('share.send')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="22" y1="2" x2="11" y2="13"></line>
+                          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="share-empty">{{ t('share.followToSend') }}</p>
+          }
         </div>
-        @if (isLoadingShareUsers) {
-          <p class="share-empty">{{ t('share.loadingPeople') }}</p>
-        } @else if (shareUsers.length > 0) {
-          <div class="share-user-list">
-            @for (user of shareUsers; track user.id) {
-              <button type="button" class="share-user-row" (click)="sendPostToUser($event, user)">
-                <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
-                <span>{{ user.username }}</span>
-                <small>{{ isSendingTo(user) ? t('share.sending') : t('share.send') }}</small>
-              </button>
-            }
-          </div>
-        } @else {
-          <p class="share-empty">{{ t('share.followToSend') }}</p>
-        }
       </div>
     }
     </div>

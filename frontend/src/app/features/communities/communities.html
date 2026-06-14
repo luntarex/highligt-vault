@@ -44,7 +44,7 @@
         class="community-card"
         *ngFor="let community of filteredCommunities; trackBy: trackByCommunityId"
         [class.selected]="selectedCommunity?.id === community.id"
-        [routerLink]="['/communities', community.id]"
+        [routerLink]="['/communities', buildSlugId(community.name, community.id)]"
         (click)="selectCommunity(community)">
         <div class="thumb-wrap">
           <img [src]="community.thumbnailUrl || defaultThumbnail(community)" [alt]="community.name">

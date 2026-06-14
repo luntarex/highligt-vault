@@ -41,6 +41,19 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/by-username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username, Authentication authentication) {
+        UserProfileResponse user = userService.getUserByUsername(
+            username,
+            SecurityUtil.currentUserId(authentication),
+            SecurityUtil.isAdmin(authentication)
+        );
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(
         @PathVariable Long id,

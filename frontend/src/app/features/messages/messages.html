@@ -108,7 +108,7 @@
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
-        <a class="chat-header-left chat-profile-link" [routerLink]="['/profile', selectedUserId]">
+        <a class="chat-header-left chat-profile-link" [routerLink]="['/profile', selectedUsername]">
           <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="Avatar" class="header-avatar" decoding="async">
           <div class="header-user-info">
             <h3>{{ selectedUsername }}</h3>
@@ -116,30 +116,27 @@
           </div>
         </a>
 
-        <!-- Selection Controls (Header Right) -->
-        <div class="header-selection-controls" *ngIf="selectedMessageIds.size > 0">
-          <span class="selection-count">{{ t('messages.selectedCount', { count: selectedMessageIds.size }) }}</span>
-          <button
-            class="delete-for-me-btn-header"
-            (click)="confirmMessageDeletion('me')"
-            [title]="t('messages.deleteForMe')">
-            {{ t('messages.deleteForMe') }}
-          </button>
-          <button
-            *ngIf="canDeleteSelectedForEveryone()"
-            class="delete-for-everyone-btn-header"
-            (click)="confirmMessageDeletion('everyone')"
-            [title]="t('messages.deleteForEveryone')">
-            {{ t('messages.deleteForEveryone') }}
-          </button>
-          <button class="cancel-selection-btn-header" (click)="clearSelection()" [title]="t('common.cancel')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
       </header>
+
+      <div class="selection-bar" *ngIf="selectionMode">
+        <button class="sel-cancel" (click)="exitSelectionMode()" [title]="t('common.cancel')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <span class="sel-count">{{ t('messages.selectedCount', { count: selectedMessageIds.size }) }}</span>
+        <div class="sel-spacer"></div>
+        <button
+          *ngIf="canDeleteSelectedForEveryone()"
+          class="sel-delete-btn everyone"
+          (click)="deleteSelected('everyone')">
+          {{ t('messages.deleteForEveryone') }}
+        </button>
+        <button class="sel-delete-btn" (click)="deleteSelected('me')">
+          {{ t('messages.deleteForMe') }}
+        </button>
+      </div>
 
       <div class="message-history" #scrollMe>
         <div *ngIf="loading" class="chat-loading-state">
@@ -150,12 +147,12 @@
 
         <ng-container *ngIf="!loading">
         <div class="chat-start-notice" *ngIf="currentConversation.length > 0">
-          <a class="start-avatar" [routerLink]="['/profile', selectedUserId]">
+          <a class="start-avatar" [routerLink]="['/profile', selectedUsername]">
             <img [src]="selectedUserPhoto || 'assets/icons/default-avatar.png'" alt="" decoding="async">
           </a>
           <p>
             {{ t('messages.conversationStart') }}
-            <a [routerLink]="['/profile', selectedUserId]">{{ selectedUsername }}</a>
+            <a [routerLink]="['/profile', selectedUsername]">{{ selectedUsername }}</a>
           </p>
         </div>
         @for (msg of currentConversation; track msg.id) {
@@ -163,16 +160,25 @@
              class="message-wrapper"
              [class.sent]="msg.senderId === currentUserId"
              [class.received]="msg.senderId !== currentUserId">
+          @if (selectionMode) {
+            <span class="select-check" [class.checked]="isMessageSelected(msg.id)" (click)="toggleMessageSelection(msg.id)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+          }
           <div class="message-bubble"
-               (click)="toggleMessageSelection(msg.id)"
-               [class.selected]="selectedMessageIds.has(msg.id)">
-            <p *ngIf="msg.content && !(isMessagePostUnavailable(msg) && msg.content === 'Shared a post')">{{ msg.content }}</p>
+               [class.menu-open]="openMessageMenuId === msg.id"
+               [class.selectable]="selectionMode"
+               [class.selected]="isMessageSelected(msg.id)"
+               [class.has-shared-post]="msg.sharedPost || isMessagePostUnavailable(msg)"
+               (click)="onBubbleClick(msg)">
             <a
               *ngIf="msg.sharedPost"
               class="shared-post-card"
               [class.text-shared-post]="isSharedTextPost(msg.sharedPost)"
-              [routerLink]="postLink(msg.sharedPost.id)"
-              (click)="$event.stopPropagation()">
+              [routerLink]="selectionMode ? null : postLink(msg.sharedPost.id, msg.sharedPost.title)"
+              (click)="onSharedPostClick($event, msg)">
               <div class="shared-post-thumb" *ngIf="!isSharedTextPost(msg.sharedPost)">
                 <img
                   *ngIf="isSharedImagePost(msg.sharedPost); else sharedVideoThumb"
@@ -197,7 +203,7 @@
             <div
               *ngIf="!msg.sharedPost && isMessagePostUnavailable(msg)"
               class="shared-post-card shared-post-unavailable"
-              (click)="$event.stopPropagation()">
+              (click)="onSharedPostClick($event, msg)">
               <div class="shared-post-thumb unavailable-thumb">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
@@ -211,6 +217,12 @@
                 <span>{{ t('messages.postUnavailableHint') }}</span>
               </div>
             </div>
+            <p
+              class="message-text"
+              *ngIf="msg.content && msg.content !== 'Shared a post'"
+              [class.post-caption]="msg.sharedPost || isMessagePostUnavailable(msg)">
+              {{ msg.content }}
+            </p>
             <span class="message-meta">
               <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
               <span
@@ -221,6 +233,37 @@
               </span>
             </span>
           </div>
+
+          @if (!selectionMode) {
+            <div class="message-actions">
+              <button
+                type="button"
+                class="msg-menu-btn"
+                (click)="toggleMessageMenu($event, msg.id)"
+                [title]="t('messages.messageOptions')">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="5" cy="12" r="2"></circle>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <circle cx="19" cy="12" r="2"></circle>
+                </svg>
+              </button>
+              @if (openMessageMenuId === msg.id) {
+                <div class="msg-menu" (click)="$event.stopPropagation()">
+                  <button type="button" class="msg-menu-item" (click)="deleteMessage(msg, 'me')">
+                    {{ t('messages.deleteForMe') }}
+                  </button>
+                  @if (canDeleteForEveryone(msg)) {
+                    <button type="button" class="msg-menu-item danger" (click)="deleteMessage(msg, 'everyone')">
+                      {{ t('messages.deleteForEveryone') }}
+                    </button>
+                  }
+                  <button type="button" class="msg-menu-item" (click)="enterSelectionMode(msg)">
+                    {{ t('messages.select') }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
         </div>
         }
         </ng-container>

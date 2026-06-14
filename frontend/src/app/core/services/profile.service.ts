@@ -30,6 +30,12 @@ export class ProfileService {
     );
   }
 
+  getUserByUsername(username: string): Observable<User | null> {
+    return this.http.get<User>(`${this.apiUsersUrl}/by-username/${encodeURIComponent(username)}`).pipe(
+      catchError(() => of(null))
+    );
+  }
+
   getFavoriteClips(id?: string | null): Observable<Clip[]> {
     const userId = id ? id : this.authService.getCurrentUserId().toString();
     return this.http.get<Clip[]>(`${this.apiClipsUrl}/favorites/${userId}`);

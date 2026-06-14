@@ -262,7 +262,7 @@
             <div class="mr-target-head">
               <div class="mr-target-titles">
                 <span class="mr-eyebrow">{{ report.targetType === 'COMMENT' ? t('moderation.reportedPost') : t('moderation.reportedClip') }}</span>
-                <a *ngIf="report.targetPostId; else plainTitle" [routerLink]="['/post', report.targetPostId]" class="mr-title-link">{{ clip.title }}</a>
+                <a *ngIf="report.targetPostId; else plainTitle" [routerLink]="['/post', buildSlugId(clip.title, report.targetPostId)]" class="mr-title-link">{{ clip.title }}</a>
                 <ng-template #plainTitle><strong class="mr-title">{{ clip.title }}</strong></ng-template>
                 <small class="mr-uploader">{{ clip.uploaderUsername || ('User #' + clip.uploaderId) }}</small>
               </div>
@@ -315,7 +315,7 @@
         <!-- Quick navigation links -->
         <div class="mr-links" *ngIf="(report.targetClip && report.targetType !== 'COMMENT') || report.targetPostId || reportTargetRoute(report)">
           <button type="button" class="mr-link" *ngIf="report.targetClip && report.targetType !== 'COMMENT'" (click)="selectReportClip(report)">{{ t('moderation.reviewInMainPanel') }}</button>
-          <a *ngIf="report.targetPostId" [routerLink]="['/post', report.targetPostId]" class="mr-link">{{ t('moderation.openPostAndTakeAction') }}</a>
+          <a *ngIf="report.targetPostId" [routerLink]="['/post', buildSlugId(report.targetClip?.title, report.targetPostId)]" class="mr-link">{{ t('moderation.openPostAndTakeAction') }}</a>
           <a *ngIf="!report.targetPostId && reportTargetRoute(report) as route" [routerLink]="route" class="mr-link mr-link-ghost">{{ t('moderation.openTarget') }}</a>
         </div>
 

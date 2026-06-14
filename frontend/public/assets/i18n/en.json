@@ -141,6 +141,8 @@
   "share": {
     "sharePost": "Share post",
     "copy": "Copy",
+    "linkLabel": "Link",
+    "viaLabel": "Share via",
     "sendInMessages": "Send in messages",
     "message": "Message",
     "addMessage": "Add a message...",
@@ -373,6 +375,8 @@
     "selectedCount": "{{count}} selected",
     "deleteForMe": "Delete for me",
     "deleteForEveryone": "Delete for everyone",
+    "select": "Select",
+    "messageOptions": "Message options",
     "conversationStart": "This is the beginning of your conversation with",
     "seen": "Seen",
     "sent": "Sent",

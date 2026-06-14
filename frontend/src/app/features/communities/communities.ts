@@ -10,6 +10,7 @@ import { getSafeErrorMessage } from '../../core/utils/error-message';
 import { BackLink } from '../../shared/back-link/back-link';
 import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { buildSlugId } from '../../core/utils/slug.util';
 
 @Component({
   selector: 'app-communities',
@@ -19,6 +20,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
   styleUrl: './communities.css'
 })
 export class Communities implements OnInit {
+  protected readonly buildSlugId = buildSlugId;
   communities: Community[] = [];
   selectedCommunity: Community | null = null;
   isLoading = true;
