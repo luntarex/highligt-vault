@@ -790,6 +790,18 @@
     overflow-x: hidden;
   }
 
+  /* The reels feed owns the whole viewport — drop the page chrome. */
+  .feed-page-mobile {
+    padding: 0;
+    overflow: hidden;
+    height: 100dvh;
+  }
+
+  .reels-loading {
+    height: 100dvh;
+    background: #000;
+  }
+
   /* Stack into one column and float the suggestions above the posts. */
   .feed-layout {
     display: flex;

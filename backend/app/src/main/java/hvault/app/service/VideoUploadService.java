@@ -39,6 +39,7 @@ public class VideoUploadService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ClipRepository clipRepository;
+    private final R2StorageService r2;
 
     private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(
         "mp4",
@@ -60,8 +61,9 @@ public class VideoUploadService {
     );
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
-    public VideoUploadService(ClipRepository clipRepository) {
+    public VideoUploadService(ClipRepository clipRepository, R2StorageService r2) {
         this.clipRepository = clipRepository;
+        this.r2 = r2;
     }
 
     @Value("${cloudinary.cloud-name}")
@@ -76,8 +78,17 @@ public class VideoUploadService {
     @Value("${cloudinary.api-secret:}")
     private String cloudinaryApiSecret;
 
-    @Value("${app.upload.video.max-bytes:104857600}")
+    @Value("${app.upload.video.max-bytes:524288000}")
     private long maxVideoBytes;
+
+    @Value("${app.upload.video.target-bytes:104857600}")
+    private long targetVideoBytes;
+
+    @Value("${app.upload.video.compression.min-video-bitrate-kbps:1500}")
+    private long minVideoBitrateKbps;
+
+    @Value("${app.upload.video.compression.timeout-seconds:300}")
+    private long compressionTimeoutSeconds;
 
     @Value("${app.upload.image.max-bytes:10485760}")
     private long maxImageBytes;
@@ -117,7 +128,13 @@ public class VideoUploadService {
 
         String publicId = "videos/" + fileHash;
 
-        // Preferred path: hand the original to Cloudinary and let its servers transcode via an
+        // Preferred path: Cloudflare R2. Optimize locally with ffmpeg (zero Cloudinary
+        // credits), then store the MP4 and a generated thumbnail in the bucket.
+        if (r2.isEnabled()) {
+            return uploadVideoToR2(file, fileHash);
+        }
+
+        // Next: hand the original to Cloudinary and let its servers transcode via an
         // eager transformation. Requires the signed API (api-key/api-secret); when those are not
         // configured we fall back to optimizing locally with ffmpeg.
         if (hasText(cloudinaryApiKey) && hasText(cloudinaryApiSecret)) {
@@ -168,6 +185,18 @@ public class VideoUploadService {
     public ImageUploadResponse uploadImage(MultipartFile file) throws IOException {
         validateUpload(file, "image", maxImageBytes, ALLOWED_IMAGE_EXTENSIONS);
 
+        if (r2.isEnabled()) {
+            String hash = sha256Hex(file);
+            String extension = extensionOf(file.getOriginalFilename());
+            if (extension.isBlank()) {
+                extension = "jpg";
+            }
+            String key = "images/" + hash + "." + extension;
+            String contentType = hasText(file.getContentType()) ? file.getContentType() : "image/" + extension;
+            r2.putObject(key, file.getBytes(), contentType);
+            return new ImageUploadResponse(r2.publicUrl(key), key, file.getSize(), extension);
+        }
+
         Map<String, Object> result = upload(file, "image");
         return new ImageUploadResponse(
             result.get("secure_url").toString(),
@@ -206,6 +235,19 @@ public class VideoUploadService {
         if (!hasText(publicId)) {
             return false;
         }
+
+        // R2 object keys carry a file extension (videos/<hash>.mp4); legacy Cloudinary
+        // publicIds do not (videos/<hash>). Route deletion by that distinction so old and
+        // new assets are both cleaned up correctly during a migration.
+        if (r2.isEnabled() && hasFileExtension(publicId)) {
+            boolean deleted = r2.deleteObject(publicId);
+            String thumbKey = publicId.replaceFirst("\\.[A-Za-z0-9]+$", ".jpg");
+            if (!thumbKey.equals(publicId)) {
+                r2.deleteObject(thumbKey);
+            }
+            return deleted;
+        }
+
         if (!hasText(cloudinaryApiKey) || !hasText(cloudinaryApiSecret)) {
             logger.warn("Skipping Cloudinary deletion for {} because cloudinary.api-key/api-secret are not configured.", publicId);
             return false;
@@ -341,6 +383,182 @@ public class VideoUploadService {
         }
 
         return result;
+    }
+
+    /**
+     * Optimizes the video locally with ffmpeg, then stores the MP4 and a generated JPG
+     * thumbnail in R2. The publicId is the R2 object key (kept with its .mp4 extension so
+     * deletion can tell R2 assets apart from legacy extension-less Cloudinary publicIds).
+     */
+    private VideoUploadResponse uploadVideoToR2(MultipartFile file, String fileHash) throws IOException {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("hvault-r2-upload-");
+            Path inputPath = tempDir.resolve("source-" + safeUploadFilename(file.getOriginalFilename()));
+            file.transferTo(inputPath);
+
+            Path uploadPath = optimizedVideoPath(inputPath, tempDir);
+            uploadPath = compressToTargetIfNeeded(uploadPath, tempDir);
+
+            String videoKey = "videos/" + fileHash + ".mp4";
+            r2.putObject(videoKey, uploadPath, "video/mp4");
+
+            String thumbnailUrl = null;
+            Path thumbPath = extractThumbnail(uploadPath, tempDir);
+            if (thumbPath != null) {
+                String thumbKey = "videos/" + fileHash + ".jpg";
+                r2.putObject(thumbKey, thumbPath, "image/jpeg");
+                thumbnailUrl = r2.publicUrl(thumbKey);
+            }
+
+            return new VideoUploadResponse(
+                r2.publicUrl(videoKey),
+                videoKey,
+                thumbnailUrl,
+                fileHash,
+                false,
+                probeDurationSeconds(uploadPath),
+                Files.size(uploadPath),
+                "mp4"
+            );
+        } finally {
+            FfmpegSamplingUtils.cleanup(tempDir);
+        }
+    }
+
+    /** Extracts a single JPG frame ~1s in for the thumbnail. Returns null on failure. */
+    private Path extractThumbnail(Path videoPath, Path tempDir) {
+        Path outputPath = tempDir.resolve("thumbnail.jpg");
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                ffmpegPath, "-hide_banner", "-loglevel", "error", "-y",
+                "-ss", "1",
+                "-i", videoPath.toString(),
+                "-frames:v", "1",
+                "-vf", "scale=w='min(400,iw)':h=-2",
+                "-q:v", "3",
+                outputPath.toString()
+            );
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            boolean finished = process.waitFor(30, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                return null;
+            }
+            if (process.exitValue() == 0 && Files.exists(outputPath) && Files.size(outputPath) > 0) {
+                return outputPath;
+            }
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (Exception e) {
+            logger.warn("Thumbnail extraction failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * If the optimized video still exceeds the target size, re-encode it (2-pass) toward the
+     * target using a bitrate derived from its duration. Never drops below the configured
+     * quality floor, so a very long clip may stay above target rather than become unwatchable.
+     * Best-effort: any failure returns the original optimized file unchanged.
+     */
+    private Path compressToTargetIfNeeded(Path optimizedPath, Path tempDir) {
+        try {
+            long currentSize = Files.size(optimizedPath);
+            if (currentSize <= targetVideoBytes) {
+                return optimizedPath;
+            }
+
+            Double duration = probeDurationSeconds(optimizedPath);
+            if (duration == null || duration <= 0) {
+                logger.warn("Skipping target compression for a {}-byte file: duration unknown.", currentSize);
+                return optimizedPath;
+            }
+
+            long audioKbps = 128;
+            // 0.97 leaves headroom for container/muxing overhead so we land under the target.
+            long totalKbps = (long) ((targetVideoBytes * 8.0 * 0.97) / 1000.0 / duration);
+            long videoKbps = Math.max(minVideoBitrateKbps, totalKbps - audioKbps);
+            long maxrate = (long) (videoKbps * 1.45);
+            long bufsize = videoKbps * 2;
+
+            Path output = tempDir.resolve("targeted.mp4");
+            Path passLog = tempDir.resolve("ffpass");
+
+            boolean pass1 = runFfmpeg(java.util.List.of(
+                ffmpegPath, "-hide_banner", "-loglevel", "error", "-y",
+                "-i", optimizedPath.toString(),
+                "-c:v", "libx264", "-b:v", videoKbps + "k",
+                "-maxrate", maxrate + "k", "-bufsize", bufsize + "k",
+                "-preset", videoOptimizationPreset, "-pix_fmt", "yuv420p",
+                "-an", "-pass", "1", "-passlogfile", passLog.toString(),
+                "-f", "null", "-"
+            ));
+            if (!pass1) {
+                return optimizedPath;
+            }
+
+            boolean pass2 = runFfmpeg(java.util.List.of(
+                ffmpegPath, "-hide_banner", "-loglevel", "error", "-y",
+                "-i", optimizedPath.toString(),
+                "-c:v", "libx264", "-b:v", videoKbps + "k",
+                "-maxrate", maxrate + "k", "-bufsize", bufsize + "k",
+                "-preset", videoOptimizationPreset, "-pix_fmt", "yuv420p",
+                "-c:a", "aac", "-b:a", audioKbps + "k",
+                "-movflags", "+faststart",
+                "-pass", "2", "-passlogfile", passLog.toString(),
+                output.toString()
+            ));
+            if (pass2 && Files.exists(output) && Files.size(output) > 0 && Files.size(output) < currentSize) {
+                return output;
+            }
+            return optimizedPath;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return optimizedPath;
+        } catch (Exception e) {
+            logger.warn("Target compression failed: {}", e.getMessage());
+            return optimizedPath;
+        }
+    }
+
+    /** Runs an ffmpeg command, discarding its output, bounded by the compression timeout. */
+    private boolean runFfmpeg(java.util.List<String> command) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+        Process process = processBuilder.start();
+        boolean finished = process.waitFor(Math.max(1, compressionTimeoutSeconds), TimeUnit.SECONDS);
+        if (!finished) {
+            process.destroyForcibly();
+            return false;
+        }
+        return process.exitValue() == 0;
+    }
+
+    /** Best-effort duration probe via ffprobe; null when unavailable (client fills it from metadata). */
+    private Double probeDurationSeconds(Path videoPath) {
+        String ffprobePath = ffmpegPath.endsWith("ffmpeg") ? ffmpegPath.substring(0, ffmpegPath.length() - 6) + "ffprobe" : "ffprobe";
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                ffprobePath, "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                videoPath.toString()
+            );
+            Process process = processBuilder.start();
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            process.waitFor(10, TimeUnit.SECONDS);
+            return output.isBlank() ? null : Double.valueOf(output);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String cloudinaryEagerTransformation() {
@@ -539,6 +757,11 @@ public class VideoUploadService {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    /** True when the key ends in a short file extension, e.g. "videos/abc.mp4". */
+    private boolean hasFileExtension(String key) {
+        return key != null && key.matches(".*\\.[A-Za-z0-9]{2,4}$");
     }
 
     private Double asDouble(Object value) {

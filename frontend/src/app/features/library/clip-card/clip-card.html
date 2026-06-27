@@ -2,6 +2,10 @@
      [class.moderation-locked]="isModerationLocked()"
      [class.selectable]="selectable"
      (click)="handleCardClick($event)"
+     (pointerdown)="onPointerDown($event)"
+     (pointerup)="cancelLongPress()"
+     (pointermove)="cancelLongPress()"
+     (pointercancel)="cancelLongPress()"
      *transloco="let t">
   <div class="thumbnail-wrapper">
     <img [src]="clip.thumbnailUrl" class="thumbnail-img" alt="Clip Thumbnail" loading="lazy" decoding="async">

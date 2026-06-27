@@ -140,18 +140,21 @@ export class ClipEditor implements OnInit {
     }
   }
 
-  startDrag(type: 'start' | 'end', event: MouseEvent): void {
+  // Pointer events unify mouse + touch + pen, so trimming works on mobile.
+  startDrag(type: 'start' | 'end', event: PointerEvent): void {
     event.preventDefault();
     event.stopPropagation();
     if (type === 'start') this.isDraggingStart = true;
     if (type === 'end') this.isDraggingEnd = true;
   }
 
-  @HostListener('window:mousemove', ['$event'])
-  onMouseMove(event: MouseEvent): void {
+  @HostListener('window:pointermove', ['$event'])
+  onPointerMove(event: PointerEvent): void {
     if (!this.clip || (!this.isDraggingStart && !this.isDraggingEnd)) return;
 
     if (!this.timelineRef) return;
+    // Stop the page from scrolling while a handle is being dragged on touch.
+    event.preventDefault();
     const timeline = this.timelineRef.nativeElement;
     const rect = timeline.getBoundingClientRect();
     const offsetX = event.clientX - rect.left;
@@ -167,8 +170,9 @@ export class ClipEditor implements OnInit {
     }
   }
 
-  @HostListener('window:mouseup')
-  onMouseUp(): void {
+  @HostListener('window:pointerup')
+  @HostListener('window:pointercancel')
+  onPointerUp(): void {
     this.isDraggingStart = false;
     this.isDraggingEnd = false;
   }

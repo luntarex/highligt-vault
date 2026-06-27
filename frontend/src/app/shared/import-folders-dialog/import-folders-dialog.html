@@ -1,5 +1,5 @@
-<div class="dialog-backdrop" (click)="close()" *transloco="let t">
-  <section class="dialog" (click)="$event.stopPropagation()">
+<app-bottom-sheet [maxWidth]="520" [zIndex]="2000" (closed)="close()" *transloco="let t">
+  <section class="dialog">
     <header class="dialog-header">
       <div>
         <h2>{{ t('importFolders.title') }}</h2>
@@ -55,4 +55,4 @@
       </button>
     </footer>
   </section>
-</div>
+</app-bottom-sheet>

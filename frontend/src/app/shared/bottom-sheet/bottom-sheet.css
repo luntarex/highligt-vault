@@ -1,0 +1,102 @@
+/* ============================================================
+   BOTTOM-SHEET PRIMITIVE
+   Desktop: centered modal card. Mobile: bottom sheet.
+   ============================================================ */
+
+.bs-scrim {
+  position: fixed;
+  inset: 0;
+  background-color: var(--scrim, rgba(0, 0, 0, 0.7));
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bs-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--bs-max-width, 600px);
+  height: var(--bs-height, auto);
+  max-height: 90vh;
+  background-color: var(--surface-1);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: bsPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Offset beside the desktop sidebar, for modals that live in the content area. */
+.bs-panel.offset {
+  margin-left: 250px;
+}
+
+@keyframes bsPopIn {
+  from {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* The grab handle is desktop-hidden; it only matters for the sheet. */
+.bs-handle {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE: bottom sheet
+   ============================================================ */
+@media (max-width: 768px) {
+  .bs-scrim {
+    align-items: flex-end;
+  }
+
+  .bs-panel,
+  .bs-panel.offset {
+    max-width: none;
+    margin-left: 0;
+    height: auto;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    animation: bsSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Snap-back transition when a drag is released without dismissing. */
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+
+  .bs-panel.dragging {
+    transition: none;
+  }
+
+  @keyframes bsSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .bs-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0 6px;
+    flex-shrink: 0;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .bs-handle-bar {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--border-strong);
+  }
+}

@@ -1,0 +1,23 @@
+<div class="bs-scrim" [style.z-index]="zIndex" (click)="close()">
+  <div
+    class="bs-panel"
+    [class.dragging]="dragging"
+    [class.offset]="offsetSidebar"
+    [style.transform]="dragY ? 'translateY(' + dragY + 'px)' : null"
+    [style.--bs-max-width.px]="maxWidth"
+    [style.--bs-height]="heightVh ? heightVh + 'vh' : 'auto'"
+    (click)="$event.stopPropagation()"
+  >
+    <div
+      class="bs-handle"
+      (pointerdown)="onHandleDown($event)"
+      (pointermove)="onHandleMove($event)"
+      (pointerup)="onHandleUp()"
+      (pointercancel)="onHandleUp()"
+    >
+      <span class="bs-handle-bar"></span>
+    </div>
+
+    <ng-content></ng-content>
+  </div>
+</div>

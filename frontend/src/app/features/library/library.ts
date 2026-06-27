@@ -247,6 +247,15 @@ export class Library implements OnInit {
     this.cdr.detectChanges();
   }
 
+  /** Touch long-press enters multi-select mode and selects the pressed clip. */
+  onClipLongPress(clipId: number): void {
+    if (this.isTrashView) return;
+    if (this.libraryView !== 'selecting') {
+      this.startGroupSelection();
+    }
+    this.handleSelectionChange({ id: clipId, selected: true });
+  }
+
   openGroupDialog(): void {
     const userId = this.authService.getCurrentUserId();
     if (!userId || this.selectedClipIds.size === 0) return;

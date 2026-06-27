@@ -1,4 +1,19 @@
-<div class="feed-page" *transloco="let t">
+<div class="feed-page" [class.feed-page-mobile]="isMobile" *transloco="let t">
+
+  @if (isMobile) {
+    <!-- Mobile: full-screen vertical snap feed -->
+    @if (isLoading) {
+      <div class="reels-loading"><div class="skeleton-video skeleton-pulse"></div></div>
+    } @else {
+      <app-feed-reels
+        [posts]="feed"
+        (toggleLikeEvent)="toggleLike($event)"
+        (toggleFavoriteEvent)="toggleFavorite($event)"
+        (openCommentsEvent)="openComments($event)"
+        (deletePostEvent)="deletePost($event)"
+      />
+    }
+  } @else {
 
   <!-- Profile: Top Right Corner -->
   <div class="hide-on-mobile" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
@@ -144,7 +159,12 @@
     </svg>
   </button>
 
+  }
+
   @if (activePostForComments) {
+    @if (isMobile) {
+      <app-comments-modal [post]="activePostForComments" (closed)="closeComments()" />
+    } @else {
     <div class="comments-backdrop" (click)="closeComments()">
 
       <div class="comments-modal" (click)="$event.stopPropagation()">
@@ -337,6 +357,7 @@
           </div>
         </div>
       </div>
+    }
     }
   }
 

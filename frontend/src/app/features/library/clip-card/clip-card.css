@@ -318,3 +318,41 @@
   margin: 0;
   margin-top: 2px;
 }
+
+/* ============================================================
+   MOBILE / TOUCH
+   No hover on touch, so the card actions must be permanently
+   visible and large enough to tap. Recover/hard-delete overlay
+   likewise shows without hover.
+   ============================================================ */
+@media (max-width: 768px) {
+  .delete-btn,
+  .group-remove-btn,
+  .unfav-btn,
+  .select-btn {
+    opacity: 1;
+  }
+
+  .delete-btn,
+  .group-remove-btn,
+  .unfav-btn {
+    background: rgba(0, 0, 0, 0.45);
+    padding: 8px;
+  }
+
+  .delete-btn svg,
+  .group-remove-btn svg,
+  .unfav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .recover-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .action-btn {
+    padding: 9px;
+  }
+}

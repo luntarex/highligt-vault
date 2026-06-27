@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ExplorePost } from '../../core/models/explore-post';
 import { ExploreService } from '../../core/services/explore.service';
 import { CommentService } from '../../core/services/comment.service';
@@ -14,13 +14,15 @@ import { ProfileDropdown } from '../../shared/profile-dropdown/profile-dropdown'
 import { ClipPickerModal } from '../../shared/clip-picker-modal/clip-picker-modal';
 import { Clip } from '../../core/models/clip';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
+import { CommentsModalComponent } from '../../shared/comments-modal/comments-modal';
+import { FeedReels } from './feed-reels/feed-reels';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent, TranslocoModule]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent, CommentsModalComponent, FeedReels, TranslocoModule]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -52,6 +54,18 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   showClipPickerModal = false;
   unpostedClips: Clip[] = [];
+
+  /** Mobile switches to the full-screen reels feed and the sheet comments. */
+  isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+  @HostListener('window:resize')
+  onResize(): void {
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    if (mobile !== this.isMobile) {
+      this.isMobile = mobile;
+      this.cdr.detectChanges();
+    }
+  }
 
   constructor(
     private exploreService: ExploreService,
@@ -334,6 +348,12 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   openComments(post: ExplorePost) {
     this.activePostForComments = post;
     this.comments = [];
+
+    // On mobile the shared <app-comments-modal> sheet loads its own data.
+    if (this.isMobile) {
+      this.cdr.detectChanges();
+      return;
+    }
 
     const currentUserId = this.authService.getCurrentUserId();
     this.userService.getUserById(currentUserId).subscribe(user => {

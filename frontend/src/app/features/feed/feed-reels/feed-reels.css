@@ -1,0 +1,210 @@
+/* ============================================================
+   MOBILE REELS — full-screen vertical snap feed
+   Controls sit on top of dark video, so force light-on-dark.
+   ============================================================ */
+:host {
+  --rail-gap: 22px;
+  --nav-clear: 64px; /* clear the fixed bottom mobile-nav */
+}
+
+.reels {
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  background: #000;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.reels::-webkit-scrollbar {
+  display: none;
+}
+
+.reel {
+  position: relative;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: #000;
+  overflow: hidden;
+}
+
+.reel-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* Center play glyph shown while paused. */
+.reel-play-overlay {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 84px;
+  height: 84px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.reel-play-overlay svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* ─── Right action rail ─── */
+.reel-rail {
+  position: absolute;
+  right: 10px;
+  bottom: calc(var(--nav-clear) + 18px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rail-gap);
+  z-index: 3;
+}
+
+.rail-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #fff;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.rail-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rail-avatar-fallback {
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+}
+
+.rail-btn svg {
+  width: 33px;
+  height: 33px;
+}
+
+.rail-btn.active {
+  color: var(--brand-soft, #c084fc);
+}
+
+.rail-btn.rail-delete {
+  color: var(--danger, #ef4444);
+}
+
+/* The report-button renders its own trigger; just align it in the rail. */
+.rail-report {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Bottom-left caption ─── */
+.reel-caption {
+  position: absolute;
+  left: 14px;
+  right: 78px;
+  bottom: calc(var(--nav-clear) + 18px);
+  color: #fff;
+  z-index: 2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.reel-author {
+  display: inline-block;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  margin-bottom: 6px;
+}
+
+.reel-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reel-game {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+/* ─── Progress bar ─── */
+.reel-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--nav-clear);
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+.reel-progress-fill {
+  height: 100%;
+  background: #fff;
+  transition: width 0.1s linear;
+}
+
+.reels-empty {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+}
+
+.reels-empty-cta {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--brand, #a855f7);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}

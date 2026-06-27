@@ -36,11 +36,11 @@ class = "video-player"
   </div>
   <div class = "handle start-handle"
        [style.left.%] = "(clip.startTime / clip.duration) * 100"
-       (mousedown)="startDrag('start', $event)">
+       (pointerdown)="startDrag('start', $event)">
   </div>
   <div class = "handle end-handle"
        [style.left.%] = "(clip.endTime / clip.duration) * 100"
-       (mousedown)="startDrag('end', $event)">
+       (pointerdown)="startDrag('end', $event)">
   </div>
    </div>
  </div>

@@ -1,41 +1,6 @@
-/* === COMMENTS MODAL === */
-.comments-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.comments-modal {
-  width: 100%;
-  max-width: 600px;
-  height: 65vh;
-  background-color: var(--surface-1);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  margin-left: 250px;
-}
-
-@keyframes popIn {
-  from {
-    transform: scale(0.95) translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-}
-
+/* === COMMENTS MODAL ===
+   The scrim, panel and dismiss gestures are provided by <app-bottom-sheet>.
+   Styles below cover the projected header / list / input chrome. */
 .comments-header {
   display: flex;
   justify-content: space-between;

@@ -1,30 +1,9 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal-container {
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border) / 0.5);
-  border-radius: 16px;
-  width: 90%;
-  max-width: 420px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
-  padding: 24px;
+/* The scrim/panel and dismiss gestures are provided by <app-bottom-sheet>. */
+.modal-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 24px;
 }
 
 .modal-header {
@@ -111,12 +90,21 @@
   background-color: var(--danger-hover);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* Mobile: action-sheet style — full-width stacked buttons, primary on top. */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 8px 20px 20px;
+  }
 
-@keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .btn-cancel,
+  .btn-confirm {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
 }

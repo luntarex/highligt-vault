@@ -2,12 +2,13 @@ import { Component, Input, Output, EventEmitter, ChangeDetectorRef } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../core/models/explore-post';
+import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-repost-overlay',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoModule],
+  imports: [CommonModule, FormsModule, BottomSheet, TranslocoModule],
   templateUrl: './repost-overlay.html',
   styleUrls: ['./repost-overlay.css']
 })
@@ -27,6 +28,10 @@ export class RepostOverlayComponent {
   quoteIsVideo = false;
 
   constructor(private cdr: ChangeDetectorRef) {}
+
+  isMobile(): boolean {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
 
   selectRepostMode(mode: 'SELECT' | 'QUOTE') {
     this.repostMode = mode;
