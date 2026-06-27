@@ -4,11 +4,26 @@
     <span class="arrow" [class.rotated]="isOpen">▼</span>
   </div>
 
-  <ul class="dropdown-list" *ngIf="isOpen">
-    <li *ngFor="let option of options"
-        (click)="selectOption(option)"
-        [class.selected]="option === selectedOption">
-      {{ option }}
-    </li>
-  </ul>
+  <ng-container *ngIf="isOpen">
+    <!-- Mobile: options open in a bottom-sheet picker. Desktop: floating list. -->
+    <app-bottom-sheet *ngIf="isMobile(); else floating" (closed)="isOpen = false">
+      <ul class="dropdown-sheet-list">
+        <li *ngFor="let option of options"
+            (click)="selectOption(option)"
+            [class.selected]="option === selectedOption">
+          {{ option }}
+        </li>
+      </ul>
+    </app-bottom-sheet>
+
+    <ng-template #floating>
+      <ul class="dropdown-list">
+        <li *ngFor="let option of options"
+            (click)="selectOption(option)"
+            [class.selected]="option === selectedOption">
+          {{ option }}
+        </li>
+      </ul>
+    </ng-template>
+  </ng-container>
 </div>

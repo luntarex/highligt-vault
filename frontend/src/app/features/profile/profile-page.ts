@@ -19,7 +19,7 @@ import { isNumericId, buildSlugId } from '../../core/utils/slug.util';
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [BackLink, NgClass, CommonModule, CustomUpload, RouterModule, RouterLink, FormsModule, ReportButtonComponent, TranslocoModule],
+  imports: [BackLink, NgClass, CommonModule,RouterModule, RouterLink, FormsModule, ReportButtonComponent, TranslocoModule],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
@@ -392,7 +392,7 @@ export class ProfilePage implements OnInit {
      const input = event.target as HTMLInputElement;
      const val = parseFloat(input.value);
      this.videoRef.nativeElement.volume = val;
-     
+
      if (val > 0) {
         this.videoRef.nativeElement.muted = false;
      } else {

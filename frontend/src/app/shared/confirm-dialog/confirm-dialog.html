@@ -1,5 +1,5 @@
-<div class="modal-overlay" (click)="onCancel()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
+<app-bottom-sheet [maxWidth]="420" [zIndex]="9999" (closed)="onCancel()">
+  <div class="modal-content">
     <div class="modal-header">
       <h2 class="modal-title">{{ title }}</h2>
       <button class="close-btn" (click)="onCancel()">
@@ -9,14 +9,14 @@
         </svg>
       </button>
     </div>
-    
+
     <div class="modal-body">
       <p class="modal-message">{{ message }}</p>
     </div>
-    
+
     <div class="modal-footer">
       <button class="btn-cancel" (click)="onCancel()">{{ cancelText }}</button>
       <button class="btn-confirm" [ngClass]="type" (click)="onConfirm()">{{ confirmText }}</button>
     </div>
   </div>
-</div>
+</app-bottom-sheet>

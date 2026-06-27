@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 
 @Component({
   selector: 'app-custom-dropdown',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BottomSheet],
   templateUrl: './custom-dropdown.html',
   styleUrls: ['./custom-dropdown.css']
 })
@@ -26,6 +27,10 @@ export class CustomDropdownComponent {
     this.selectedOption = option;
     this.selectedOptionChange.emit(this.selectedOption);
     this.isOpen = false;
+  }
+
+  isMobile(): boolean {
+    return window.matchMedia('(max-width: 768px)').matches;
   }
 
   @HostListener('document:click', ['$event'])

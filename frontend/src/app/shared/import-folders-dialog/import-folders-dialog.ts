@@ -4,11 +4,12 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { ImportFolderService, SavedImportFolder } from '../../core/services/import-folder.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AppLanguage, LanguageService } from '../../core/services/language.service';
+import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 
 @Component({
   selector: 'app-import-folders-dialog',
   standalone: true,
-  imports: [CommonModule, TranslocoModule],
+  imports: [CommonModule, TranslocoModule, BottomSheet],
   templateUrl: './import-folders-dialog.html',
   styleUrl: './import-folders-dialog.css'
 })

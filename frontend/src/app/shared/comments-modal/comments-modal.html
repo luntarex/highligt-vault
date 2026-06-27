@@ -1,7 +1,5 @@
   @if (post) {
-    <div class="comments-backdrop" (click)="closeComments()">
-
-      <div class="comments-modal" (click)="$event.stopPropagation()">
+    <app-bottom-sheet [heightVh]="65" [offsetSidebar]="true" (closed)="closeComments()">
 
         <div class="comments-header">
           <h3>{{ 'commentsModal.title' | transloco }}</h3>
@@ -174,8 +172,7 @@
           <button class="comment-post-btn" (click)="postComment()">{{ 'commentsModal.post' | transloco }}</button>
         </div>
 
-      </div>
-    </div>
+    </app-bottom-sheet>
 
     <!-- Moderation Modal -->
     @if (showModerateModal) {

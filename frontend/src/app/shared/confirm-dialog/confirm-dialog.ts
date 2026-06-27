@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BottomSheet],
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.css'
 })

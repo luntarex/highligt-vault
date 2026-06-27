@@ -160,6 +160,8 @@
   transform: translate(-50%, -50%);
   z-index: 5;
   cursor: ew-resize;
+  /* Don't let a drag that starts on the handle scroll the page (touch). */
+  touch-action: none;
 }
 
 /* Sidebar Form */
@@ -364,6 +366,22 @@ input:focus, textarea:focus, select:focus { border-color: hsl(var(--primary)); }
 
   .video-player {
     max-height: 56vh;
+  }
+
+  /* Bigger trim targets for touch. */
+  .timeline-bar {
+    height: 16px;
+  }
+
+  .handle {
+    width: 30px;
+    height: 30px;
+    border-width: 4px;
+  }
+
+  .timeline-container {
+    /* Roomier vertical hit area so fingers don't trigger a page scroll. */
+    padding: 8px 12px 20px;
   }
 
   .metadata-sidebar {

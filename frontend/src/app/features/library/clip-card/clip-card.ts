@@ -23,8 +23,32 @@ export class ClipCard {
   @Output() appealClip = new EventEmitter<number>();
   @Output() selectionChange = new EventEmitter<{ id: number; selected: boolean }>();
   @Output() removeFromGroup = new EventEmitter<number>();
+  /** Touch long-press on a library clip — used to enter multi-select. */
+  @Output() longPress = new EventEmitter<number>();
+
+  private longPressTimer: number | null = null;
+  private longPressFired = false;
 
   constructor(private router: Router, private transloco: TranslocoService) {}
+
+  onPointerDown(event: PointerEvent) {
+    // Only enable long-press selection for touch in the library grid.
+    if (event.pointerType !== 'touch' || this.mode !== 'library' || this.isModerationLocked()) {
+      return;
+    }
+    this.longPressFired = false;
+    this.longPressTimer = window.setTimeout(() => {
+      this.longPressFired = true;
+      this.longPress.emit(this.clip.id);
+    }, 450);
+  }
+
+  cancelLongPress() {
+    if (this.longPressTimer !== null) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
 
   onDelete(event: Event) {
     event.stopPropagation();
@@ -42,6 +66,11 @@ export class ClipCard {
   }
 
   handleCardClick(event: Event) {
+    // Swallow the click that ends a long-press so it doesn't also navigate.
+    if (this.longPressFired) {
+      this.longPressFired = false;
+      return;
+    }
     if (this.selectable && this.mode !== 'trash') {
       this.toggleSelection(event);
       return;

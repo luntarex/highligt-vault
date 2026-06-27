@@ -67,38 +67,20 @@
   white-space: nowrap;
 }
 
-/* ─── Quote Compose Overlay ─── */
-.quote-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  animation: quoteOverlayIn 0.2s ease;
-}
-
-@keyframes quoteOverlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
+/* ─── Quote Compose ───
+   The scrim/panel and dismiss gestures are provided by <app-bottom-sheet>. */
 .quote-compose-modal {
-  width: min(540px, 100%);
-  background: var(--surface-app);
-  border: 1px solid var(--overlay-hover-strong);
-  border-radius: 20px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  animation: quoteModalIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
 }
 
-@keyframes quoteModalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(12px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+/* Mobile select-mode action sheet container. */
+.repost-sheet-options {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8px;
 }
 
 .quote-compose-header {
