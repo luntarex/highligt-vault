@@ -509,7 +509,22 @@
     "loadingQueue": "Loading moderation queue...",
     "commentLoading": "The reported comment is loading or no longer available.",
     "deleteComment": "Delete comment",
-    "removeAsViolation": "Remove as violation"
+    "removeAsViolation": "Remove as violation",
+    "filters": "Filters",
+    "deckView": "Deck",
+    "listView": "List",
+    "scoreShort": "score",
+    "riskHigh": "High risk",
+    "riskMedium": "Medium risk",
+    "riskLow": "Low risk",
+    "addNote": "+ Add moderator note",
+    "keysHintClip": "A approve · R reject · X remove · ← → browse",
+    "keysHintReport": "R resolve · D dismiss · ← → browse",
+    "keysHintCommunity": "A approve · R reject · ← → browse",
+    "swipeHint": "← reject · approve →",
+    "swipeHintReport": "← dismiss · resolve →",
+    "prevItem": "Previous",
+    "nextItem": "Next"
   },
   "favorites": {
     "title": "Favorites",

@@ -343,11 +343,14 @@ input:focus, textarea:focus, select:focus { border-color: hsl(var(--primary)); }
 }
 
 @media (max-width: 768px) {
-  /* Stack the editor and let the page scroll instead of clipping */
+  /* The app shell's .main-content is overflow:hidden with a fixed height, so the
+     editor itself must be the scroll container — otherwise the lower form fields
+     and the Save button are clipped and unreachable. */
   .editor-container {
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 16px 12px 80px;
   }
 

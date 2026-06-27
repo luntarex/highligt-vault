@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -52,6 +52,21 @@ export class Moderation implements OnInit {
   toDateFilter = '';
   readonly statusOptions = ['', 'PENDING_REVIEW', 'NEEDS_MANUAL_REVIEW', 'APPEALED'];
 
+  // ---- Review Deck UX state ----
+  // One item in focus at a time; same paradigm on desktop (buttons + keyboard)
+  // and mobile (swipe). Reports/communities reuse the same shell via their own index.
+  uploadsView: 'deck' | 'list' = 'deck';
+  noteOpen = false;
+  filtersOpen = false;
+  reportIndex = 0;
+  communityIndex = 0;
+  // Horizontal swipe (mobile): right = primary (approve/resolve), left = secondary (reject/dismiss).
+  dragX = 0;
+  dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private swipeAxis: 'h' | 'v' | null = null;
+
   constructor(
     private moderationService: ModerationService,
     private clipService: ClipService,
@@ -70,6 +85,9 @@ export class Moderation implements OnInit {
 
   setSection(section: 'uploads' | 'reports' | 'communities'): void {
     this.activeSection = section;
+    this.noteOpen = false;
+    this.filtersOpen = false;
+    this.resetDrag();
   }
 
   loadQueue(): void {
@@ -149,6 +167,7 @@ export class Moderation implements OnInit {
     request.subscribe({
       next: () => {
         this.communityQueue = this.communityQueue.filter(item => item.id !== community.id);
+        this.communityIndex = Math.min(this.communityIndex, Math.max(0, this.communityQueue.length - 1));
         delete this.communityReasonById[community.id];
         this.isDecidingCommunityId = null;
         this.toast.success(approved ? 'Community approved.' : 'Community rejected.');
@@ -171,6 +190,7 @@ export class Moderation implements OnInit {
     this.moderationService.resolveReport(report.id, { resolution, dismissed }).subscribe({
       next: () => {
         this.reports = this.reports.filter(item => item.id !== report.id);
+        this.reportIndex = Math.min(this.reportIndex, Math.max(0, this.reports.length - 1));
         delete this.reportResolutionById[report.id];
         this.isResolvingReportId = null;
         this.toast.success(dismissed ? 'Report dismissed.' : 'Report resolved.');
@@ -217,6 +237,9 @@ export class Moderation implements OnInit {
   selectClip(item: ModerationQueueItem): void {
     this.selectedClip = item;
     this.decisionReason = '';
+    this.noteOpen = false;
+    this.uploadsView = 'deck';
+    this.resetDrag();
     this.resetReviewPlayer();
   }
 
@@ -258,6 +281,8 @@ export class Moderation implements OnInit {
         this.selectedClip = this.queue[decidedIndex] || this.queue[decidedIndex - 1] || this.queue[0] || null;
         this.resetReviewPlayer();
         this.decisionReason = '';
+        this.noteOpen = false;
+        this.resetDrag();
         this.isSubmitting = false;
         this.cdr.detectChanges();
       },
@@ -312,6 +337,7 @@ export class Moderation implements OnInit {
     this.moderationService.resolveReport(report.id, { resolution, dismissed: false }).subscribe({
       next: () => {
         this.reports = this.reports.filter(item => item.id !== report.id);
+        this.reportIndex = Math.min(this.reportIndex, Math.max(0, this.reports.length - 1));
         delete this.reportResolutionById[report.id];
         this.isActingOnCommentReportId = null;
         this.toast.success(violation
@@ -521,5 +547,174 @@ export class Moderation implements OnInit {
     if (action === 'APPROVE') return 'Clip approved.';
     if (action === 'REJECT') return 'Clip rejected.';
     return 'Clip removed.';
+  }
+
+  // ============================================================
+  // Review Deck: navigation, keyboard, swipe, risk helpers
+  // ============================================================
+
+  /** Index of the focused clip within the queue (-1 when none). */
+  get uploadsIndex(): number {
+    if (!this.selectedClip) return -1;
+    return this.queue.findIndex(item => item.clipId === this.selectedClip?.clipId);
+  }
+
+  get uploadsTotal(): number {
+    return this.queue.length;
+  }
+
+  get currentReport(): ReportResponse | null {
+    if (this.reports.length === 0) return null;
+    const i = Math.min(Math.max(this.reportIndex, 0), this.reports.length - 1);
+    return this.reports[i] || null;
+  }
+
+  get currentCommunity(): Community | null {
+    if (this.communityQueue.length === 0) return null;
+    const i = Math.min(Math.max(this.communityIndex, 0), this.communityQueue.length - 1);
+    return this.communityQueue[i] || null;
+  }
+
+  /** Coarse risk band from the AI score; drives the verdict colour. */
+  riskLevel(score: number | undefined | null): 'low' | 'medium' | 'high' {
+    const value = score || 0;
+    if (value >= 70) return 'high';
+    if (value >= 40) return 'medium';
+    return 'low';
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.statusFilter || this.minScoreFilter || this.categoryFilter || this.fromDateFilter || this.toDateFilter);
+  }
+
+  refreshActive(): void {
+    if (this.activeSection === 'uploads') this.loadQueue();
+    else if (this.activeSection === 'reports') this.loadReports();
+    else this.loadCommunityQueue();
+  }
+
+  goPrevClip(): void {
+    const i = this.uploadsIndex;
+    if (i > 0) this.selectClip(this.queue[i - 1]);
+  }
+
+  goNextClip(): void {
+    const i = this.uploadsIndex;
+    if (i >= 0 && i < this.queue.length - 1) this.selectClip(this.queue[i + 1]);
+  }
+
+  goPrevReport(): void {
+    if (this.reportIndex > 0) {
+      this.reportIndex--;
+      this.resetDrag();
+    }
+  }
+
+  goNextReport(): void {
+    if (this.reportIndex < this.reports.length - 1) {
+      this.reportIndex++;
+      this.resetDrag();
+    }
+  }
+
+  goPrevCommunity(): void {
+    if (this.communityIndex > 0) {
+      this.communityIndex--;
+      this.resetDrag();
+    }
+  }
+
+  goNextCommunity(): void {
+    if (this.communityIndex < this.communityQueue.length - 1) {
+      this.communityIndex++;
+      this.resetDrag();
+    }
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    const key = event.key.toLowerCase();
+
+    if (this.activeSection === 'uploads' && this.selectedClip && this.uploadsView === 'deck') {
+      if (key === 'a') { event.preventDefault(); this.decide('APPROVE'); }
+      else if (key === 'r') { event.preventDefault(); this.decide('REJECT'); }
+      else if (key === 'x') { event.preventDefault(); this.decide('REMOVE'); }
+      else if (key === 'arrowleft') { event.preventDefault(); this.goPrevClip(); }
+      else if (key === 'arrowright') { event.preventDefault(); this.goNextClip(); }
+      return;
+    }
+
+    if (this.activeSection === 'reports' && this.currentReport) {
+      if (key === 'r') { event.preventDefault(); this.resolveReport(this.currentReport, false); }
+      else if (key === 'd') { event.preventDefault(); this.resolveReport(this.currentReport, true); }
+      else if (key === 'arrowleft') { event.preventDefault(); this.goPrevReport(); }
+      else if (key === 'arrowright') { event.preventDefault(); this.goNextReport(); }
+      return;
+    }
+
+    if (this.activeSection === 'communities' && this.currentCommunity) {
+      if (key === 'a') { event.preventDefault(); this.decideCommunity(this.currentCommunity, true); }
+      else if (key === 'r') { event.preventDefault(); this.decideCommunity(this.currentCommunity, false); }
+      else if (key === 'arrowleft') { event.preventDefault(); this.goPrevCommunity(); }
+      else if (key === 'arrowright') { event.preventDefault(); this.goNextCommunity(); }
+    }
+  }
+
+  onCardPointerDown(event: PointerEvent): void {
+    if (!this.isMobile() || event.pointerType === 'mouse') return;
+    this.dragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.swipeAxis = null;
+  }
+
+  onCardPointerMove(event: PointerEvent): void {
+    if (!this.dragging) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    if (this.swipeAxis === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      this.swipeAxis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+    if (this.swipeAxis === 'h') {
+      event.preventDefault();
+      this.dragX = dx;
+    }
+  }
+
+  onCardPointerUp(): void {
+    if (!this.dragging) return;
+    const dx = this.dragX;
+    const horizontal = this.swipeAxis === 'h';
+    this.resetDrag();
+    if (!horizontal || Math.abs(dx) < 110) return;
+    if (dx > 0) this.swipePrimary();
+    else this.swipeSecondary();
+  }
+
+  private swipePrimary(): void {
+    if (this.activeSection === 'uploads' && this.selectedClip) this.decide('APPROVE');
+    else if (this.activeSection === 'reports' && this.currentReport) this.resolveReport(this.currentReport, false);
+    else if (this.activeSection === 'communities' && this.currentCommunity) this.decideCommunity(this.currentCommunity, true);
+  }
+
+  private swipeSecondary(): void {
+    if (this.activeSection === 'uploads' && this.selectedClip) this.decide('REJECT');
+    else if (this.activeSection === 'reports' && this.currentReport) this.resolveReport(this.currentReport, true);
+    else if (this.activeSection === 'communities' && this.currentCommunity) this.decideCommunity(this.currentCommunity, false);
+  }
+
+  private resetDrag(): void {
+    this.dragging = false;
+    this.dragX = 0;
+    this.swipeAxis = null;
   }
 }
