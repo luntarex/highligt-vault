@@ -64,6 +64,15 @@ public class R2StorageService {
             return;
         }
 
+        // Normalize the public base URL so a misconfigured value (missing scheme or a
+        // trailing slash) can't produce relative/double-slash links that browsers mis-resolve.
+        if (!publicBaseUrl.startsWith("http://") && !publicBaseUrl.startsWith("https://")) {
+            publicBaseUrl = "https://" + publicBaseUrl;
+        }
+        while (publicBaseUrl.endsWith("/")) {
+            publicBaseUrl = publicBaseUrl.substring(0, publicBaseUrl.length() - 1);
+        }
+
         this.client = S3Client.builder()
             .endpointOverride(URI.create("https://" + accountId + ".r2.cloudflarestorage.com"))
             .region(Region.of("auto"))
