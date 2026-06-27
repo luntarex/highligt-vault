@@ -509,7 +509,22 @@
     "loadingQueue": "Moderasyon kuyruğu yükleniyor...",
     "commentLoading": "Bildirilen yorum yükleniyor veya artık mevcut değil.",
     "deleteComment": "Yorumu Sil",
-    "removeAsViolation": "İhlal olarak kaldır"
+    "removeAsViolation": "İhlal olarak kaldır",
+    "filters": "Filtreler",
+    "deckView": "Kart",
+    "listView": "Liste",
+    "scoreShort": "skor",
+    "riskHigh": "Yüksek risk",
+    "riskMedium": "Orta risk",
+    "riskLow": "Düşük risk",
+    "addNote": "+ Moderatör notu ekle",
+    "keysHintClip": "A onayla · R reddet · X kaldır · ← → gez",
+    "keysHintReport": "R çöz · D yoksay · ← → gez",
+    "keysHintCommunity": "A onayla · R reddet · ← → gez",
+    "swipeHint": "← reddet · onayla →",
+    "swipeHintReport": "← yoksay · çöz →",
+    "prevItem": "Önceki",
+    "nextItem": "Sonraki"
   },
   "favorites": {
     "title": "Favoriler",
