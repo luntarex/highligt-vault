@@ -7,12 +7,12 @@
   --muted: var(--text-secondary);
   --accent: var(--brand-soft);
   display: block;
-  height: 100vh;
+  height: 100%;
   min-height: 0;
 }
 
 .communities-page {
-  height: 100vh;
+  height: 100%;
   min-height: 0;
   background: var(--bg-main);
   color: var(--text);

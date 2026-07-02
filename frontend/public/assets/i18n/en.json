@@ -2,6 +2,8 @@
   "sidebar": {
     "toggle": "Toggle Sidebar",
     "feed": "Feed",
+    "create": "Create",
+    "profile": "Profile",
     "explore": "Explore",
     "communities": "Communities",
     "library": "Library",
@@ -329,9 +331,16 @@
     "loading": "Loading communities..."
   },
   "explore": {
-    "empty": "No posts yet. Be the first to share a clip!"
+    "empty": "No posts yet. Be the first to share a clip!",
+    "title": "Explore",
+    "subtitle": "Discover the best clips across every game",
+    "searchPlaceholder": "Search clips, creators or games",
+    "allGames": "All",
+    "noResults": "No clips match your search."
   },
   "feed": {
+    "sortLatest": "Latest",
+    "sortPopular": "Popular",
     "title": "Your Feed",
     "subtitle": "Latest clips from people you follow",
     "emptyTitle": "Your feed is empty",
@@ -351,7 +360,9 @@
     "deletePost": "Delete Post",
     "fullscreen": "Fullscreen",
     "clipTarget": "clip",
-    "postTarget": "post"
+    "postTarget": "post",
+    "favorite": "Add to favorites",
+    "favorited": "Favorited"
   },
   "messages": {
     "title": "Messages",
@@ -441,6 +452,7 @@
     "justNow": "Just now"
   },
   "time": {
+    "justNow": "Just now",
     "secondsAgo": "{{count}}s ago",
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",

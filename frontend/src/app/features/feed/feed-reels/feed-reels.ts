@@ -15,7 +15,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { ExplorePost } from '../../../core/models/explore-post';
 import { AuthService } from '../../../core/services/auth.service';
 import { ReportButtonComponent } from '../../../shared/report-button/report-button';
-import { buildSlugId } from '../../../core/utils/slug.util';
+import { BottomSheet } from '../../../shared/bottom-sheet/bottom-sheet';
+import { SharePanelComponent } from '../../../shared/share-panel/share-panel';
 
 /**
  * Full-screen vertical snap feed (Reels/TikTok-style) for mobile.
@@ -29,12 +30,15 @@ import { buildSlugId } from '../../../core/utils/slug.util';
 @Component({
   selector: 'app-feed-reels',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslocoModule, ReportButtonComponent],
+  imports: [CommonModule, RouterLink, TranslocoModule, ReportButtonComponent, BottomSheet, SharePanelComponent],
   templateUrl: './feed-reels.html',
   styleUrls: ['./feed-reels.css'],
 })
 export class FeedReels implements AfterViewInit, OnDestroy {
   @Input() posts: ExplorePost[] = [];
+
+  /** Post whose share sheet is open (null = closed). */
+  shareTarget: ExplorePost | null = null;
 
   @Output() toggleLikeEvent = new EventEmitter<ExplorePost>();
   @Output() toggleFavoriteEvent = new EventEmitter<ExplorePost>();
@@ -46,6 +50,9 @@ export class FeedReels implements AfterViewInit, OnDestroy {
   /** Id of the reel the user explicitly paused (suppresses autoplay). */
   pausedId: string | null = null;
   muted = true;
+
+  /** Id of the reel whose overflow (⋯) menu is open (null = closed). */
+  menuOpenId: string | null = null;
 
   private observer: IntersectionObserver | null = null;
   private activeId: string | null = null;
@@ -151,6 +158,15 @@ export class FeedReels implements AfterViewInit, OnDestroy {
     this.muted = !this.muted;
   }
 
+  toggleMenu(event: Event, post: ExplorePost): void {
+    event.stopPropagation();
+    this.menuOpenId = this.menuOpenId === post.id ? null : post.id;
+  }
+
+  closeMenu(): void {
+    this.menuOpenId = null;
+  }
+
   progressPercent(post: ExplorePost): number {
     const start = post.startTime || 0;
     const end = post.endTime && post.endTime > start ? post.endTime : post.duration || 0;
@@ -179,18 +195,13 @@ export class FeedReels implements AfterViewInit, OnDestroy {
     return this.authService.isAdmin() || this.authService.getCurrentUserId() === post.author.id;
   }
 
-  async share(event: Event, post: ExplorePost): Promise<void> {
+  openShare(event: Event, post: ExplorePost): void {
     event.stopPropagation();
-    const url = `${window.location.origin}/post/${buildSlugId(post.title, post.id)}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: post.title || 'Clip', url });
-      } else {
-        await navigator.clipboard.writeText(url);
-      }
-    } catch {
-      /* user cancelled share / clipboard blocked — nothing to do */
-    }
+    this.shareTarget = post;
+  }
+
+  closeShare(): void {
+    this.shareTarget = null;
   }
 
   formatCount(n: number | undefined): string {

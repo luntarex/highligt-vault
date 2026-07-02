@@ -1,0 +1,117 @@
+<div class="video-container" (click)="onTogglePlay(videoPlayer)">
+  <video #videoElement
+         #videoPlayer
+         [src]="src"
+         [poster]="poster || ''"
+         class="post-video"
+         [muted]="muted"
+         playsinline
+         preload="metadata"
+         disablePictureInPicture
+         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+         (play)="onVideoPlay()"
+         (pause)="onVideoPause()"
+         (timeupdate)="onTimeUpdate(videoPlayer)"
+         (loadedmetadata)="onMetadataLoaded(videoPlayer)">
+  </video>
+
+  <div class="play-button" [class.hidden]="!videoPlayer.paused">▶</div>
+
+  <button
+    *ngIf="showFullscreenBtn"
+    class="fullscreen-button"
+    (click)="toggleFullscreen($event); $event.stopPropagation()"
+    title="Fullscreen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+    </svg>
+  </button>
+
+  <div class="controls-bar" (click)="$event.stopPropagation()">
+    <div class="progress-container" (click)="onSeekTo($event, videoPlayer)">
+      <div class="progress-bar" [style.width.%]="(currentTime - startTime) / ((endTime || duration || 1) - startTime) * 100"></div>
+    </div>
+    <div class="time-display">
+      {{ formatTime(currentTime - startTime) }} / {{ formatTime((endTime || duration || 0) - startTime) }}
+    </div>
+    <button class="mute-button" (click)="onToggleMute($event, videoPlayer)">
+      <svg *ngIf="videoPlayer.muted" viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-miterlimit="10">
+        <path d="M12,5V19L7,16H2V8H7Z"></path>
+        <line x1="16" y1="15" x2="22" y2="9"></line>
+        <line x1="16" y1="9" x2="22" y2="15"></line>
+      </svg>
+      <svg *ngIf="!videoPlayer.muted" viewBox="0 0 24 24" class="icon" fill="none" stroke="currentColor" stroke-miterlimit="10">
+        <path d="M12,5V19L7,16H2V8H7Z"></path>
+        <path d="M19.3,19.3a11.2,11.2,0,0,0,0-14.6"></path>
+        <path d="M16.4,16.4a6.8,6.8,0,0,0,0-8.8"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Fullscreen Overlay -->
+<div *ngIf="isFullscreen" class="fullscreen-overlay" (click)="toggleFullscreen()">
+  <div class="fullscreen-backdrop"></div>
+
+  <div class="fullscreen-content" (click)="$event.stopPropagation()">
+    <div class="fullscreen-video-wrapper" [class.hud-visible]="hudVisible">
+      <video #fullscreenVideo
+             [src]="src"
+             class="fullscreen-video"
+             preload="metadata"
+             playsinline
+             disablePictureInPicture
+             controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+             (play)="onVideoPlay()"
+             (pause)="onVideoPause()"
+             (timeupdate)="onTimeUpdate(fullscreenVideo)"
+             (click)="onFullscreenVideoClick(fullscreenVideo)">
+      </video>
+
+      <!-- Fullscreen HUD -->
+      <div class="fullscreen-hud">
+        <div class="hud-top">
+          <div class="post-info" *ngIf="authorUsername || postTitle">
+            <span class="fs-username" *ngIf="authorUsername">{{ authorUsername }}</span>
+            <span class="fs-title" *ngIf="postTitle">{{ postTitle }}</span>
+          </div>
+          <button class="close-fullscreen" (click)="toggleFullscreen()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="hud-bottom" (click)="keepHudVisible()">
+          <div class="hud-progress-container" (click)="onSeekTo($event, fullscreenVideo)">
+            <div class="hud-progress-bar" [style.width.%]="(currentTime - startTime) / ((endTime || duration || 1) - startTime) * 100"></div>
+          </div>
+
+          <div class="hud-controls">
+            <button class="hud-play-btn" (click)="onTogglePlay(fullscreenVideo)">
+              <svg *ngIf="fullscreenVideo.paused" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg *ngIf="!fullscreenVideo.paused" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+
+            <div class="hud-time">
+              {{ formatTime(currentTime - startTime) }} / {{ formatTime((endTime || duration || 0) - startTime) }}
+            </div>
+
+            <div class="hud-volume-control">
+              <button class="hud-mute-btn" (click)="onToggleMute($event, fullscreenVideo)">
+                <svg *ngIf="fullscreenVideo.muted || fullscreenVideo.volume === 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                <svg *ngIf="!fullscreenVideo.muted && fullscreenVideo.volume > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+              <input type="range" class="hud-volume-slider" min="0" max="1" step="0.01"
+                     [value]="fullscreenVideo.volume"
+                     (input)="onVolumeChange($event, fullscreenVideo)"
+                     (touchstart)="keepHudVisible()"
+                     (touchmove)="keepHudVisible()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

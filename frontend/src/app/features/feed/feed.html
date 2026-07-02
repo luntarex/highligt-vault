@@ -25,8 +25,21 @@
     <!-- LEFT COLUMN: Posts -->
     <div class="feed-main">
       <div class="feed-header">
-        <h1 class="feed-title">{{ t('feed.title') }}</h1>
-        <p class="feed-subtitle">{{ t('feed.subtitle') }}</p>
+        <div>
+          <h1 class="feed-title">{{ t('feed.title') }}</h1>
+          <p class="feed-subtitle">{{ t('feed.subtitle') }}</p>
+        </div>
+
+        @if (!isLoading && feed.length > 0) {
+          <div class="feed-sort">
+            <button class="sort-tab" [class.active]="sortMode === 'latest'" (click)="setSort('latest')">
+              {{ t('feed.sortLatest') }}
+            </button>
+            <button class="sort-tab" [class.active]="sortMode === 'popular'" (click)="setSort('popular')">
+              {{ t('feed.sortPopular') }}
+            </button>
+          </div>
+        }
       </div>
 
       <div class="feed-container">
@@ -49,7 +62,7 @@
             </div>
           }
         } @else {
-          @for (post of feed; track post.id){
+          @for (post of displayFeed; track post.id){
             <app-explore-post-card
               [post]="post"
               [playingPostId]="playingPostId"
@@ -367,5 +380,12 @@
       (cancel)="onClipPickerCancel()"
       (confirm)="onClipPickerConfirm($event)"
     ></app-clip-picker-modal>
+  }
+
+  @if (showAddPostModal) {
+    <app-add-post-modal
+      [clip]="selectedClipToPost"
+      (close)="showAddPostModal = false"
+    ></app-add-post-modal>
   }
 </div>

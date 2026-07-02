@@ -22,6 +22,7 @@ public class PostFeedResponse {
     private Long likes;
     private Long comments;
     private Long views;
+    private Long favorites;
     private String createdAt;
     private Boolean isLiked;
     private Boolean isFavorited;

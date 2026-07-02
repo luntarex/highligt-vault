@@ -1,253 +1,77 @@
 <div class="explore-page" *transloco="let t">
 
-  <div class="nav-header">
-   <app-back-link></app-back-link>
-  </div>
-
-  <div class="hide-on-mobile" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+  <div class="hide-on-mobile profile-corner">
     <app-profile-dropdown />
   </div>
 
-  <div class="feed-container">
+  <div class="explore-inner">
+
+    <header class="explore-header">
+      <div class="header-text">
+        <h1 class="explore-title">{{ t('explore.title') }}</h1>
+        <p class="explore-subtitle">{{ t('explore.subtitle') }}</p>
+      </div>
+
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="searchQuery"
+          [placeholder]="t('explore.searchPlaceholder')">
+        @if (searchQuery) {
+          <button class="clear-search" (click)="searchQuery = ''" aria-label="clear">✕</button>
+        }
+      </div>
+    </header>
+
+    @if (games.length > 0) {
+      <div class="chip-row">
+        <button class="chip" [class.active]="!selectedGame" (click)="selectedGame = ''">
+          {{ t('explore.allGames') }}
+        </button>
+        @for (game of games; track game) {
+          <button class="chip" [class.active]="selectedGame === game" (click)="selectGame(game)">
+            {{ game }}
+          </button>
+        }
+      </div>
+    }
+
     @if (isLoading) {
-      @for (i of [1, 2, 3]; track i) {
-        <div class="skeleton-card">
-          <div class="skeleton-header">
-            <div class="skeleton-avatar skeleton-pulse"></div>
+      <div class="grid">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <div class="skeleton-cell">
+            <div class="skeleton-thumb skeleton-pulse"></div>
             <div class="skeleton-meta">
-              <div class="skeleton-line skeleton-pulse" style="width: 35%; height: 12px;"></div>
-              <div class="skeleton-line skeleton-pulse" style="width: 20%; height: 10px;"></div>
+              <div class="skeleton-avatar skeleton-pulse"></div>
+              <div class="skeleton-lines">
+                <div class="skeleton-line skeleton-pulse" style="width: 80%; height: 11px;"></div>
+                <div class="skeleton-line skeleton-pulse" style="width: 45%; height: 9px;"></div>
+              </div>
             </div>
           </div>
-          <div class="skeleton-video skeleton-pulse"></div>
-          <div class="skeleton-actions">
-            <div class="skeleton-circle skeleton-pulse"></div>
-            <div class="skeleton-circle skeleton-pulse"></div>
-            <div class="skeleton-circle skeleton-pulse"></div>
-          </div>
-        </div>
-      }
+        }
+      </div>
     } @else {
-      @for (post of feed; track post.id){
-        <app-explore-post-card
-          [post]="post"
-          [playingPostId]="playingPostId"
-          (togglePlayEvent)="togglePlay($event)"
-          (toggleLikeEvent)="toggleLike($event)"
-          (toggleFavoriteEvent)="toggleFavorite($event)"
-          (openCommentsEvent)="openComments($event)"
-          (deletePostEvent)="deletePost($event)"
-          (toggleMuteEvent)="toggleMute($event)"
-          (seekToEvent)="onSeekTo($event)"
-          (timeUpdateEvent)="onTimeUpdate($event)"
-          (metadataLoadedEvent)="onMetadataLoaded($event)"
-        />
-      }
-      @empty {
+      @if (filteredFeed.length > 0) {
+        <div class="grid">
+          @for (post of filteredFeed; track post.id) {
+            <app-explore-grid-card [post]="post" />
+          }
+        </div>
+      } @else {
         <div class="empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
             <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
           </svg>
-          <p>{{ t('explore.empty') }}</p>
+          <p>{{ (searchQuery || selectedGame) ? t('explore.noResults') : t('explore.empty') }}</p>
         </div>
       }
     }
 
   </div>
-
-  @if (activePostForComments) {
-    <div class="comments-backdrop" (click)="closeComments()">
-
-      <div class="comments-modal" (click)="$event.stopPropagation()">
-
-        <div class="comments-header">
-          <h3>{{ t('commentsModal.title') }}</h3>
-          <button class="close-btn" (click)="closeComments()">✕</button>
-        </div>
-
-        <div class="comments-list">
-          @for (comment of comments; track comment.id) {
-            <div class="comment-item" [class.tos-violation]="isTosViolation(comment.text)">
-              <div class="comment-avatar">
-                @if (comment.profilePhoto) {
-                  <img [src]="comment.profilePhoto" alt="profile" class="avatar-img">
-                } @else {
-                  <div class="comment-avatar-placeholder">{{ comment.username.charAt(0) }}</div>
-                }
-              </div>
-
-              <div class="comment-body">
-                <div class="comment-user">
-                  <span class="comment-username">{{ comment.username }}</span>
-                  <span class="comment-time">{{ comment.timeAgo }}</span>
-                  @if (canEditComment(comment)) {
-                    <div class="comment-actions">
-                      @if (comment.userId !== authService.getCurrentUserId()) {
-                        <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" [targetLabel]="t('report.commentTarget')" [label]="t('report.report')" [compact]="true"></app-report-button>
-                      }
-                      <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(comment)" [title]="t('commentsModal.edit')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                      </button>
-                      <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(comment)" [title]="t('commentsModal.delete')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                      </button>
-                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" [title]="t('commentsModal.reply')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="9 17 4 12 9 7"></polyline>
-                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  } @else {
-                    <div class="comment-actions">
-                      <app-report-button [targetType]="'COMMENT'" [targetId]="comment.id" [targetLabel]="t('report.commentTarget')" [label]="t('report.report')" [compact]="true"></app-report-button>
-                      <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" [title]="t('commentsModal.reply')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="9 17 4 12 9 7"></polyline>
-                          <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  }
-                </div>
-                
-                @if (editingCommentId === comment.id) {
-                  <div class="edit-comment-area">
-                    <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(comment)">
-                    <button class="save-comment-btn" (click)="saveComment(comment)">{{ t('common.save') }}</button>
-                  </div>
-                } @else {
-                  <p class="comment-text">
-                    @if (comment.replyTargetUserId) {
-                      <a [routerLink]="['/profile', comment.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ comment.replyTargetUsername }}</a>
-                    }
-                    {{ comment.cleanText }}
-                  </p>
-                }
-              </div>
-            </div>
-
-            @if (comment.replies && comment.replies.length > 0) {
-              <div class="nested-replies" style="margin-left: 3rem; margin-top: -0.5rem; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 1rem;">
-                @for (reply of comment.replies; track reply.id) {
-                  <div class="comment-item reply-item" [class.tos-violation]="isTosViolation(reply.text)" style="margin-bottom: 0.5rem;">
-                    <div class="comment-avatar reply-avatar" style="width: 24px; height: 24px;">
-                      @if (reply.profilePhoto) {
-                        <img [src]="reply.profilePhoto" alt="profile" class="avatar-img thumb">
-                      } @else {
-                        <div class="comment-avatar-placeholder" style="width: 24px; height: 24px; font-size: 10px;">{{ reply.username.charAt(0) }}</div>
-                      }
-                    </div>
-
-                    <div class="comment-body">
-                      <div class="comment-user">
-                        <span class="comment-username">{{ reply.username }}</span>
-                        <span class="comment-time">{{ reply.timeAgo }}</span>
-                        @if (canEditComment(reply)) {
-                          <div class="comment-actions">
-                            @if (reply.userId !== authService.getCurrentUserId()) {
-                              <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" [targetLabel]="t('report.commentTarget')" [label]="t('report.report')" [compact]="true"></app-report-button>
-                            }
-                            <button class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(reply)" [title]="t('commentsModal.edit')">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121(0) 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                              </svg>
-                            </button>
-                            <button class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(reply)" [title]="t('commentsModal.delete')">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                              </svg>
-                            </button>
-                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" [title]="t('commentsModal.reply')">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 17 4 12 9 7"></polyline>
-                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        } @else {
-                          <div class="comment-actions">
-                            <app-report-button [targetType]="'COMMENT'" [targetId]="reply.id" [targetLabel]="t('report.commentTarget')" [label]="t('report.report')" [compact]="true"></app-report-button>
-                            <button class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" [title]="t('commentsModal.reply')">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 17 4 12 9 7"></polyline>
-                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        }
-                      </div>
-
-                      @if (editingCommentId === reply.id) {
-                        <div class="edit-comment-area">
-                          <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(reply)">
-                          <button class="save-comment-btn" (click)="saveComment(reply)">{{ t('common.save') }}</button>
-                        </div>
-                      } @else {
-                        <p class="comment-text">
-                          @if (reply.replyTargetUserId) {
-                            <a [routerLink]="['/profile', reply.replyTargetUsername]" class="reply-tag" style="text-decoration: none; cursor: pointer;">@{{ reply.replyTargetUsername }}</a>
-                          }
-                          {{ reply.cleanText }}
-                        </p>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            }
-          } @empty {
-            <div class="empty-comments" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">
-              <p>{{ t('commentsModal.empty') }}</p>
-            </div>
-          }
-        </div>
-
-        <div class="comment-input-area" [class.is-replying]="replyingToComment">
-          @if (replyingToComment) {
-            <div class="reply-badge" style="position: absolute; top: -25px; left: 15px; font-size: 12px; color: var(--brand-color); background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
-              {{ t('commentsModal.replyingTo') }} @{{ replyingToComment.username }}
-              <span (click)="cancelReply()" style="cursor: pointer; font-weight: bold; padding: 0 4px;">✕</span>
-            </div>
-          }
-          <div class="comment-avatar" style="margin-top: auto">
-            @if (currentUserPhoto) {
-              <img [src]="currentUserPhoto" alt="me" class="avatar-img">
-            } @else {
-              <div class="comment-avatar-placeholder">P</div>
-            }
-          </div>
-          <input type="text" class="comment-input" [placeholder]="replyingToComment ? t('commentsModal.writeReply') : t('commentsModal.addComment')"
-                 [(ngModel)]="newCommentText"
-                 (keyup.enter)="postComment()">
-          <button class="comment-post-btn" (click)="postComment()">{{ t('commentsModal.post') }}</button>
-        </div>
-
-      </div>
-    </div>
-    
-    <!-- Moderation Modal -->
-    @if (showModerateModal) {
-      <div class="modal-overlay" (click)="closeModerateModal()">
-        <div class="confirm-modal" (click)="$event.stopPropagation()">
-          <h2>{{ t('comments.moderateComment') }}</h2>
-          <p>{{ t('comments.moderatePrompt') }} <strong>{{commentToModerate?.username}}</strong>.</p>
-
-          <div class="modal-actions">
-            <button class="modal-tos-btn" (click)="moderateTosViolation()">{{ t('comments.markTos') }}</button>
-            <button class="modal-delete-btn" (click)="moderateDelete()">{{ t('comments.deleteCompletely') }}</button>
-            <button class="modal-cancel-btn" (click)="closeModerateModal()">{{ t('common.cancel') }}</button>
-          </div>
-        </div>
-      </div>
-    }
-  }
 </div>

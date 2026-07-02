@@ -1,6 +1,11 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
 .messages-container {
   display: flex;
-  height: 100vh;
+  height: 100%;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   overflow: hidden;
@@ -721,6 +726,7 @@
   padding: 10px 16px;
   border-radius: 18px;
   position: relative;
+  overflow: hidden;
 }
 
 .message-bubble p {
@@ -736,6 +742,8 @@
 
 .message-text.post-caption {
   margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Shared-post messages read as a clean card, not a solid color bubble */
@@ -743,6 +751,8 @@
   background: var(--surface-2);
   color: var(--text-strong);
   border: 1px solid var(--border-strong);
+  padding: 8px;
+  border-radius: 14px;
 }
 
 .shared-post-card {
@@ -1050,8 +1060,8 @@
      fixed 60px bottom nav. Use dvh so the composer is not pushed below the
      visible viewport when the mobile browser chrome is showing. */
   .messages-container {
-    height: calc(100vh - 60px);
-    height: calc(100dvh - 60px);
+    height: 100%;
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 
   .conversation-sidebar {
@@ -1089,6 +1099,25 @@
 
   .message-wrapper {
     max-width: 82%;
+  }
+
+  /* Shared post card: stack vertically on narrow screens */
+  .shared-post-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .shared-post-thumb {
+    width: 72px;
+    height: 48px;
+  }
+
+  .shared-post-info strong {
+    font-size: 0.78rem;
+  }
+
+  .shared-post-info span:last-child {
+    font-size: 0.65rem;
   }
 
   /* Keep the composer above the bottom nav. */

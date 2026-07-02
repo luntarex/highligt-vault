@@ -206,6 +206,7 @@ public class PostService {
         response.setLikes(row.getLikes());
         response.setComments(row.getComments());
         response.setViews(row.getViews());
+        response.setFavorites(row.getFavorites());
         response.setCreatedAt(row.getCreatedAt() != null ? row.getCreatedAt().toString() : null);
         response.setIsLiked(currentUserId != null && postRepository.isLikedByUser(postId, currentUserId));
         response.setIsFavorited(currentUserId != null && clipId != null && clipRepository.isFavorited(currentUserId, clipId));
@@ -231,6 +232,7 @@ public class PostService {
                 original.setLikes(originalRow.getLikes());
                 original.setComments(originalRow.getComments());
                 original.setViews(originalRow.getViews());
+                original.setFavorites(originalRow.getFavorites());
                 original.setCreatedAt(originalRow.getCreatedAt() != null ? originalRow.getCreatedAt().toString() : null);
                 original.setIsLiked(currentUserId != null && postRepository.isLikedByUser(originalRow.getId(), currentUserId));
                 original.setIsFavorited(currentUserId != null && originalRow.getClipId() != null && clipRepository.isFavorited(currentUserId, originalRow.getClipId()));

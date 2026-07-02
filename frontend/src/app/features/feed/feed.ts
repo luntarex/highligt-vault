@@ -17,12 +17,13 @@ import { ReportButtonComponent } from '../../shared/report-button/report-button'
 import { CommentsModalComponent } from '../../shared/comments-modal/comments-modal';
 import { FeedReels } from './feed-reels/feed-reels';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AddPostModal } from '../add-post/add-post';
 
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.html',
   styleUrls: ['./feed.css'],
-  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent, CommentsModalComponent, FeedReels, TranslocoModule]
+  imports: [RouterLink, FormsModule, ExplorePostCard, CommonModule, ProfileDropdown, ClipPickerModal, ReportButtonComponent, CommentsModalComponent, FeedReels, TranslocoModule, AddPostModal]
 })
 export class Feed implements OnInit, OnDestroy, AfterViewInit {
   activePostForComments: ExplorePost | null = null;
@@ -39,6 +40,8 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   tosViolationText: string = '[This comment is deleted by an admin because of a TOS violation]';
 
   feed: ExplorePost[] = [];
+  displayFeed: ExplorePost[] = [];
+  sortMode: 'latest' | 'popular' = 'latest';
   isLoading = true;
   playingPostId: string | null = null;
   private animationFrameId: number | null = null;
@@ -53,7 +56,9 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
   loadingSuggestions = true;
 
   showClipPickerModal = false;
+  showAddPostModal = false;
   unpostedClips: Clip[] = [];
+  selectedClipToPost: Clip | null = null;
 
   /** Mobile switches to the full-screen reels feed and the sheet comments. */
   isMobile = window.matchMedia('(max-width: 768px)').matches;
@@ -94,7 +99,8 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
 
   onClipPickerConfirm(clip: Clip): void {
     this.showClipPickerModal = false;
-    this.router.navigate(['/add-post', clip.id]);
+    this.selectedClipToPost = clip;
+    this.showAddPostModal = true;
   }
 
   ngOnInit(): void {
@@ -215,15 +221,63 @@ export class Feed implements OnInit, OnDestroy, AfterViewInit {
         currentTime: 0,
         duration: 0
       }));
+      this.applySort();
       this.isLoading = false;
       this.cdr.detectChanges();
     });
+  }
+
+  setSort(mode: 'latest' | 'popular'): void {
+    if (this.sortMode === mode) return;
+    this.sortMode = mode;
+    this.applySort();
+    this.cdr.detectChanges();
+  }
+
+  private calculatePopularityScore(post: ExplorePost): number {
+    const likes = post.likes || 0;
+    const comments = post.comments || 0;
+    const saves = post.favorites || 0;
+    const views = Math.max(post.views || 1, 1);
+    
+    // Base engagement points
+    const basePoints = (likes * 1) + (comments * 2) + (saves * 3);
+    
+    // Engagement rate multiplier
+    const engagementRate = Math.min(basePoints / views, 1.0);
+    
+    // Age in hours (decay factor)
+    let hoursPassed = 1;
+    if (post.createdAt) {
+      let isoStr = post.createdAt;
+      if (!isoStr.includes('T') && isoStr.includes(' ')) isoStr = isoStr.replace(' ', 'T');
+      if (!isoStr.endsWith('Z')) isoStr += 'Z';
+      const postDate = new Date(isoStr);
+      const diffMs = Date.now() - postDate.getTime();
+      hoursPassed = Math.max(diffMs / (1000 * 60 * 60), 1); // Minimum 1 hour to prevent infinity
+    }
+    
+    // Gravity formula (HackerNews inspired): (Points * Rate) / (Age ^ Gravity)
+    const gravity = 1.5;
+    return (basePoints * Math.max(engagementRate, 0.1)) / Math.pow(hoursPassed, gravity);
+  }
+
+  private applySort(): void {
+    if (this.sortMode === 'popular') {
+      this.displayFeed = [...this.feed].sort((a, b) => {
+        return this.calculatePopularityScore(b) - this.calculatePopularityScore(a);
+      });
+    } else {
+      // 'latest' keeps the backend order (already newest-first)
+      this.displayFeed = [...this.feed];
+    }
   }
 
   deletePost(post: ExplorePost) {
     this.exploreService.deletePost(post.id).subscribe({
       next: () => {
         this.feed = this.feed.filter(p => p.id !== post.id);
+        this.applySort();
         this.cdr.detectChanges();
       },
       error: (err) => {

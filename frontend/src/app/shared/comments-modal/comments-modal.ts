@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ReportButtonComponent } from '../report-button/report-button';
 import { BottomSheet } from '../bottom-sheet/bottom-sheet';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-comments-modal',
@@ -36,7 +36,8 @@ export class CommentsModalComponent implements OnInit {
     public authService: AuthService,
     private commentService: CommentService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private transloco: TranslocoService
   ) {}
 
   ngOnInit() {
@@ -69,18 +70,28 @@ export class CommentsModalComponent implements OnInit {
           profilePhoto: raw(c, 'profilePhoto'),
           text: raw(c, 'content') || '',
           cleanText: raw(c, 'content') || '',
-          timeAgo: this.formatTimeAgo(raw(c, 'created_at')),
+          timeAgo: this.formatTimeAgo(raw(c, 'createdAt') || raw(c, 'created_at')),
           parentCommentId: raw(c, 'parentCommentId') ? Number(raw(c, 'parentCommentId')) : null,
           replyTargetUserId: undefined as number | undefined,
           replyTargetUsername: undefined as string | undefined,
           replies: [] as any[]
         }));
 
+        // Guard against the backend returning the same comment twice (e.g. a
+        // reply echoed both nested and flat), which otherwise renders as a
+        // duplicate — one proper, one broken at the top.
+        const seenIds = new Set<number>();
+        const uniqueMapped = allMapped.filter(c => {
+          if (seenIds.has(c.id)) return false;
+          seenIds.add(c.id);
+          return true;
+        });
+
         const parentMap = new Map();
-        allMapped.forEach(c => parentMap.set(c.id, c));
+        uniqueMapped.forEach(c => parentMap.set(c.id, c));
 
         const topLevel: any[] = [];
-        allMapped.forEach(c => {
+        uniqueMapped.forEach(c => {
           if (c.parentCommentId) {
             const parent = parentMap.get(c.parentCommentId);
             if (parent) {
@@ -121,27 +132,27 @@ export class CommentsModalComponent implements OnInit {
   }
 
   formatTimeAgo(dateString: string | null | undefined): string {
-    if (!dateString) return 'Just now';
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Just now';
+    const justNow = this.transloco.translate('time.justNow');
+    if (!dateString) return justNow;
 
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    const intervals = {
-      year: 31536000,
-      month: 2592000,
-      week: 604800,
-      day: 86400,
-      hour: 3600,
-      minute: 60,
-    };
+    // Backend sends a zoneless LocalDateTime; treat it as UTC.
+    let s = String(dateString).replace(' ', 'T');
+    if (!/[zZ]|[+\-]\d{2}:\d{2}$/.test(s)) s += 'Z';
+    const date = new Date(s);
+    if (isNaN(date.getTime())) return justNow;
 
-    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-      const interval = Math.floor(seconds / secondsInUnit);
-      if (interval >= 1) {
-        return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
-      }
-    }
-    return 'Just now';
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return justNow;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return this.transloco.translate('time.minutesAgo', { count: minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return this.transloco.translate('time.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 30) return this.transloco.translate('time.daysAgo', { count: days });
+    const months = Math.floor(days / 30);
+    if (months < 12) return this.transloco.translate('time.monthsAgo', { count: months });
+    const years = Math.floor(days / 365);
+    return this.transloco.translate('time.yearsAgo', { count: years });
   }
 
   closeComments() {
@@ -196,7 +207,7 @@ export class CommentsModalComponent implements OnInit {
         profilePhoto: currentUserPhoto,
         text: content,
         cleanText: cleanText,
-        timeAgo: 'Just now',
+        timeAgo: this.transloco.translate('time.justNow'),
         parentCommentId: parentId,
         replyTargetUserId: replyTargetUserId,
         replyTargetUsername: replyTargetUsername,

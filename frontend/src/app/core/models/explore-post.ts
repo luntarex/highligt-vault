@@ -8,6 +8,7 @@ export interface ExplorePost {
   likes: number;
   comments: number;
   views?: number;
+  favorites?: number;
   isLiked: boolean;
   timeAgo?: string;
   createdAt?: string;

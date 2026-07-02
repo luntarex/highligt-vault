@@ -10,4 +10,196 @@
   height: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.route-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 769px) {
+  .mobile-top-bar,
+  .left-drawer-scrim,
+  .left-drawer {
+    display: none !important;
+  }
+}
+
+/* Mobile global top bar and flex layout logic */
+@media (max-width: 768px) {
+  /* When the top bar is present, the layout becomes a flex column */
+  .main-content.has-mobile-header {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-top-bar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 48px;
+    padding: 0 12px;
+    background-color: var(--surface-app);
+    border-bottom: 1px solid var(--border-strong);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .mobile-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-strong);
+    padding: 6px;
+    margin-left: -6px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu-btn:active {
+    background-color: var(--surface-hover);
+  }
+
+  .mobile-logo-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 1px 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-logo-link:hover {
+    border-color: var(--brand);
+    background-color: rgba(var(--brand-rgb), 0.08);
+    box-shadow: 0 0 15px rgba(var(--brand-rgb), 0.1);
+  }
+
+  .mobile-logo-title {
+    color: var(--text-strong);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    padding: 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+
+
+  /* ── Left Drawer ── */
+  .left-drawer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1200;
+    animation: scrimFadeIn 0.2s ease;
+  }
+
+  @keyframes scrimFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .left-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(82vw, 330px);
+    background: var(--surface-1);
+    border-right: 1px solid var(--border-strong);
+    z-index: 1300;
+    padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    box-shadow: 14px 0 44px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .left-drawer.open {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px 14px;
+  }
+
+  .drawer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--brand);
+  }
+
+  .drawer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .drawer-username {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-strong);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .drawer-divider {
+    height: 1px;
+    background-color: var(--border-strong);
+    margin: 6px 0;
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 18px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .drawer-item:hover,
+  .drawer-item:active {
+    background-color: var(--overlay-hover);
+    color: var(--text-strong);
+  }
+
+  .drawer-item svg {
+    flex-shrink: 0;
+    opacity: 0.8;
+    color: currentColor;
+  }
 }

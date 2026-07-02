@@ -3,7 +3,7 @@
    Controls sit on top of dark video, so force light-on-dark.
    ============================================================ */
 :host {
-  --rail-gap: 22px;
+  --rail-gap: 18px;
   --nav-clear: 64px; /* clear the fixed bottom mobile-nav */
 }
 
@@ -59,6 +59,94 @@
   height: 44px;
 }
 
+/* ─── Top-right controls: mute + overflow ─── */
+.reel-top {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 4;
+}
+
+.top-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.top-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ─── Overflow (⋯) menu ─── */
+.reel-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+}
+
+.reel-menu {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 58px);
+  right: 12px;
+  z-index: 6;
+  min-width: 200px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface-1, #242526);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-strong, #fff);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.menu-item:hover {
+  background: var(--surface-2, rgba(255, 255, 255, 0.08));
+}
+
+.menu-item.active {
+  color: var(--brand-soft, #c084fc);
+}
+
+.menu-item.danger {
+  color: var(--danger, #ef4444);
+}
+
+.menu-item.danger:hover {
+  background: rgba(var(--danger-rgb, 239, 68, 68), 0.12);
+}
+
 /* ─── Right action rail ─── */
 .reel-rail {
   position: absolute;
@@ -72,8 +160,8 @@
 }
 
 .rail-avatar {
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid #fff;
@@ -82,6 +170,8 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
+  /* Slightly separate the identity avatar from the action cluster below it. */
+  margin-bottom: 2px;
 }
 
 .rail-avatar img {
@@ -93,42 +183,31 @@
 .rail-avatar-fallback {
   color: #fff;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .rail-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: none;
   border: none;
   padding: 0;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
 }
 
 .rail-btn svg {
-  width: 33px;
-  height: 33px;
+  width: 24px;
+  height: 24px;
 }
 
 .rail-btn.active {
   color: var(--brand-soft, #c084fc);
-}
-
-.rail-btn.rail-delete {
-  color: var(--danger, #ef4444);
-}
-
-/* The report-button renders its own trigger; just align it in the rail. */
-.rail-report {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ─── Bottom-left caption ─── */

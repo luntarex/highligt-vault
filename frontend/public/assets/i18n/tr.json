@@ -2,6 +2,8 @@
   "sidebar": {
     "toggle": "Kenar Çubuğunu Aç/Kapat",
     "feed": "Akış",
+    "create": "Oluştur",
+    "profile": "Profil",
     "explore": "Keşfet",
     "communities": "Topluluklar",
     "library": "Kitaplık",
@@ -329,9 +331,16 @@
     "loading": "Topluluklar yükleniyor..."
   },
   "explore": {
-    "empty": "Henüz gönderi yok. Bir klip paylaşan ilk kişi ol!"
+    "empty": "Henüz gönderi yok. Bir klip paylaşan ilk kişi ol!",
+    "title": "Keşfet",
+    "subtitle": "Her oyundan en iyi klipleri keşfet",
+    "searchPlaceholder": "Klip, içerik üretici veya oyun ara",
+    "allGames": "Tümü",
+    "noResults": "Aramanla eşleşen klip yok."
   },
   "feed": {
+    "sortLatest": "En Yeni",
+    "sortPopular": "Popüler",
     "title": "Akışın",
     "subtitle": "Takip ettiğin kişilerden en yeni klipler",
     "emptyTitle": "Akışın boş",
@@ -351,7 +360,9 @@
     "deletePost": "Gönderiyi Sil",
     "fullscreen": "Tam Ekran",
     "clipTarget": "klibi",
-    "postTarget": "gönderiyi"
+    "postTarget": "gönderiyi",
+    "favorite": "Favorilere ekle",
+    "favorited": "Favorilerde"
   },
   "messages": {
     "title": "Mesajlar",
@@ -441,6 +452,7 @@
     "justNow": "Az önce"
   },
   "time": {
+    "justNow": "Az önce",
     "secondsAgo": "{{count}} sn önce",
     "minutesAgo": "{{count}} dk önce",
     "hoursAgo": "{{count}} sa önce",

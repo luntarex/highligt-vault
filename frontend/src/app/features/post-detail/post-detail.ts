@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Comment } from '../../core/models/comment';
 import { ExplorePost } from '../../core/models/explore-post';
 import { AuthService } from '../../core/services/auth.service';
 import { CommentService } from '../../core/services/comment.service';
@@ -12,11 +11,14 @@ import { ToastService } from '../../core/services/toast.service';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { extractId, buildSlugId } from '../../core/utils/slug.util';
+import { VideoPlayerComponent } from '../../shared/video-player/video-player';
+import { SharePanelComponent } from '../../shared/share-panel/share-panel';
+import { BottomSheet } from '../../shared/bottom-sheet/bottom-sheet';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ReportButtonComponent, TranslocoModule],
+  imports: [CommonModule, FormsModule, RouterLink, ReportButtonComponent, TranslocoModule, VideoPlayerComponent, SharePanelComponent, BottomSheet],
   templateUrl: './post-detail.html',
   styleUrls: ['./post-detail.css']
 })
@@ -27,16 +29,20 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   @Output() closed = new EventEmitter<void>();
 
   post: ExplorePost | null = null;
-  comments: Comment[] = [];
+  comments: any[] = [];
   newCommentText = '';
-  replyingToComment: Comment | null = null;
+  replyingToComment: any | null = null;
   currentUserPhoto = '';
   isLoading = true;
   commentsLoading = false;
+  isSharePanelOpen = false;
+  isMobile = false;
+  editingCommentId: number | null = null;
+  editingCommentText = '';
   private viewRecorded = false;
   private viewTimer: number | null = null;
 
-  @ViewChild('videoPlayer') videoRef?: ElementRef<HTMLVideoElement>;
+  // Video playback is handled by AppVideoPlayer
 
   constructor(
     private route: ActivatedRoute,
@@ -50,7 +56,13 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     private transloco: TranslocoService
   ) {}
 
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isMobile = window.matchMedia('(max-width: 768px)').matches;
+  }
+
   ngOnInit(): void {
+    this.isMobile = window.matchMedia('(max-width: 768px)').matches;
     this.currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
     if (this.postId) {
       this.loadPost(String(this.postId));
@@ -74,7 +86,6 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.videoRef?.nativeElement.pause();
     this.onVideoPause();
   }
 
@@ -118,10 +129,10 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
   loadComments(postId: string): void {
     this.commentsLoading = true;
     this.commentService.getCommentsByPostId(postId).subscribe({
-      next: comments => {
-        this.comments = comments || [];
+      next: (comments: any[]) => {
+        this.comments = this.buildCommentTree(comments || []);
         if (this.post) {
-          this.post.comments = this.comments.length;
+          this.post.comments = this.countComments(this.comments);
         }
         this.commentsLoading = false;
         this.cdr.detectChanges();
@@ -133,6 +144,58 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  /**
+   * Flatten the backend's comment list into a two-level tree: top-level
+   * comments, each with a flat `replies` array (replies to replies are
+   * hoisted under their root). Deduplicates by id so a comment can never
+   * render both at top level and nested.
+   */
+  private buildCommentTree(data: any[]): any[] {
+    const mapped = data.map(c => ({
+      ...c,
+      cleanText: c.cleanText || c.content || '',
+      timeAgo: c.timeAgo || this.formatCommentTime(c.createdAt),
+      parentCommentId: c.parentCommentId ? Number(c.parentCommentId) : null,
+      replyTargetUsername: undefined as string | undefined,
+      replies: [] as any[]
+    }));
+
+    const byId = new Map<number, any>();
+    mapped.forEach(c => byId.set(Number(c.id), c));
+
+    const topLevel: any[] = [];
+    const placed = new Set<number>();
+
+    mapped.forEach(c => {
+      if (placed.has(Number(c.id))) return;
+      placed.add(Number(c.id));
+
+      const parent = c.parentCommentId ? byId.get(c.parentCommentId) : null;
+      if (!parent) {
+        topLevel.push(c);
+        return;
+      }
+
+      // Walk up to the root so every reply sits under a top-level comment.
+      let root = parent;
+      while (root.parentCommentId && byId.has(root.parentCommentId)) {
+        root = byId.get(root.parentCommentId);
+      }
+      const tag = `@${parent.username} `;
+      if (typeof c.content === 'string' && c.content.startsWith(tag)) {
+        c.cleanText = c.content.substring(tag.length);
+      }
+      c.replyTargetUsername = parent.username;
+      root.replies.push(c);
+    });
+
+    return topLevel;
+  }
+
+  private countComments(tree: any[]): number {
+    return tree.reduce((total, c) => total + 1 + (c.replies?.length || 0), 0);
   }
 
   togglePostLike(): void {
@@ -165,27 +228,152 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  toggleFavorite(): void {
+    if (!this.post || !this.post.clipId) return;
+
+    const userId = this.authService.getCurrentUserId();
+    const clipId = String(this.post.clipId);
+    const wasFav = !!this.post.isFavorited;
+    this.post.isFavorited = !wasFav;
+
+    const req = wasFav
+      ? this.exploreService.unfavoriteClip(clipId, userId)
+      : this.exploreService.favoriteClip(clipId, userId);
+    req.subscribe({
+      error: () => {
+        if (this.post) this.post.isFavorited = wasFav;
+        this.toast.error('Could not update favorite.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleShare(event: Event): void {
+    event.stopPropagation();
+    this.isSharePanelOpen = !this.isSharePanelOpen;
+  }
+
+  startEditingComment(comment: any): void {
+    this.editingCommentId = comment.id;
+    this.editingCommentText = comment.content || comment.cleanText || '';
+  }
+
+  cancelEditingComment(): void {
+    this.editingCommentId = null;
+    this.editingCommentText = '';
+  }
+
+  saveComment(comment: any): void {
+    const text = this.editingCommentText.trim();
+    if (!text) return;
+
+    this.commentService.updateComment(comment.id, text).subscribe({
+      next: () => {
+        comment.content = text;
+        comment.cleanText = text;
+        // Keep the reply badge separate from the visible text.
+        if (comment.replyTargetUsername) {
+          const tag = `@${comment.replyTargetUsername} `;
+          if (text.startsWith(tag)) comment.cleanText = text.substring(tag.length);
+        }
+        this.editingCommentId = null;
+        this.editingCommentText = '';
+        this.cdr.detectChanges();
+      },
+      error: () => this.toast.error('Could not update comment.')
+    });
+  }
+
   postComment(): void {
     if (!this.post || !this.newCommentText.trim()) return;
 
     const content = this.newCommentText.trim();
-    const parentCommentId = this.replyingToComment?.id;
-    this.commentService.addComment(
-      this.post.id,
-      this.authService.getCurrentUserId(),
+    const parent = this.replyingToComment;
+    const parentCommentId = parent?.id;
+    const userId = this.authService.getCurrentUserId();
+
+    // Strip the "@username " prefix so it isn't shown twice next to the badge.
+    let cleanText = content;
+    if (parent) {
+      const prefix = `@${parent.username}`;
+      if (cleanText.startsWith(prefix)) cleanText = cleanText.slice(prefix.length).trim();
+    }
+
+    // Show the comment instantly, then persist it in the background.
+    const optimistic: any = {
+      id: -Date.now(),
+      postId: this.post.id,
+      parentCommentId,
+      userId,
       content,
-      parentCommentId
-    ).subscribe({
-      next: () => {
-        this.newCommentText = '';
-        this.replyingToComment = null;
-        this.loadComments(this.post!.id);
+      cleanText,
+      timeAgo: this.transloco.translate('time.justNow'),
+      username: localStorage.getItem('username') || '',
+      profilePhoto: this.currentUserPhoto,
+      replyTargetUsername: parent?.username,
+      replies: []
+    };
+
+    // Replies nest under their root comment; top-level comments go to the top.
+    const root = parent ? this.findRootComment(parent.id) : null;
+    if (root) {
+      root.replies = [...root.replies, optimistic];
+    } else {
+      this.comments = [optimistic, ...this.comments];
+    }
+    this.post.comments = this.countComments(this.comments);
+    this.newCommentText = '';
+    this.replyingToComment = null;
+
+    this.commentService.addComment(this.post.id, userId, content, parentCommentId).subscribe({
+      next: (saved: any) => {
+        // Reconcile the temporary row with the server's real id/timeAgo.
+        if (saved && saved.id != null) {
+          const target = this.findCommentById(optimistic.id);
+          if (target) {
+            target.id = saved.id;
+            target.timeAgo = saved.timeAgo ?? target.timeAgo;
+            this.comments = [...this.comments];
+            this.cdr.detectChanges();
+          }
+        }
       },
-      error: () => this.toast.error('Could not post comment.')
+      error: () => {
+        // Roll back the optimistic row and restore the draft.
+        this.removeCommentFromTree(optimistic.id);
+        if (this.post) this.post.comments = this.countComments(this.comments);
+        this.newCommentText = content;
+        this.replyingToComment = parent;
+        this.toast.error('Could not post comment.');
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  setReplyTo(comment: Comment): void {
+  private findRootComment(id: number): any | null {
+    for (const c of this.comments) {
+      if (c.id === id) return c;
+      if (c.replies?.some((r: any) => r.id === id)) return c;
+    }
+    return null;
+  }
+
+  private findCommentById(id: number): any | null {
+    for (const c of this.comments) {
+      if (c.id === id) return c;
+      const reply = c.replies?.find((r: any) => r.id === id);
+      if (reply) return reply;
+    }
+    return null;
+  }
+
+  private removeCommentFromTree(id: number): void {
+    this.comments = this.comments
+      .filter(c => c.id !== id)
+      .map(c => ({ ...c, replies: (c.replies || []).filter((r: any) => r.id !== id) }));
+  }
+
+  setReplyTo(comment: any): void {
     this.replyingToComment = comment;
     this.newCommentText = `@${comment.username} `;
   }
@@ -195,15 +383,19 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     this.newCommentText = '';
   }
 
-  deleteComment(comment: Comment): void {
+  deleteComment(comment: any): void {
     if (!this.post) return;
     this.commentService.removeComment(comment.id).subscribe({
-      next: () => this.loadComments(this.post!.id),
+      next: () => {
+        this.removeCommentFromTree(comment.id);
+        if (this.post) this.post.comments = this.countComments(this.comments);
+        this.cdr.detectChanges();
+      },
       error: () => this.toast.error('Could not delete comment.')
     });
   }
 
-  canEditComment(comment: Comment): boolean {
+  canEditComment(comment: any): boolean {
     return comment.userId === this.authService.getCurrentUserId() || this.authService.isAdmin();
   }
 
@@ -257,18 +449,6 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     return post?.communityName || this.transloco.translate('communities.community');
   }
 
-  onTogglePlay(event?: Event): void {
-    event?.stopPropagation();
-    const video = this.videoRef?.nativeElement;
-    if (!video) return;
-
-    if (video.paused) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
-  }
-
   onVideoPlay(): void {
     if (this.viewRecorded || !this.post?.clipId || this.viewTimer !== null) return;
     const clipId = Number(this.post.clipId);
@@ -295,70 +475,27 @@ export class PostDetail implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  onToggleMute(event: Event): void {
-    event.stopPropagation();
-    const video = this.videoRef?.nativeElement;
-    if (!video) return;
-    video.muted = !video.muted;
-  }
+  /** Translated relative time for comments (backend sends a zoneless createdAt). */
+  formatCommentTime(dateInput: string | undefined): string {
+    const justNow = this.transloco.translate('time.justNow');
+    if (!dateInput) return justNow;
 
-  onVolumeChange(event: Event): void {
-    event.stopPropagation();
-    const video = this.videoRef?.nativeElement;
-    const input = event.target as HTMLInputElement;
-    if (!video) return;
+    let s = String(dateInput).replace(' ', 'T');
+    if (!/[zZ]|[+\-]\d{2}:\d{2}$/.test(s)) s += 'Z';
+    const date = new Date(s);
+    if (isNaN(date.getTime())) return justNow;
 
-    video.volume = Number(input.value);
-    video.muted = video.volume === 0;
-  }
-
-  onSeekTo(event: MouseEvent): void {
-    event.stopPropagation();
-    if (!this.videoRef || !this.post) return;
-
-    const video = this.videoRef.nativeElement;
-    const progressContainer = event.currentTarget as HTMLElement;
-    const rect = progressContainer.getBoundingClientRect();
-    const clickRatio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    const start = this.post.startTime || 0;
-    const end = this.post.endTime || this.post.duration || video.duration || 1;
-    const newTime = start + clickRatio * (end - start);
-
-    video.currentTime = newTime;
-    this.post.currentTime = newTime;
-  }
-
-  onMetadataLoaded(): void {
-    if (!this.videoRef || !this.post) return;
-
-    const video = this.videoRef.nativeElement;
-    video.currentTime = this.post.startTime || 0;
-    this.post.duration = video.duration;
-    video.play().catch(() => {});
-  }
-
-  onTimeUpdate(): void {
-    if (!this.videoRef || !this.post) return;
-
-    const video = this.videoRef.nativeElement;
-    this.post.currentTime = video.currentTime;
-    const start = this.post.startTime || 0;
-    let end = this.post.endTime;
-    if (end === undefined || end === null || end === 0) {
-      end = video.duration && !isNaN(video.duration) ? video.duration : Number.MAX_VALUE;
-    }
-
-    if ((end - start) > 0.1 && video.currentTime >= end) {
-      video.currentTime = start;
-      video.play().catch(() => {});
-    }
-  }
-
-  formatTime(seconds: number | undefined): string {
-    if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return justNow;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return this.transloco.translate('time.minutesAgo', { count: minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return this.transloco.translate('time.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 30) return this.transloco.translate('time.daysAgo', { count: days });
+    const months = Math.floor(days / 30);
+    if (months < 12) return this.transloco.translate('time.monthsAgo', { count: months });
+    return this.transloco.translate('time.yearsAgo', { count: Math.floor(days / 365) });
   }
 
   formatTimeAgo(dateInput: Date | string | undefined): string {

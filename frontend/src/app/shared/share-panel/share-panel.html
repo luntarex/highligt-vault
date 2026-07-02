@@ -1,74 +1,105 @@
 <div class="share-panel" (click)="$event.stopPropagation()" *transloco="let t">
   <div class="share-panel-header">
     <strong>{{ t('share.sharePost') }}</strong>
-    <button type="button" (click)="closePanel($event)">x</button>
+    <button type="button" class="share-close" (click)="closePanel($event)" [attr.aria-label]="t('common.cancel')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 
-  <div class="share-copy-box">
-    <div class="share-url-preview">
-      <span>{{ shareUrl }}</span>
+  <div class="share-section">
+    <span class="share-section-label">{{ t('share.linkLabel') }}</span>
+    <div class="share-copy-box">
+      <div class="share-url-preview">
+        <span>{{ shareUrl }}</span>
+      </div>
+      <button type="button" (click)="copyPostLink($event)">{{ t('share.copy') }}</button>
     </div>
-    <button type="button" (click)="copyPostLink($event)">{{ t('share.copy') }}</button>
   </div>
 
-  <div class="share-target-grid">
-    <button type="button" class="share-target whatsapp" (click)="openShareTarget($event, 'whatsapp')">
-      <span>
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M16.02 4.2A11.7 11.7 0 0 0 5.9 21.75L4.2 27.8l6.2-1.63A11.7 11.7 0 1 0 16.02 4.2Zm0 21.43c-1.95 0-3.77-.57-5.3-1.56l-.38-.24-3.67.96.98-3.58-.25-.37a9.7 9.7 0 1 1 8.62 4.79Zm5.33-7.27c-.29-.15-1.73-.85-2-.95-.27-.1-.47-.15-.67.15-.2.29-.77.95-.94 1.15-.17.2-.35.22-.64.07-.29-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.64-2.03-.17-.29-.02-.45.13-.6.13-.13.29-.35.44-.52.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.29-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.73-.71 1.98-1.39.24-.68.24-1.27.17-1.39-.07-.12-.27-.2-.56-.35Z"></path>
-        </svg>
-      </span>
-      WhatsApp
-    </button>
-    <button type="button" class="share-target x" (click)="openShareTarget($event, 'x')">
-      <span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M18.24 2H21.6l-7.34 8.39L22.9 22h-6.77l-5.3-6.93L4.77 22H1.4l7.85-8.97L.96 2h6.94l4.79 6.33L18.24 2Zm-1.18 17.95h1.86L6.88 3.94h-2L17.06 19.95Z"></path>
-        </svg>
-      </span>
-      X
-    </button>
-    <button type="button" class="share-target facebook" (click)="openShareTarget($event, 'facebook')">
-      <span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M14.2 8.38V6.83c0-.75.5-.93.85-.93h2.17V2.17L14.23 2.16c-3.32 0-4.07 2.49-4.07 4.08v2.14H7.44v3.85h2.72V22h4.04v-9.77h3.43l.16-1.51.25-2.34H14.2Z"></path>
-        </svg>
-      </span>
-      Facebook
-    </button>
-    <button type="button" class="share-target email" (click)="openShareTarget($event, 'email')">
-      <span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 2v.28l8 5.15 8-5.15V7H4Zm0 2.66V17h16V9.66l-7.46 4.8a1 1 0 0 1-1.08 0L4 9.66Z"></path>
-        </svg>
-      </span>
-      Email
-    </button>
-  </div>
-
-  <div class="share-section-label">{{ t('share.sendInMessages') }}</div>
-  <div class="share-message-box">
-    <label [for]="'share-message-' + post.id">{{ t('share.message') }}</label>
-    <textarea
-      [id]="'share-message-' + post.id"
-      [(ngModel)]="shareMessage"
-      maxlength="180"
-      rows="2"
-      [placeholder]="t('share.addMessage')"></textarea>
-  </div>
-  @if (isLoadingShareUsers) {
-    <p class="share-empty">{{ t('share.loadingPeople') }}</p>
-  } @else if (shareUsers.length > 0) {
-    <div class="share-user-list">
-      @for (user of shareUsers; track user.id) {
-        <button type="button" class="share-user-row" (click)="sendPostToUser($event, user)">
-          <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
-          <span>{{ user.username }}</span>
-          <small>{{ isSendingTo(user) ? t('share.sending') : t('share.send') }}</small>
-        </button>
-      }
+  <div class="share-section">
+    <span class="share-section-label">{{ t('share.viaLabel') }}</span>
+    <div class="share-target-grid">
+      <button type="button" class="share-target whatsapp" (click)="openShareTarget($event, 'whatsapp')">
+        <span>
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16.02 4.2A11.7 11.7 0 0 0 5.9 21.75L4.2 27.8l6.2-1.63A11.7 11.7 0 1 0 16.02 4.2Zm0 21.43c-1.95 0-3.77-.57-5.3-1.56l-.38-.24-3.67.96.98-3.58-.25-.37a9.7 9.7 0 1 1 8.62 4.79Zm5.33-7.27c-.29-.15-1.73-.85-2-.95-.27-.1-.47-.15-.67.15-.2.29-.77.95-.94 1.15-.17.2-.35.22-.64.07-.29-.15-1.24-.46-2.36-1.46-.87-.78-1.46-1.74-1.64-2.03-.17-.29-.02-.45.13-.6.13-.13.29-.35.44-.52.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.29-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.73-.71 1.98-1.39.24-.68.24-1.27.17-1.39-.07-.12-.27-.2-.56-.35Z"></path>
+          </svg>
+        </span>
+        WhatsApp
+      </button>
+      <button type="button" class="share-target x" (click)="openShareTarget($event, 'x')">
+        <span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18.24 2H21.6l-7.34 8.39L22.9 22h-6.77l-5.3-6.93L4.77 22H1.4l7.85-8.97L.96 2h6.94l4.79 6.33L18.24 2Zm-1.18 17.95h1.86L6.88 3.94h-2L17.06 19.95Z"></path>
+          </svg>
+        </span>
+        X
+      </button>
+      <button type="button" class="share-target facebook" (click)="openShareTarget($event, 'facebook')">
+        <span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14.2 8.38V6.83c0-.75.5-.93.85-.93h2.17V2.17L14.23 2.16c-3.32 0-4.07 2.49-4.07 4.08v2.14H7.44v3.85h2.72V22h4.04v-9.77h3.43l.16-1.51.25-2.34H14.2Z"></path>
+          </svg>
+        </span>
+        Facebook
+      </button>
+      <button type="button" class="share-target email" (click)="openShareTarget($event, 'email')">
+        <span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 2v.28l8 5.15 8-5.15V7H4Zm0 2.66V17h16V9.66l-7.46 4.8a1 1 0 0 1-1.08 0L4 9.66Z"></path>
+          </svg>
+        </span>
+        Email
+      </button>
     </div>
-  } @else {
-    <p class="share-empty">{{ t('share.followToSend') }}</p>
-  }
+  </div>
+
+  <div class="share-section">
+    <span class="share-section-label">{{ t('share.sendInMessages') }}</span>
+    @if (isLoadingShareUsers) {
+      <p class="share-empty">{{ t('share.loadingPeople') }}</p>
+    } @else if (shareUsers.length > 0) {
+      <div class="share-user-list">
+        @for (user of shareUsers; track user.id) {
+          <div class="share-user" [class.selected]="isShareUserSelected(user)">
+            <button type="button" class="share-user-row" (click)="selectShareUser(user)">
+              <img [src]="user.profilePhotoUrl || 'assets/icons/default-avatar.png'" alt="">
+              <span>{{ user.username }}</span>
+              <svg class="share-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+            @if (isShareUserSelected(user)) {
+              <div class="share-compose">
+                <input
+                  type="text"
+                  class="share-compose-input"
+                  [(ngModel)]="shareMessage"
+                  maxlength="180"
+                  [placeholder]="t('share.addMessage')"
+                  (keyup.enter)="sendPostToUser($event, user)">
+                <button
+                  type="button"
+                  class="share-send-btn"
+                  (click)="sendPostToUser($event, user)"
+                  [disabled]="isSendingTo(user)"
+                  [title]="t('share.send')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="share-empty">{{ t('share.followToSend') }}</p>
+    }
+  </div>
 </div>

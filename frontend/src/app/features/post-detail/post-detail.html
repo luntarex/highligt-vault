@@ -2,7 +2,12 @@
   <div class="post-backdrop"></div>
 
   <div class="post-detail-wrapper animate-in" [class.text-post-wrapper]="!!post && isTextPost()">
-    <button class="post-close" type="button" (click)="closePost()">x</button>
+    <button class="post-close" type="button" (click)="closePost()" title="Kapat">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
 
     @if (isLoading) {
       <div class="loading-state">
@@ -12,66 +17,30 @@
     } @else if (post) {
       <div class="post-detail-layout" [class.text-layout]="isTextPost()">
         @if (!isTextPost()) {
-          <div class="video-side" [class.image-side]="isImagePost()" (click)="isVideoPost() && onTogglePlay($event)">
+          <div class="video-side" [class.image-side]="isImagePost()">
+            @if (isVideoPost()) {
+              <div class="video-view-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>{{ post.views || 0 }}</span>
+              </div>
+            }
+            @if (post.game) {
+              <span class="video-game-badge">{{ post.game }}</span>
+            }
             @if (isImagePost()) {
               <img class="detailed-image" [src]="post.videoUrl" [alt]="post.title || 'Shared community post'">
             } @else {
-              <video
-                #videoPlayer
+              <app-video-player
                 [src]="post.videoUrl"
-                autoplay
-                muted
-                playsinline
-                class="detailed-video"
-                (play)="onVideoPlay()"
-                (pause)="onVideoPause()"
-                (timeupdate)="onTimeUpdate()"
-                (loadedmetadata)="onMetadataLoaded()">
-              </video>
-
-              <div class="fullscreen-hud" (click)="$event.stopPropagation()">
-                <div class="hud-bottom">
-                  <div class="hud-progress-container" (click)="onSeekTo($event)">
-                    <div
-                      class="hud-progress-bar"
-                      [style.width.%]="((post.currentTime || 0) - (post.startTime || 0)) / ((post.endTime || post.duration || 1) - (post.startTime || 0)) * 100">
-                    </div>
-                  </div>
-
-                  <div class="hud-controls">
-                    <button class="hud-play-btn" type="button" (click)="onTogglePlay($event)">
-                      @if (videoPlayer.paused) {
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                      } @else {
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                      }
-                    </button>
-
-                    <div class="hud-time">
-                      {{ formatTime((post.currentTime || 0) - (post.startTime || 0)) }} /
-                      {{ formatTime((post.endTime || post.duration || 0) - (post.startTime || 0)) }}
-                    </div>
-
-                    <div class="hud-volume-control">
-                      <button class="hud-mute-btn" type="button" (click)="onToggleMute($event)">
-                        @if (videoPlayer.muted || videoPlayer.volume === 0) {
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                        } @else {
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                        }
-                      </button>
-                      <input
-                        type="range"
-                        class="hud-volume-slider"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        [value]="videoPlayer.muted ? 0 : videoPlayer.volume"
-                        (input)="onVolumeChange($event)">
-                    </div>
-                  </div>
-                </div>
-              </div>
+                [showFullscreenBtn]="false"
+                [muted]="false"
+                [startTime]="post.startTime || 0"
+                [endTime]="post.endTime || 0"
+                [authorUsername]="post.author.username"
+                [postTitle]="post.title"
+                (playEvent)="onVideoPlay()"
+                (pauseEvent)="onVideoPause()">
+              </app-video-player>
             }
           </div>
         }
@@ -90,9 +59,6 @@
           <div class="clip-description">
             <h1>{{ post.title }}</h1>
             <div class="post-detail-meta-stack">
-              @if (post.game) {
-                <span class="post-detail-game-badge">{{ post.game }}</span>
-              }
               @if (hasCommunityLink()) {
                 <a class="post-detail-community-pill" [routerLink]="['/communities', buildSlugId(post.communityName, post.communityId!)]">{{ communityLabel() }}</a>
               }
@@ -145,19 +111,26 @@
 
           <div class="social-action-bar">
             <button class="social-act-btn" [class.active]="post.isLiked" type="button" (click)="togglePostLike()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" [attr.fill]="post.isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <svg viewBox="0 0 24 24" [attr.fill]="post.isLiked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               <span>{{ post.likes }}</span>
             </button>
             <button class="social-act-btn" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"></path></svg>
               <span>{{ post.comments }}</span>
             </button>
-            @if (isVideoPost()) {
-              <span class="social-act-btn views-stat">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                <span>{{ post.views || 0 }}</span>
-              </span>
+            @if (post.clipId) {
+              <button class="social-act-btn" [class.favorited]="post.isFavorited" type="button" (click)="toggleFavorite()">
+                <svg viewBox="0 0 24 24" [attr.fill]="post.isFavorited ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              </button>
             }
+            <div class="share-action-wrapper">
+              <button class="social-act-btn" type="button" (click)="toggleShare($event)" [title]="t('share.sharePost')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              </button>
+              @if (isSharePanelOpen && !isMobile) {
+                <app-share-panel [post]="post" (closed)="isSharePanelOpen = false"></app-share-panel>
+              }
+            </div>
             <app-report-button
               *ngIf="post.author.id !== authService.getCurrentUserId()"
               [targetType]="'POST'"
@@ -181,14 +154,23 @@
                         <span class="comment-user">{{ comment.username }}</span>
                         <span class="comment-time">{{ comment.timeAgo }}</span>
                       </div>
-                      <p class="comment-text">
-                        @if (comment.replyTargetUsername) {
-                          <span class="reply-target">@{{ comment.replyTargetUsername }} </span>
-                        }
-                        {{ comment.cleanText || comment.content }}
-                      </p>
+                      @if (editingCommentId === comment.id) {
+                        <div class="edit-comment-area">
+                          <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(comment)" (keyup.escape)="cancelEditingComment()">
+                          <button type="button" class="save-comment-btn" (click)="saveComment(comment)">{{ t('common.save') }}</button>
+                        </div>
+                      } @else {
+                        <p class="comment-text">
+                          @if (comment.replyTargetUsername) {
+                            <span class="reply-target">@{{ comment.replyTargetUsername }} </span>
+                          }
+                          {{ comment.cleanText || comment.content }}
+                        </p>
+                      }
                       <div class="comment-actions">
-                        <button type="button" class="reply-btn" (click)="setReplyTo(comment)">{{ t('commentsModal.reply') }}</button>
+                        <button type="button" class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(comment)" [title]="t('commentsModal.reply')">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                        </button>
                         <app-report-button
                           *ngIf="comment.userId !== authService.getCurrentUserId()"
                           [targetType]="'COMMENT'"
@@ -198,11 +180,66 @@
                           [compact]="true">
                         </app-report-button>
                         @if (canEditComment(comment)) {
-                          <button type="button" class="delete-btn" (click)="deleteComment(comment)">{{ t('commentsModal.delete') }}</button>
+                          <button type="button" class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(comment)" [title]="t('commentsModal.edit')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
+                          <button type="button" class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(comment)" [title]="t('commentsModal.delete')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
                         }
                       </div>
                     </div>
                   </div>
+
+                  @if (comment.replies && comment.replies.length > 0) {
+                    <div class="comment-replies">
+                      @for (reply of comment.replies; track reply.id) {
+                        <div class="comment-item reply-item">
+                          <img [src]="reply.profilePhoto || 'assets/icons/default-avatar.png'" alt="">
+                          <div class="comment-content">
+                            <div class="comment-header">
+                              <span class="comment-user">{{ reply.username }}</span>
+                              <span class="comment-time">{{ reply.timeAgo }}</span>
+                            </div>
+                            @if (editingCommentId === reply.id) {
+                              <div class="edit-comment-area">
+                                <input type="text" class="edit-comment-input" [(ngModel)]="editingCommentText" (keyup.enter)="saveComment(reply)" (keyup.escape)="cancelEditingComment()">
+                                <button type="button" class="save-comment-btn" (click)="saveComment(reply)">{{ t('common.save') }}</button>
+                              </div>
+                            } @else {
+                              <p class="comment-text">
+                                @if (reply.replyTargetUsername) {
+                                  <span class="reply-target">@{{ reply.replyTargetUsername }} </span>
+                                }
+                                {{ reply.cleanText || reply.content }}
+                              </p>
+                            }
+                            <div class="comment-actions">
+                              <button type="button" class="cmnt-icon-btn reply-msg-btn" (click)="setReplyTo(reply)" [title]="t('commentsModal.reply')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                              </button>
+                              <app-report-button
+                                *ngIf="reply.userId !== authService.getCurrentUserId()"
+                                [targetType]="'COMMENT'"
+                                [targetId]="reply.id"
+                                [targetLabel]="t('report.commentTarget')"
+                                [label]="t('report.report')"
+                                [compact]="true">
+                              </app-report-button>
+                              @if (canEditComment(reply)) {
+                                <button type="button" class="cmnt-icon-btn edit-msg-btn" (click)="startEditingComment(reply)" [title]="t('commentsModal.edit')">
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button type="button" class="cmnt-icon-btn del-msg-btn" (click)="deleteComment(reply)" [title]="t('commentsModal.delete')">
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
                 } @empty {
                   <p class="comments-empty">{{ t('commentsModal.empty') }}</p>
                 }
@@ -237,4 +274,11 @@
       </section>
     }
   </div>
+
+  <!-- Mobile: share opens as a bottom sheet instead of the cramped popover -->
+  @if (post && isSharePanelOpen && isMobile) {
+    <app-bottom-sheet [zIndex]="1100" [maxWidth]="420" (closed)="isSharePanelOpen = false">
+      <app-share-panel [post]="post" [embedded]="true" (closed)="isSharePanelOpen = false"></app-share-panel>
+    </app-bottom-sheet>
+  }
 </div>

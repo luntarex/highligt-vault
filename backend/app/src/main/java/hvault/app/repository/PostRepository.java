@@ -26,7 +26,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                g.name AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
-               COUNT(DISTINCT cm.id) AS comments
+               COUNT(DISTINCT cm.id) AS comments,
+               (SELECT COUNT(*) FROM user_favorites uf WHERE uf.clip_id = c.id) AS favorites
         FROM posts p
         JOIN clips c ON p.clip_id = c.id
         JOIN users u ON p.user_id = u.id
@@ -67,7 +68,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                COALESCE(g.name, cg.name) AS gameName,
                u.id AS authorId, u.username AS authorName, u.profile_photo_url AS authorPhoto,
                COUNT(DISTINCT pl.user_id) AS likes,
-               COUNT(DISTINCT cm.id) AS comments
+               COUNT(DISTINCT cm.id) AS comments,
+               (SELECT COUNT(*) FROM user_favorites uf WHERE uf.clip_id = c.id) AS favorites
         FROM posts p
         LEFT JOIN clips c ON p.clip_id = c.id
         LEFT JOIN communities cg ON p.community_id = cg.id

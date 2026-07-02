@@ -9,11 +9,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'add-post/:id',
-    loadComponent: () => import('./features/add-post/add-post').then(m => m.AddPostPage),
-    canActivate: [AuthGuard]
-  },
-  {
     path: 'library',
     loadComponent: () => import('./features/library/library').then(m => m.Library),
     canActivate: [AuthGuard]

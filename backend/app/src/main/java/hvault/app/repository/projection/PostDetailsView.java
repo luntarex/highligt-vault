@@ -23,4 +23,5 @@ public interface PostDetailsView {
     Long getViews();
     Long getOriginalPostId();
     String getRepostType();
+    Long getFavorites();
 }

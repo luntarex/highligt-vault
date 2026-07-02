@@ -56,6 +56,10 @@ export class ProfileDropdown implements OnInit {
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
   }
 
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
   setLanguage(lang: AppLanguage): void {
     this.languageService.setUiLanguage(lang);
   }

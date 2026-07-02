@@ -7,7 +7,7 @@
 .post-detail-page {
   position: fixed;
   inset: 0;
-  z-index: 900;
+  z-index: 1500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,13 +26,18 @@
 
 .post-detail-wrapper {
   position: relative;
-  width: min(92vw, 1180px);
-  height: min(86vh, 780px);
+  width: fit-content;
+  max-width: 95vw;
+  height: fit-content;
+  max-height: min(86vh, 780px);
+  min-height: 400px;
   background: var(--surface-app);
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.62);
+  display: flex;
+  flex-direction: column;
 }
 
 .post-detail-wrapper.text-post-wrapper {
@@ -50,34 +55,52 @@
 
 .post-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 16px;
+  right: 16px;
   z-index: 20;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 50%;
-  background: var(--overlay-hover-strong);
-  color: var(--text-strong);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
   cursor: pointer;
-  font-size: 18px;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.post-close svg {
+  width: 22px;
+  height: 22px;
 }
 
 .post-close:hover {
-  background: var(--overlay-hover-strong);
-  transform: rotate(90deg);
+  background: rgba(0, 0, 0, 0.65);
+  transform: scale(1.05);
+}
+
+.post-close:active {
+  transform: scale(0.95);
 }
 
 .post-detail-layout {
   display: flex;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .video-side {
-  flex: 1.45;
+  flex: 0 1 auto;
   min-width: 0;
+  min-height: 0;
+  width: auto;
+  height: auto;
+  max-width: calc(95vw - 386px);
+  max-height: min(86vh, 780px);
   background: #000;
   display: flex;
   align-items: center;
@@ -91,149 +114,108 @@
 }
 
 .detailed-video {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
 .detailed-image {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
-.fullscreen-hud {
+.video-side app-video-player {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Override inner video player styles to shrink-wrap the video and avoid black bars */
+.video-side ::ng-deep .video-container {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.video-side ::ng-deep .post-video {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+}
+
+/* HUD-style overlays on the clip: views top-left, game bottom-right */
+.video-view-badge,
+.video-game-badge {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 30px 20px 20px;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, transparent 100%);
-  opacity: 0;
-  pointer-events: auto;
-  transition: opacity 0.25s ease;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 24px);
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
 }
 
-.video-side:hover .fullscreen-hud {
-  opacity: 1;
+.video-view-badge {
+  top: 12px;
+  left: 12px;
 }
 
-.hud-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.video-view-badge svg {
+  width: 15px;
+  height: 15px;
 }
 
-.hud-progress-container {
-  width: 100%;
-  height: 6px;
-  margin-bottom: 10px;
+.video-game-badge {
+  right: 12px;
+  bottom: 12px;
   overflow: hidden;
-  background: var(--overlay-hover-strong);
-  border-radius: 999px;
-  cursor: pointer;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.hud-progress-bar {
-  height: 100%;
-  width: 0;
-  background: var(--accent-purple);
-  box-shadow: 0 0 14px var(--accent-purple);
-}
-
-.hud-progress-container:hover {
-  height: 8px;
-}
-
-.hud-controls {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.hud-play-btn,
-.hud-mute-btn {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--text-strong);
-  cursor: pointer;
-}
-
-.hud-play-btn svg {
-  width: 32px;
-  height: 32px;
-}
-
-.hud-mute-btn svg {
-  width: 24px;
-  height: 24px;
-}
-
-.hud-play-btn:hover,
-.hud-mute-btn:hover {
-  color: var(--accent-purple);
-  transform: scale(1.08);
-}
-
-.hud-time {
-  margin-right: auto;
-  color: var(--text-strong);
-  font-family: 'Space Mono', monospace;
-  font-size: 14px;
-}
-
-.hud-volume-control {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hud-volume-slider {
-  width: 0;
-  height: 4px;
-  opacity: 0;
-  outline: none;
-  cursor: pointer;
-  border-radius: 999px;
-  background: var(--overlay-hover-strong);
-  transition: all 0.25s ease;
-  -webkit-appearance: none;
-}
-
-.hud-volume-control:hover .hud-volume-slider {
-  width: 100px;
-  opacity: 1;
-}
-
-.hud-volume-slider::-webkit-slider-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--accent-purple);
-  cursor: pointer;
-  box-shadow: 0 0 10px var(--accent-purple);
-  -webkit-appearance: none;
-}
+/* Custom Fullscreen HUD is now handled by AppVideoPlayer */
 
 .social-side {
-  flex: 0.8;
-  min-width: 386px;
+  flex: 0 0 386px;
+  width: 386px;
   background: var(--surface-app);
   border-left: 1px solid var(--overlay-hover-strong);
   display: flex;
   flex-direction: column;
+  height: 0;
+  min-height: 100%;
 }
 
 .text-layout .social-side {
   flex: 1;
   min-width: 0;
+  width: auto;
   border-left: 0;
+  height: auto;
+  min-height: 0;
 }
 
 .social-header {
@@ -504,6 +486,33 @@
   color: var(--danger);
 }
 
+.social-act-btn.favorited {
+  color: var(--brand);
+}
+
+.social-act-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.share-action-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Override share panel position for post detail so it doesn't fly off to the top-left */
+.share-action-wrapper ::ng-deep .share-panel {
+  right: -10px; /* Slightly offset so it looks centered under the button while staying within the 386px container */
+  left: auto;
+  bottom: auto;
+  top: calc(100% + 10px);
+  z-index: 100;
+  transform-origin: top right;
+}
+
+
+
 .comments-section {
   flex: 1;
   min-height: 0;
@@ -540,6 +549,20 @@
 .comment-item img {
   width: 32px;
   height: 32px;
+}
+
+.comment-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 4px 0 0 44px;
+  padding-left: 12px;
+  border-left: 2px solid var(--overlay-hover-strong);
+}
+
+.reply-item img {
+  width: 26px;
+  height: 26px;
 }
 
 .comment-content {
@@ -580,20 +603,67 @@
 
 .comment-actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 6px;
 }
 
-.comment-actions button {
+.cmnt-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
   border: none;
+  border-radius: 6px;
   background: none;
-  color: var(--text-muted);
+  color: var(--text-strong);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
-.comment-actions button:hover {
-  color: var(--text-secondary);
+.cmnt-icon-btn:hover {
+  opacity: 1;
+  background: var(--overlay-hover-strong);
+}
+
+.del-msg-btn:hover {
+  color: var(--danger);
+  background: rgba(var(--danger-rgb), 0.1);
+}
+
+.cmnt-icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.edit-comment-area {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.edit-comment-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--brand-rgb), 0.55);
+  border-radius: 8px;
+  outline: none;
+  background: var(--surface-1);
+  color: var(--text-strong);
+  font-size: 13px;
+}
+
+.save-comment-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  background: rgba(var(--brand-rgb), 0.16);
+  color: var(--accent-cyan);
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .comments-empty {
@@ -712,10 +782,16 @@
 }
 
 @media (max-width: 980px) {
+  /* Full-height column: video fixed on top, comments scroll, composer pinned */
   .post-detail-wrapper {
     width: 100%;
+    max-width: 100%;
     height: 100%;
+    height: 100dvh;
+    max-height: none;
+    min-height: 0;
     border-radius: 0;
+    overflow: hidden;
   }
 
   .post-detail-wrapper.text-post-wrapper {
@@ -724,58 +800,78 @@
 
   .post-detail-layout {
     flex-direction: column;
+    height: 100%;
   }
 
   .video-side {
-    max-height: 52vh;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    aspect-ratio: 16/9;
     flex: none;
   }
 
+  .video-side app-video-player {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+  }
+
+  /* Takes the remaining height; comments-scroll (flex:1) handles overflow
+     and comment-input-box (flex-shrink:0) stays pinned at the bottom. */
   .social-side {
     min-width: 100%;
-    flex: 1;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    border-left: 0;
   }
 }
 
 @media (max-width: 768px) {
+  /* Give breathing room at the top so it doesn't stick to the status bar */
   .post-detail-page {
-    padding: 0;
+    padding: env(safe-area-inset-top, 20px) 0 0 0;
+    align-items: flex-start;
   }
 
-  .video-side {
-    max-height: 42vh;
+  .post-detail-wrapper {
+    /* Fill the remaining height down to the absolute bottom */
+    height: calc(100dvh - env(safe-area-inset-top, 20px));
+    border-radius: 20px 20px 0 0;
   }
 
-  .social-header,
+  /* Breathing room between the video and the author header */
+  .social-header {
+    padding: 24px 12px 14px;
+  }
+
   .clip-description {
-    padding: 14px 16px;
+    padding: 10px 12px;
   }
 
   .author-info img {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .clip-description h1 {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
 
   .social-action-bar {
-    gap: 16px;
-    padding: 0 16px 14px;
+    gap: 12px;
+    padding: 0 12px 10px;
   }
 
   .comments-scroll {
-    padding: 16px;
-    gap: 16px;
+    padding: 12px;
+    gap: 12px;
   }
 
   .comment-input-box {
-    padding: 12px 16px;
-  }
-
-  /* Mobile video HUD is always visible since there is no hover */
-  .fullscreen-hud {
-    opacity: 1;
+    padding: 12px;
   }
 }

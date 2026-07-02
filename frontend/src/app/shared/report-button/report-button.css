@@ -82,6 +82,27 @@
   transform: none;
 }
 
+/* Mobile reels action rail: a borderless white glyph matching the other
+   rail buttons (sits on top of dark video). */
+:host-context(.reel-rail) .report-trigger,
+:host-context(.reel-rail) .report-trigger.compact {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #fff;
+  border-radius: 4px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+  transform: none;
+}
+
+:host-context(.reel-rail) .report-trigger:hover {
+  background: none;
+  color: #fff;
+  transform: none;
+}
+
 .report-trigger:hover {
   background: rgba(var(--danger-rgb), 0.16);
   border-color: rgba(var(--danger-rgb), 0.55);
@@ -156,6 +177,12 @@
   width: 16px;
   height: 16px;
   stroke-width: 1.8;
+}
+
+:host-context(.reel-rail) .report-trigger svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.6;
 }
 
 .sr-only {

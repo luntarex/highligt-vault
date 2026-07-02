@@ -1,148 +1,275 @@
-/* Hidden on desktop, shown only on mobile via the media query below. */
+/* mobile-nav.css */
 .mobile-nav {
   display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--surface-1);
+  border-top: 1px solid var(--border-strong);
+  z-index: 1000;
+  align-items: center;
+  justify-content: space-around;
+  padding-inline: 4px;
 }
 
 @media (max-width: 768px) {
   .mobile-nav {
     display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    background-color: var(--surface-app);
-    border-top: 1px solid var(--border-strong);
-    z-index: 200;
-    justify-content: space-around;
-    align-items: stretch;
-  }
-
-  .mobile-nav-link {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    text-decoration: none;
-    color: var(--text-secondary);
-    transition: color 0.2s ease;
-    min-width: 0;
-  }
-
-  .mobile-nav-link.active {
-    color: var(--brand);
-  }
-
-  .mobile-nav-icon {
-    width: 22px;
-    height: 22px;
-    filter: invert(0.6);
-  }
-
-  .mobile-nav-link.active .mobile-nav-icon {
-    filter: invert(0.6) sepia(1) saturate(4) hue-rotate(230deg);
-  }
-
-  .mobile-nav-label {
-    font-size: 0.62rem;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  /* The profile dropdown renders its own avatar button; just center it. */
-  .mobile-nav-profile {
-    gap: 0;
-  }
-
-  /* Admin group: a nav slot that opens an upward popup with the two
-     management destinations (Admin panel / Moderation). */
-  .mobile-nav-admin {
-    position: relative;
-  }
-
-  .mobile-nav-admin-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    background: none;
-    border: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .mobile-nav-admin-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .mobile-nav-admin.active {
-    color: var(--brand);
-  }
-
-  .mobile-admin-popup {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    right: 0;
-    min-width: 200px;
-    background: var(--surface-app);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    padding: 6px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    z-index: 210;
-    animation: adminPopIn 0.16s ease-out;
-  }
-
-  @keyframes adminPopIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .mobile-admin-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    color: var(--text-strong);
-    text-decoration: none;
-    font-size: 0.92rem;
-    font-weight: 500;
-  }
-
-  .mobile-admin-item svg {
-    flex-shrink: 0;
-    color: var(--brand);
-  }
-
-  .mobile-admin-item:hover,
-  .mobile-admin-item.active {
-    background: var(--overlay-hover-strong);
-    color: var(--text-strong);
   }
 }
 
-/* Light mode: source SVG icons are black; reduce the invert so inactive
-   icons stay dark. The active filter already tints to brand purple. */
-:host-context([data-theme="light"]) .mobile-nav-icon {
-  filter: invert(0);
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  flex: 1;
+  height: 60px;
+  gap: 4px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
 }
 
-:host-context([data-theme="light"]) .mobile-nav-link.active .mobile-nav-icon {
-  filter: invert(0.6) sepia(1) saturate(4) hue-rotate(230deg);
+.nav-item:hover, .nav-item.active {
+  color: var(--text-strong);
+}
+
+.nav-icon {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-item:active .nav-icon {
+  transform: scale(0.9);
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Create Button */
+.create-btn {
+  transform: translateY(-8px);
+}
+
+.create-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px var(--brand-alpha);
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 2px;
+}
+
+.create-btn:hover .create-icon-wrapper {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--brand-alpha);
+}
+
+.create-btn:active .create-icon-wrapper {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Profile Tab */
+.profile-tab {
+  position: relative;
+}
+
+.nav-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-tab.active .nav-avatar {
+  border-color: var(--text-strong);
+}
+
+/* ── Bottom Sheet ── */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1200;
+  animation: scrimFade 0.2s ease;
+}
+
+@keyframes scrimFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nav-profile-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface-1);
+  border-radius: 20px 20px 0 0;
+  z-index: 1300;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+  padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.nav-profile-bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.sheet-handle-wrapper {
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: 2px;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px 20px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.sheet-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--brand);
+}
+
+.sheet-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheet-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-username {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.sheet-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+}
+
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  color: var(--text-strong);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.sheet-item:active, .sheet-item:hover {
+  background-color: var(--overlay-hover);
+}
+
+.sheet-item svg {
+  color: var(--text-secondary);
+}
+
+.sheet-preferences {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+  margin: 4px 0;
+}
+
+.pref-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: none;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.lang-selector {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 16px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.logout-item {
+  color: var(--danger, #ff4444);
+}
+.logout-item svg {
+  color: currentColor;
 }

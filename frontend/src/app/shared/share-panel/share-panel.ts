@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExplorePost } from '../../core/models/explore-post';
@@ -20,11 +20,15 @@ export class SharePanelComponent implements OnInit {
   @Input() post!: ExplorePost;
   @Output() closed = new EventEmitter<void>();
 
+  /** When embedded in a container (e.g. a bottom sheet) drop the popover chrome. */
+  @Input() @HostBinding('class.embedded') embedded = false;
+
   shareUrl = '';
   shareUsers: any[] = [];
   shareMessage = '';
   isLoadingShareUsers = false;
   sendingToUserId: number | null = null;
+  selectedShareUserId: number | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -60,15 +64,43 @@ export class SharePanelComponent implements OnInit {
     return this.sendingToUserId !== null && this.sendingToUserId === Number(user.id);
   }
 
-  sendPostToUser(event: MouseEvent, user: any) {
+  selectShareUser(user: any) {
+    const id = Number(user.id);
+    this.selectedShareUserId = this.selectedShareUserId === id ? null : id;
+    this.shareMessage = '';
+  }
+
+  isShareUserSelected(user: any): boolean {
+    return this.selectedShareUserId === Number(user.id);
+  }
+
+  sendPostToUser(event: Event, user: any) {
     event.stopPropagation();
     if (!this.post) return;
     this.sendingToUserId = Number(user.id);
-    const message = this.shareMessage.trim() || 'Shared a post';
-    this.messageService.sendPost(user.id, this.post.id, message).subscribe({
+    const extraMessage = this.shareMessage.trim();
+    const currentUserId = this.authService.getCurrentUserId();
+
+    // Always send the post with the default content.
+    this.messageService.sendPost(user.id, this.post.id, 'Shared a post').subscribe({
       next: () => {
-        this.toast.success(`Sent to ${user.username}.`);
-        this.resetSharePanelAfterSend();
+        // If the user typed an additional message, send it as a separate text message.
+        if (extraMessage) {
+          this.messageService.sendMessage(currentUserId, Number(user.id), extraMessage).subscribe({
+            next: () => {
+              this.toast.success(`Sent to ${user.username}.`);
+              this.resetSharePanelAfterSend();
+            },
+            error: () => {
+              // Post was sent but the extra message failed – still consider it a partial success.
+              this.toast.success(`Sent to ${user.username}.`);
+              this.resetSharePanelAfterSend();
+            }
+          });
+        } else {
+          this.toast.success(`Sent to ${user.username}.`);
+          this.resetSharePanelAfterSend();
+        }
       },
       error: (err: any) => {
         console.error('Send message error:', err);
@@ -88,6 +120,7 @@ export class SharePanelComponent implements OnInit {
   private resetSharePanelAfterSend() {
     this.sendingToUserId = null;
     this.shareMessage = '';
+    this.selectedShareUserId = null;
     this.closePanel(new MouseEvent('click'));
   }
 

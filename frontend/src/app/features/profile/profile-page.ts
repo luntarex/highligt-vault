@@ -8,18 +8,16 @@ import { ProfileService } from '../../core/services/profile.service';
 import { CustomUpload } from '../../shared/custom-upload/custom-upload';
 import { AuthService } from '../../core/services/auth.service';
 import { ExploreService } from '../../core/services/explore.service';
-import { CommentService } from '../../core/services/comment.service';
-import { ExplorePost } from '../../core/models/explore-post';
-import { Comment } from '../../core/models/comment';
 import { ActivatedRoute, RouterModule, RouterLink, Router } from '@angular/router';
 import { ReportButtonComponent } from '../../shared/report-button/report-button';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { isNumericId, buildSlugId } from '../../core/utils/slug.util';
+import { PostDetail } from '../post-detail/post-detail';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [BackLink, NgClass, CommonModule,RouterModule, RouterLink, FormsModule, ReportButtonComponent, TranslocoModule],
+  imports: [BackLink, NgClass, CommonModule,RouterModule, RouterLink, FormsModule, ReportButtonComponent, TranslocoModule, PostDetail],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.css',
 })
@@ -40,14 +38,9 @@ export class ProfilePage implements OnInit {
   modalLoading: boolean = false;
   showUserListModal: boolean = false;
 
-  // Clip Detail Modal State
-  showClipModal: boolean = false;
-  activePost: ExplorePost | null = null;
-  comments: Comment[] = [];
-  newCommentText: string = '';
-  replyingToComment: Comment | null = null;
+  // Clip Detail State — the shared post-detail component renders the modal
+  selectedPostDetailId: string | number | null = null;
   clipModalLoading: boolean = false;
-  currentUserPhoto: string = '';
 
   @ViewChild('videoPlayer') videoRef?: ElementRef<HTMLVideoElement>;
 
@@ -58,12 +51,10 @@ export class ProfilePage implements OnInit {
     private router: Router,
     public authService: AuthService,
     private exploreService: ExploreService,
-    private commentService: CommentService,
     private transloco: TranslocoService
   ) { }
 
   ngOnInit(): void {
-    this.currentUserPhoto = localStorage.getItem('profile_photo_url') || '';
     this.route.paramMap.subscribe((params) => {
       const param = params.get('id');
 
@@ -275,16 +266,15 @@ export class ProfilePage implements OnInit {
   // Clip Detail Modal Actions
   openClipDetailModal(clipId: number): void {
     const currentUserId = this.authService.getCurrentUserId();
-    this.showClipModal = true;
     this.clipModalLoading = true;
-    this.activePost = null;
-    this.comments = [];
+    this.selectedPostDetailId = null;
     this.cdr.detectChanges();
 
+    // Resolve the clip to its public post id, then let the shared
+    // post-detail component load and render everything (likes, comments, etc).
     this.exploreService.getPostByClipId(clipId, currentUserId).subscribe({
       next: (post) => {
-        this.activePost = post;
-        this.loadComments(post.id);
+        this.selectedPostDetailId = post.id;
         this.clipModalLoading = false;
         this.cdr.detectChanges();
       },
@@ -299,160 +289,9 @@ export class ProfilePage implements OnInit {
   }
 
   closeClipModal(): void {
-    this.showClipModal = false;
-    this.activePost = null;
-    this.comments = [];
-    this.newCommentText = '';
-    this.replyingToComment = null;
+    this.selectedPostDetailId = null;
+    this.clipModalLoading = false;
   }
 
-  loadComments(postId: string): void {
-    this.commentService.getCommentsByPostId(postId).subscribe({
-      next: (comments) => {
-        this.comments = comments;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  togglePostLike(): void {
-    if (!this.activePost) return;
-    const currentUserId = this.authService.getCurrentUserId();
-
-    if (this.activePost.isLiked) {
-      this.exploreService.unlikePost(this.activePost.id, currentUserId).subscribe(() => {
-        this.activePost!.isLiked = false;
-        this.activePost!.likes--;
-        this.cdr.detectChanges();
-      });
-    } else {
-      this.exploreService.likePost(this.activePost.id, currentUserId).subscribe(() => {
-        this.activePost!.isLiked = true;
-        this.activePost!.likes++;
-        this.cdr.detectChanges();
-      });
-    }
-  }
-
-  postComment(): void {
-    if (!this.activePost || !this.newCommentText.trim()) return;
-    const currentUserId = this.authService.getCurrentUserId();
-
-    this.commentService.addComment(
-      this.activePost.id,
-      currentUserId,
-      this.newCommentText,
-      this.replyingToComment?.id
-    ).subscribe(() => {
-      this.newCommentText = '';
-      this.replyingToComment = null;
-      this.loadComments(this.activePost!.id);
-      this.activePost!.comments++;
-      this.cdr.detectChanges();
-    });
-  }
-
-  setReplyTo(comment: Comment): void {
-    this.replyingToComment = comment;
-  }
-
-  cancelReply(): void {
-    this.replyingToComment = null;
-  }
-
-  deleteComment(comment: Comment): void {
-    this.commentService.removeComment(comment.id).subscribe(() => {
-      this.loadComments(this.activePost!.id);
-      this.activePost!.comments--;
-      this.cdr.detectChanges();
-    });
-  }
-
-  canEditComment(comment: Comment): boolean {
-    const currentUserId = this.authService.getCurrentUserId();
-    return comment.userId === currentUserId || this.authService.isAdmin();
-  }
-
-  // HUD and Time Logic
-  onTogglePlay(): void {
-    if(!this.videoRef) return;
-    const video = this.videoRef.nativeElement;
-    if(video.paused) { video.play(); } else { video.pause(); }
-  }
-
-  onToggleMute(event: Event): void {
-     event.stopPropagation();
-     if(!this.videoRef) return;
-     this.videoRef.nativeElement.muted = !this.videoRef.nativeElement.muted;
-  }
-
-  onVolumeChange(event: Event): void {
-     event.stopPropagation();
-     if(!this.videoRef) return;
-     const input = event.target as HTMLInputElement;
-     const val = parseFloat(input.value);
-     this.videoRef.nativeElement.volume = val;
-
-     if (val > 0) {
-        this.videoRef.nativeElement.muted = false;
-     } else {
-        this.videoRef.nativeElement.muted = true;
-     }
-  }
-
-  onSeekTo(event: MouseEvent): void {
-     event.stopPropagation();
-     if(!this.videoRef || !this.activePost) return;
-     const progressContainer = (event.currentTarget as HTMLElement);
-     const rect = progressContainer.getBoundingClientRect();
-     const offsetX = event.clientX - rect.left;
-     const clickRatio = Math.max(0, Math.min(1, offsetX / rect.width));
-
-     const totalDuration = (this.activePost.endTime || this.activePost.duration || 1) - (this.activePost.startTime || 0);
-     const newTime = (this.activePost.startTime || 0) + (clickRatio * totalDuration);
-     this.activePost.currentTime = newTime;
-     this.videoRef.nativeElement.currentTime = newTime;
-  }
-
-  onMetadataLoaded(): void {
-    if(!this.videoRef || !this.activePost) return;
-    const video = this.videoRef.nativeElement;
-    // Jump to the start of the cut clip
-    video.currentTime = this.activePost.startTime || 0;
-    // Mute is often needed for reliable autoplay in modern browsers
-    video.muted = false;
-    video.play().catch(err => console.error("Autoplay blocked:", err));
-  }
-
-  onTimeUpdate(): void {
-      if(!this.videoRef || !this.activePost) return;
-      const video = this.videoRef.nativeElement;
-      this.activePost.currentTime = video.currentTime;
-
-      const endTime = this.activePost.endTime || this.activePost.duration || 0;
-      if (endTime > 0 && video.currentTime >= endTime) {
-         video.currentTime = this.activePost.startTime || 0;
-         video.play();
-      }
-  }
-
-  formatTime(seconds: number): string {
-    if (isNaN(seconds) || seconds < 0) return "0:00";
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  fixDate(val: any): Date {
-    if (!val) return new Date();
-    const jvmOffsetMs = 3 * 60 * 60 * 1000;
-    if (typeof val === 'number') return new Date(val + jvmOffsetMs);
-    let s = String(val);
-    if (/^\d+$/.test(s)) return new Date(Number(s) + jvmOffsetMs);
-    s = s.replace(' ', 'T');
-    if (s.endsWith('Z') || s.match(/[+\-]\d{2}:\d{2}$/)) {
-       return new Date(new Date(s).getTime() + jvmOffsetMs);
-    }
-    return new Date(s + 'Z');
-  }
+  // Video playback is handled by AppVideoPlayer
 }

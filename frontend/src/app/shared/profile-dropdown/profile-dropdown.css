@@ -157,18 +157,69 @@
   color: var(--text-strong);
 }
 
-/* On mobile the dropdown lives in the fixed bottom nav: shrink the avatar and
-   open the popup upward instead of downward. */
+/* Scrim only exists in the mobile drawer layout. */
+.profile-scrim {
+  display: none;
+}
+
+/* On mobile the menu becomes a full-height side drawer that slides in from the
+   right (the trigger lives in the bottom-right nav), with a dimming scrim. This
+   comfortably holds the relocated destinations without a cramped, tall popover. */
 @media (max-width: 768px) {
   .profile-nav {
     width: 30px;
     height: 30px;
   }
 
+  .profile-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1200;
+    animation: scrimIn 0.2s ease;
+  }
+
   .profile-popup {
-    top: auto;
-    bottom: calc(100% + 12px);
-    transform-origin: bottom right;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: min(82vw, 330px);
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+    border: none;
+    border-left: 1px solid var(--border-strong);
+    border-radius: 0;
+    box-shadow: -14px 0 44px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+    z-index: 1300;
+    transform-origin: right center;
+    animation: drawerIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes drawerIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+
+  @keyframes scrimIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Roomier touch rows in the drawer. */
+  .popup-item {
+    padding: 13px 18px;
+    font-size: 0.95rem;
+  }
+
+  .popup-header {
+    padding: 6px 18px 10px;
   }
 
   .popup-item-mobile-only {
